@@ -1,0 +1,22 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Client {
+    id: ID!
+    name: String!
+}
+
+input ClientInput {
+    name: String!
+}
+
+type Query {
+    listClients: [Client]
+    getClient(id: ID!): Client
+}
+
+type Mutation {
+    createClient(clientInput: ClientInput!): Client!
+}

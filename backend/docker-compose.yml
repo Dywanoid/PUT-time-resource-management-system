@@ -4,8 +4,21 @@ services:
     build: ./
     image: pracujta-api:latest
     volumes:
-      - ./app:/app
+      - .:/app
     ports:
       - "80:80"
     environment:
-      - FLASK_DEBUG=1
+      PORT: 80
+      DATABASE_URL: postgres://postgres:password@db/pracujta
+    depends_on:
+      - db
+    restart: on-failure
+  db:
+    image: library/postgres:13-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pracujta
