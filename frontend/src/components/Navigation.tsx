@@ -1,13 +1,13 @@
 import { Layout, Menu } from 'antd';
 import {Link} from 'react-router-dom';
 import pracujta from '../resources/pracujta.png';
-const { Header } = Layout;
+const { Header } = Layout; 
 
 export const Navigation = () => {
     return (
         <Header style={{ position: 'fixed', zIndex: 999, width: '100%' }}>
         <Link to="/">
-          <img className="logo" src={pracujta} alt="pracujta"/>
+          <img className="logo" src={pracujta} alt="pracujta" style={{height:'60px', width: '120px'}}/>
         </Link>
         <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']} className="buttons">
           <Menu.Item key="1">
