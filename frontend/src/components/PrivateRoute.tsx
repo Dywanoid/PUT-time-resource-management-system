@@ -2,7 +2,7 @@ import {useContext} from 'react';
 import { Redirect, Route} from 'react-router-dom';
 import {AuthenticationContext} from '../utils/auth';
 
-export const PrivateRoute = ({children, ...rest}) => {
+export const PrivateRoute = ({component, ...rest}) => {
     let auth = useContext(AuthenticationContext);
 
     return (
@@ -10,7 +10,7 @@ export const PrivateRoute = ({children, ...rest}) => {
         {...rest}
         render={({ location }) =>
           auth.user ? (
-            children()
+            component()
           ) : (
             <Redirect
               to={{

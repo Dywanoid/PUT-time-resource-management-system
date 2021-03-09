@@ -11,8 +11,8 @@ ReactDOM.render(
   <ProvideAuth>
     <Router>
       <Switch>
-        <PrivateRoute path='/calendar' children={CalendarView} />
-        <PrivateRoute path='/home' children={HomeView} />
+        <PrivateRoute path='/calendar' component={CalendarView} />
+        <PrivateRoute path='/home' component={HomeView} />
         <Route exact path='/' component={LoginView} />
       </Switch>
     </Router>
