@@ -1,10 +1,7 @@
-from flask import Flask, request
+import os
+
+from flask import Flask
 
 app = Flask(__name__)
-
-@app.route("/")
-def hello():
-    return "Hello World!"
-
-if __name__ == '__main__':
-    app.run()
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
