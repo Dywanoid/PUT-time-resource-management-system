@@ -2,11 +2,10 @@ import React from 'react';
 import { Form, Input, Button, Checkbox, Row, Col } from 'antd';
 import {Link} from 'react-router-dom';
 import 'antd/dist/antd.css';
-import './Login.css';
+import './LoginView.css';
 
-export default class Login extends React.Component{
 
-render() {
+export const LoginView = () => {
   return (
     <Row justify="center" align="middle" style={{minHeight: '100vh'}} className="login-background">
       <Col span={4} >
@@ -44,5 +43,4 @@ render() {
       </Col>
     </Row>
   );
-}
 }
