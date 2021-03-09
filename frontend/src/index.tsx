@@ -2,9 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 import './index.css';
-import {HomeView} from './views/HomeView';
-import {LoginView} from './views/LoginView';
-import {CalendarView} from './views/CalendarView';
+import {CalendarView, HomeView, LoginView} from './views/';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
