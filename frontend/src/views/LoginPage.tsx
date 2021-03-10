@@ -2,22 +2,29 @@ import React, {useContext, useState} from 'react';
 import {Form, Input, Button, Checkbox, Row, Col} from 'antd';
 import {Redirect, useHistory, useLocation} from 'react-router-dom';
 import 'antd/dist/antd.css';
-import './LoginView.css';
+import './LoginPage.css';
 import {AuthenticationContext} from '../utils/auth';
+import { useMount } from '../utils/hooks';
 
 
-export const LoginView = () => {
+export const LoginPage = () => {
+  const isMounted = useMount();
+
   const [shouldRedirect, setShouldRedirect] = useState<Boolean>(false);
   let auth = useContext(AuthenticationContext);
+
   let history = useHistory();
   let location = useLocation();
 
   let { from } = location.state || { from: { pathname: "/" } };
+
   const handleSubmit = ({username, password}) => {
     if(username === 'test' && password === 'test123') {
       auth.signin(() => {
         history.replace(from);
-        setShouldRedirect(true);
+        if(isMounted) {
+          setShouldRedirect(true);
+        }
       });
 
     }
