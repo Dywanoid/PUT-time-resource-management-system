@@ -2,15 +2,17 @@ import { useContext } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { AuthenticationContext } from '../utils/auth';
 
-export const PrivateRoute = ({component, ...rest}) => {
+export const PrivateRoute = ({component: Component, layout: Layout, ...rest}) => {
     let auth = useContext(AuthenticationContext);
 
     return (
       <Route
         {...rest}
-        render={({ location }) =>
+        render={({ location, props }) =>
           auth.user ? (
-            component()
+            <Layout>
+              <Component {...props} />
+            </Layout>
           ) : (
             <Redirect
               to={{
