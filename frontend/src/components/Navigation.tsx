@@ -1,15 +1,17 @@
 import { Layout, Menu } from 'antd';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import pracujta from '../resources/pracujta.png';
-const { Header } = Layout; 
+import '../css/Navigation.css';
+
+const { Header } = Layout;
 
 export const Navigation = () => {
     return (
-        <Header style={{ position: 'fixed', zIndex: 999, width: '100%' }}>
+        <Header className="header">
         <Link to="/">
-          <img className="logo" src={pracujta} alt="pracujta" style={{height:'60px', width: '120px'}}/>
+          <img className="logo" src={ pracujta } alt="pracujta"/>
         </Link>
-        <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']} className="buttons">
+        <Menu theme="dark" mode="horizontal" defaultSelectedKeys={ ['1'] } className="buttons">
           <Menu.Item key="1">
             <Link to="/home" className="nav-text">Logowanie czasu</Link>
           </Menu.Item>

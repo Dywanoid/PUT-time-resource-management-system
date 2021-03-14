@@ -1,8 +1,7 @@
 import React from 'react';
-import {Calendar } from 'antd';
+import { Calendar } from 'antd';
+import { View } from '../components';
 import 'antd/dist/antd.css';
-import './CalendarView.css';
-import { View} from '../components';
 
 export const CalendarView = () => {
   return (

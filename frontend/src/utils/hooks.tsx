@@ -1,7 +1,7 @@
-import {useRef, useEffect} from 'react';
+import { useRef, useEffect } from 'react';
 
 /**
- * 
+ *
  * @returns is component mounted
  */
 export const useMount = () => {
