@@ -1,15 +1,15 @@
 FROM python:3.8-alpine
 
 WORKDIR /app
+
+RUN apk add --no-cache postgresql-libs && \
+ apk add --no-cache --virtual .build-deps gcc g++ musl-dev postgresql-dev
+
 COPY ./requirements.txt .
 
-RUN \
- apk add --no-cache postgresql-libs && \
- apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
- python3 -m pip install -r requirements.txt --no-cache-dir && \
+RUN python3 -m pip install -r requirements.txt --no-cache-dir && \
  apk --purge del .build-deps
 
 COPY . .
-RUN chmod +x main.py
 
-CMD ["/bin/sh", "-c", "/app/main.py db upgrade && /app/main.py runserver"]
+CMD ["/bin/sh", "-c", "/app/entrypoint.sh"]

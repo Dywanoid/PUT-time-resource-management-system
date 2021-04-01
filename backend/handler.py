@@ -1,17 +1,18 @@
 from ariadne import graphql_sync
 from ariadne.constants import PLAYGROUND_HTML
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify
 from schema import schema
+from app import app, oidc
 
-graphql_bp = Blueprint('graphql_blueprint', __name__)
 
-
-@graphql_bp.route("/graphql", methods=["GET"])
+@app.route("/graphql", methods=["GET"])
+@oidc.require_login
 def graphql_playground():
     return PLAYGROUND_HTML, 200
 
 
-@graphql_bp.route("/graphql", methods=["POST"])
+@app.route("/graphql", methods=["POST"])
+@oidc.require_login
 def graphql_server():
     data = request.get_json()
 
