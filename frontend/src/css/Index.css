@@ -1,17 +1,23 @@
 .site-layout {
-  padding: 0 50px;
   margin-top: 64px;
 }
 
-.breadcrumb {
-  margin: 16px 0;
-}
-
 .site-layout-background {
-  padding: 24px;
   min-height: 380px;
 }
 
 .footer {
   text-align: center;
+}
+
+.site-layout .site-layout-background {
+  background: #fff;
+}
+
+.buttons {
+  text-align: center;
+  display:inline-block;
+  vertical-align:top;
+  padding: 0px;
+  margin: 0px;
 }

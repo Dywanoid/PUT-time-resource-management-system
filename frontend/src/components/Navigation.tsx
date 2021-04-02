@@ -1,4 +1,4 @@
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Button } from 'antd';
 import { Link } from 'react-router-dom';
 import pracujta from '../resources/pracujta.png';
 import '../css/Navigation.css';
@@ -8,9 +8,7 @@ const { Header } = Layout;
 export const Navigation = () => {
     return (
         <Header className="header">
-        <Link to="/">
-          <img className="logo" src={ pracujta } alt="pracujta"/>
-        </Link>
+        <img className="logo" src={ pracujta } alt="pracujta"/>
         <Menu theme="dark" mode="horizontal" defaultSelectedKeys={ ['1'] } className="buttons">
           <Menu.Item key="1">
             <Link to="/home" className="nav-text">Logowanie czasu</Link>
