@@ -12,6 +12,7 @@ import click
 @click.option("--keycloak-root-uri", required=True)
 @click.option("--keycloak-root-uri-external")
 def create_client_secrets(output_file, client_id, client_secret, realm, redirect_uri, keycloak_root_uri, keycloak_root_uri_external):
+    """Creates a JSON config file, that enables the app to connect to a keycloak instance using OIDC protocol"""
     client_secrets = {
         "web": {
             "client_id": client_id,
@@ -22,7 +23,6 @@ def create_client_secrets(output_file, client_id, client_secret, realm, redirect
             "token_introspection_uri": f"{keycloak_root_uri}/auth/realms/{realm}/protocol/openid-connect/token/introspect",
             "userinfo_uri": f"{keycloak_root_uri}/auth/realms/{realm}/protocol/openid-connect/userinfo", 
             "realm": f"{realm}",
-            "ssl-required": "none",
             "resource": client_id,
             "redirect_uris": [redirect_uri]
         }

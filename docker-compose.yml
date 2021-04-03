@@ -2,17 +2,17 @@ version: '3'
 services:
   app:
     build: ./
-    image: pracujta-api:latest
+    image: pracujta:latest
     ports:
       - 80:80
     volumes:
-      - .:/app
+      - ./backend:/app/backend
     environment:
       PORT: 80
       DATABASE_URL: postgres://postgres:password@db/pracujta
       SECRET_KEY: secret
       FLASK_DEBUG: 1
-      OIDC_CLIENT_ID: pracujta-api
+      OIDC_CLIENT_ID: pracujta
       OIDC_CLIENT_SECRET: 99188acf-689e-41e2-b949-b4c50c10233d
       OIDC_REALM: pracujta-realm
       OIDC_REDIRECT_URI: http://localhost/*
@@ -26,17 +26,17 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+      - ./backend/docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
   auth:
-    build: ./keycloak
+    build: ./backend/keycloak
     image: pracujta-keycloak:latest
     ports:
       - 8080:8080
     volumes:
-      - ./keycloak/realm-export.json:/tmp/realm-export.json
+      - ./backend/keycloak/realm-export.json:/tmp/realm-export.json
     environment:
       PORT: 8080
       DATABASE_URL: postgres://postgres:password@db:5432/keycloak
