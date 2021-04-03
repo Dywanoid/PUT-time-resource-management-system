@@ -3,7 +3,7 @@ import { Redirect, Route } from 'react-router-dom';
 import { Layout } from 'antd';
 import { AuthenticationContext } from '../utils/auth';
 import { Navigation } from './Navigation';
-import '../css/Index.css';
+import '../css/PrivateRoute.css';
 
 const { Content, Footer } = Layout;
 
