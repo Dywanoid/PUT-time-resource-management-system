@@ -20,7 +20,7 @@ const columns = [
       dataIndex: 'time',
     }
   ];
-  
+
   const data = [
     {
       key: '1',
@@ -73,4 +73,4 @@ const columns = [
     }
   ];
 
-  export {columns, data}
+  export { columns, data }

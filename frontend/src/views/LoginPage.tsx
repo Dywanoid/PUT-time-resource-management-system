@@ -1,11 +1,10 @@
 import React, {useContext, useState} from 'react';
-import {Form, Input, Button, Checkbox, Row, Col} from 'antd';
-import {Redirect, useHistory, useLocation} from 'react-router-dom';
-import 'antd/dist/antd.css';
-import './LoginPage.css';
-import {AuthenticationContext} from '../utils/auth';
+import { Form, Input, Button, Checkbox, Row, Col } from 'antd';
+import { Redirect, useHistory, useLocation } from 'react-router-dom';
+import { AuthenticationContext } from '../utils/auth';
 import { useMount } from '../utils/hooks';
-
+import 'antd/dist/antd.css';
+import '../css/LoginPage.css';
 
 export const LoginPage = () => {
   const isMounted = useMount();
@@ -35,7 +34,7 @@ export const LoginPage = () => {
   }
 
   return (
-    <Row justify="center" align="middle" style={{minHeight: '100vh'}} className="login-background">
+    <Row justify="center" align="middle" className="login-background">
       <Col span={4} >
         <Form
           name="basic"

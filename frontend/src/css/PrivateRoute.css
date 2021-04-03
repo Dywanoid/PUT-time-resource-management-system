@@ -1,0 +1,23 @@
+.site-layout {
+  margin-top: 64px;
+}
+
+.site-layout-background {
+  min-height: 380px;
+}
+
+.footer {
+  text-align: center;
+}
+
+.site-layout .site-layout-background {
+  background: #fff;
+}
+
+.buttons {
+  text-align: center;
+  display:inline-block;
+  vertical-align:top;
+  padding: 0px;
+  margin: 0px;
+}
