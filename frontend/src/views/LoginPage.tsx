@@ -42,7 +42,6 @@ export const LoginPage: React.FC = ()  => {
         <Form
           name="basic"
           initialValues={{ remember: true }}
-          // eslint-disable-next-line react/jsx-no-bind
           onFinish={handleSubmit}
         >
           <Form.Item

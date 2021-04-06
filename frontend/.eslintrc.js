@@ -122,7 +122,6 @@ module.exports = {
     'react/jsx-curly-spacing': 0,
     'react/jsx-filename-extension': [1, { 'extensions': ['.js', '.jsx', '.tsx', '.ts'] }],
     'react/jsx-max-props-per-line': ['error', { 'maximum': 3, 'when': 'multiline' }],
-    'react/jsx-no-bind': 1,
     'react/jsx-one-expression-per-line': [1, { 'allow': 'single-child' }],
     'react/jsx-props-no-spreading': [1, { 'html': 'ignore' }],
     'react/jsx-space-before-closing': 0,

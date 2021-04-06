@@ -1,4 +1,4 @@
-import { useCallback, useContext } from 'react';
+import { useContext } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { Layout } from 'antd';
 import { AuthenticationContext } from '../utils/auth';
@@ -16,7 +16,7 @@ interface PrivateRouteProps {
 const PrivateRoute: React.FC<PrivateRouteProps> = ({component, path, exact}: PrivateRouteProps) => {
   const auth = useContext(AuthenticationContext);
 
-  const renderRoute = useCallback(({ location }) =>
+  const renderRoute = ({ location }) =>
     auth?.user
       ? (
         <Layout>
@@ -38,7 +38,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({component, path, exact}: Pri
             state: { from: location }
           }}
         />
-      ), [component, path, exact, auth]);
+      );
 
   return (
     <Route
