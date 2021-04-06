@@ -2,7 +2,7 @@ module.exports = {
   'env': {
     'browser': true,
     'es2021': true,
-    'node': true,
+    'node': true
   },
   'extends': [
     'eslint:recommended',
@@ -13,10 +13,10 @@ module.exports = {
   'parserOptions': {
     'ecmaFeatures': {
       'jsx': true,
-      'tsx': true,
+      'tsx': true
     },
     'ecmaVersion': 12,
-    'sourceType': 'module',
+    'sourceType': 'module'
   },
   'plugins': [
     'react',
@@ -27,15 +27,15 @@ module.exports = {
     'array-callback-return': 1,
     'arrow-body-style': ['error', 'as-needed', { 'requireReturnForObjectLiteral': true }],
     'arrow-parens': ['error', 'always'],
-    'comma-dangle': ['error', { 'arrays': 'never', 'objects': 'always-multiline' }],
+    'comma-dangle': ['error', { 'arrays': 'never', 'objects': 'never' }],
     'comma-style': [
       'error',
       'first',
       {
         'exceptions': {
           'ArrayExpression': true,
-          'ObjectExpression': true,
-        },
+          'ObjectExpression': true
+        }
       }
     ],
     'consistent-return': ['error', { 'treatUndefinedAsUnspecified': true }],
@@ -53,8 +53,8 @@ module.exports = {
         'VariableDeclarator': {
           'const': 3,
           'let': 2,
-          'var': 2,
-        },
+          'var': 2
+        }
       }
     ],
     'jsx-a11y/no-noninteractive-tabindex': 'off',
@@ -62,19 +62,20 @@ module.exports = {
     'linebreak-style': ['error', 'windows'],
     'max-len': [
       'error',
-      100,
+      120,
       {
-        'comments': 100,
+        'comments': 120,
         'ignoreStrings': false,
         'ignoreTemplateLiterals': false,
         'ignoreTrailingComments': false,
-        'ignoreUrls': true,
+        'ignoreUrls': true
       }
     ],
     'multiline-ternary': ['error', 'always-multiline'],
     'newline-before-return': 'error',
     'no-case-declarations': 'error',
     'no-empty': 'error',
+    'no-multiple-empty-lines': ['error', { 'max': 1, 'maxEOF': 1 }],
     'no-param-reassign': ['error', { 'props': false }],
     'no-plusplus': ['error', { 'allowForLoopAfterthoughts': true }],
     'no-restricted-syntax': 'off',
@@ -82,25 +83,23 @@ module.exports = {
     'no-trailing-spaces': 'error',
     'no-unneeded-ternary': 'error',
     'object-curly-newline': ['error', { 'multiline': true }],
-    'one-var': ['error', 'always'],
-    'one-var-declaration-per-line': ['error', 'always'],
     'operator-linebreak': ['error', 'before'],
     'padding-line-between-statements': [
       'error',
       {
         'blankLine': 'always',
         'next': '*',
-        'prev': ['const', 'let'],
+        'prev': ['const', 'let']
       },
       {
         'blankLine': 'any',
         'next': ['const', 'let'],
-        'prev': ['const', 'let'],
+        'prev': ['const', 'let']
       },
       {
         'blankLine': 'always',
         'next': 'return',
-        'prev': '*',
+        'prev': '*'
       }
     ],
     'prefer-destructuring': [
@@ -108,12 +107,12 @@ module.exports = {
       {
         'AssignmentExpression': {
           'array': false,
-          'object': false,
+          'object': false
         },
         'VariableDeclarator': {
           'array': false,
-          'object': true,
-        },
+          'object': true
+        }
       }
     ],
     'quotes': ['error', 'single'],
@@ -134,7 +133,7 @@ module.exports = {
         'arrow': true,
         'assignment': true,
         'declaration': true,
-        'return': true,
+        'return': true
       }
     ],
     'react/react-in-jsx-scope': 'off',
@@ -142,6 +141,6 @@ module.exports = {
     'sort-keys': ['error', 'asc', { 'caseSensitive': false, 'natural': true }],
     'sort-vars': ['error', { 'ignoreCase': true }],
     'template-curly-spacing': ['error', 'always'],
-    'vars-on-top': 'error',
-  },
+    'vars-on-top': 'error'
+  }
 };

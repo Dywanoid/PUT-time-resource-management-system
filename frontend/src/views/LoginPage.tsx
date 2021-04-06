@@ -1,32 +1,38 @@
 import React, {useContext, useState} from 'react';
 import { Form, Input, Button, Checkbox, Row, Col } from 'antd';
 import { Redirect, useHistory, useLocation } from 'react-router-dom';
-import { AuthenticationContext } from '../utils/auth';
+import { Auth, AuthenticationContext } from '../utils/auth';
 import { useMount } from '../utils/hooks';
 import 'antd/dist/antd.css';
 import '../css/LoginPage.css';
+interface LocationState {
+  from: {
+    pathname: string;
+  };
+}
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const LoginPage = () => {
-  const auth = useContext(AuthenticationContext)
-        , handleSubmit = ({username, password}) => {
-          if(username === 'test' && password === 'test123') {
-            auth.signin(() => {
-              history.replace(from);
-              if(isMounted) {
-                setShouldRedirect(true);
-              }
-            });
-          }
+const defaultLocation: LocationState = {from: {pathname: '/'}};
+
+export const LoginPage: React.FC = ()  => {
+  const auth = useContext<Auth>(AuthenticationContext);
+  const handleSubmit = ({username, password}) => {
+    if(username === 'test' && password === 'test123') {
+      auth?.signin(() => {
+        history.replace(from);
+        if(isMounted) {
+          setShouldRedirect(true);
         }
-        , history = useHistory()
-        , isMounted = useMount()
-        , [shouldRedirect, setShouldRedirect] = useState<boolean>(false)
-        , location = useLocation()
-        , { from } = location.state || { from: { pathname: '/' } };
+      });
+    }
+  };
 
+  const history = useHistory();
+  const isMounted = useMount();
+  const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
+  const location = useLocation<LocationState>();
+  const { from } = location.state || defaultLocation;
 
-  if(shouldRedirect || auth.user) {
+  if(shouldRedirect || auth?.user) {
     return <Redirect to="/home"/>;
   }
 

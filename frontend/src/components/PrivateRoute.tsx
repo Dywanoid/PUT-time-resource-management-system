@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { Layout } from 'antd';
 import { AuthenticationContext } from '../utils/auth';
@@ -7,37 +7,46 @@ import '../css/PrivateRoute.css';
 
 const { Content, Footer } = Layout;
 
-// eslint-disable-next-line one-var, react/prop-types
-export const PrivateRoute = ({component: Component, ...rest}) => {
+interface PrivateRouteProps {
+  component: () => JSX.Element | null;
+  path: string;
+  exact?: boolean;
+}
+
+const PrivateRoute: React.FC<PrivateRouteProps> = ({component, path, exact}: PrivateRouteProps) => {
   const auth = useContext(AuthenticationContext);
+
+  const renderRoute = useCallback(({ location }) =>
+    auth?.user
+      ? (
+        <Layout>
+          <div className="site-layout-background">
+            <Navigation/>
+            <Content className="site-layout" style={{ marginTop: 64, padding: '0 50px' }}>
+              <div className="site-layout-background" style={{  minHeight: 380, padding: 24 }}>
+                {component()}
+              </div>
+            </Content>
+            <Footer className="footer">©PRACUJTA</Footer>
+          </div>
+        </Layout>
+      )
+      : (
+        <Redirect
+          to={{
+            pathname: '/',
+            state: { from: location }
+          }}
+        />
+      ), [component, path, exact, auth]);
 
   return (
     <Route
-      {...rest}
-      render={({ location, props }) =>
-        auth.user
-          ? (
-            <Layout>
-              <div className="site-layout-background">
-                <Navigation/>
-                <Content className="site-layout" style={{ marginTop: 64, padding: '0 50px' }}>
-                  <div className="site-layout-background" style={{  minHeight: 380, padding: 24 }}>
-                    <Component {...props}/>
-                  </div>
-                </Content>
-                <Footer className="footer">©PRACUJTA</Footer>
-              </div>
-            </Layout>
-          )
-          : (
-            <Redirect
-              to={{
-                pathname: '/',
-                state: { from: location },
-              }}
-            />
-          )
-      }
+      exact={exact}
+      path={path}
+      render={renderRoute}
     />
   );
 };
+
+export {PrivateRoute};

@@ -5,8 +5,7 @@ import '../css/Navigation.css';
 
 const { Header } = Layout;
 
-// eslint-disable-next-line one-var
-export const Navigation = () => (
+export const Navigation = (): JSX.Element =>  (
   <Header className="header">
     <img className="logo" src={ pracujta } alt="pracujta"/>
     <Menu theme="dark" mode="horizontal" defaultSelectedKeys={ ['1'] } className="buttons">
