@@ -6,28 +6,25 @@ import { useMount } from '../utils/hooks';
 import 'antd/dist/antd.css';
 import '../css/LoginPage.css';
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const LoginPage = () => {
-  const isMounted = useMount();
-
-  const [shouldRedirect, setShouldRedirect] = useState<Boolean>(false);
-  let auth = useContext(AuthenticationContext);
-
-  let history = useHistory();
-  let location = useLocation();
-
-  let { from } = location.state || { from: { pathname: "/" } };
-
-  const handleSubmit = ({username, password}) => {
-    if(username === 'test' && password === 'test123') {
-      auth.signin(() => {
-        history.replace(from);
-        if(isMounted) {
-          setShouldRedirect(true);
+  const auth = useContext(AuthenticationContext)
+        , handleSubmit = ({username, password}) => {
+          if(username === 'test' && password === 'test123') {
+            auth.signin(() => {
+              history.replace(from);
+              if(isMounted) {
+                setShouldRedirect(true);
+              }
+            });
+          }
         }
-      });
+        , history = useHistory()
+        , isMounted = useMount()
+        , [shouldRedirect, setShouldRedirect] = useState<boolean>(false)
+        , location = useLocation()
+        , { from } = location.state || { from: { pathname: '/' } };
 
-    }
-  };
 
   if(shouldRedirect || auth.user) {
     return <Redirect to="/home"/>;
@@ -39,21 +36,22 @@ export const LoginPage = () => {
         <Form
           name="basic"
           initialValues={{ remember: true }}
+          // eslint-disable-next-line react/jsx-no-bind
           onFinish={handleSubmit}
         >
           <Form.Item
             label="Username"
             name="username"
-            rules={[{ required: true, message: 'Please input your username!' }]}
+            rules={[{  message: 'Please input your username!', required: true }]}
           >
-            <Input />
+            <Input/>
           </Form.Item>
           <Form.Item
             label="Password"
             name="password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
+            rules={[{ message: 'Please input your password!', required: true }]}
           >
-            <Input.Password />
+            <Input.Password/>
           </Form.Item>
 
           <Form.Item name="remember" valuePropName="checked">
@@ -69,4 +67,4 @@ export const LoginPage = () => {
       </Col>
     </Row>
   );
-}
+};
