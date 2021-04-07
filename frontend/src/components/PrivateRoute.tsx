@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { Layout } from 'antd';
 import { AuthenticationContext } from '../utils/auth';
@@ -13,7 +13,7 @@ interface PrivateRouteProps {
   exact?: boolean;
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({component, path, exact}: PrivateRouteProps) => {
+const PrivateRoute: React.FC<PrivateRouteProps> = ({component: Component, path, exact}: PrivateRouteProps) => {
   const auth = useContext(AuthenticationContext);
 
   const renderRoute = ({ location }) =>
@@ -24,7 +24,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({component, path, exact}: Pri
             <Navigation/>
             <Content className="site-layout" style={{ marginTop: 64, padding: '0 50px' }}>
               <div className="site-layout-background" style={{  minHeight: 380, padding: 24 }}>
-                {component()}
+                <Component/>
               </div>
             </Content>
             <Footer className="footer">©PRACUJTA</Footer>

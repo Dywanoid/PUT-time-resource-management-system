@@ -13,10 +13,14 @@ export const Navigation = (): JSX.Element =>  (
         <Link to="/home" className="nav-text">Logowanie czasu</Link>
       </Menu.Item>
       <Menu.Item key="2">
-        <Link to="/calendar" className="nav-text">Calendar</Link>
+        <Link to="/calendar" className="nav-text">Kalendarz</Link>
       </Menu.Item>
-      <Menu.Item key="3">nav 4</Menu.Item>
-      <Menu.Item key="4">nav 5</Menu.Item>
+      <Menu.Item key="3">
+        <Link to="/resources" className="nav-text">Zasoby</Link>
+      </Menu.Item>
+      <Menu.Item key="4">
+        <Link to="/applications" className="nav-text">Wnioski</Link>
+      </Menu.Item>
       <Menu.Item key="5">nav 6</Menu.Item>
       <Menu.Item key="6">nav 7</Menu.Item>
     </Menu>
