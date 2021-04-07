@@ -1,76 +1,75 @@
 const columns = [
-    {
-      title: 'client',
-      dataIndex: 'client',
-      key: 'client',
-    },
-    {
-      title: 'project',
-      dataIndex: 'project',
-      key: 'project',
-    },
-    {
-      title: 'task',
-      dataIndex: 'task',
-      key: 'task',
-    },
-    {
-      title: 'time',
-      key: 'time',
-      dataIndex: 'time',
-    }
-  ];
+        {
+          dataIndex: 'client',
+          key: 'client',
+          title: 'client'
+        },
+        {
+          dataIndex: 'project',
+          key: 'project',
+          title: 'project'
+        },
+        {
+          dataIndex: 'task',
+          key: 'task',
+          title: 'task'
+        },
+        {
+          dataIndex: 'time',
+          key: 'time',
+          title: 'time'
+        }
+      ]
+      , data = [
+        {
+          client: 'KFC',
+          key: '1',
+          project: 'Kubełek',
+          task: 'kurczak',
+          time: 10
+        },
+        {
+          client: 'KFC',
+          key: '2',
+          project: 'grander',
+          task: 'kurczak',
+          time: 60
+        },
+        {
+          client: 'KFC',
+          key: '3',
+          project: 'bsmart',
+          task: 'wołowina',
+          time: 40
+        },
+        {
+          client: 'KFC',
+          key: '4',
+          project: 'zinger',
+          task: 'kurczak',
+          time: 60
+        },
+        {
+          client: 'KFC',
+          key: '5',
+          project: 'grander texas',
+          task: 'kurczak',
+          time: 50
+        },
+        {
+          client: 'Jim Green',
+          key: '6',
+          project: 'Kubełek',
+          task: 'kurczak',
+          time: 20
+        },
+        {
+          client: 'Joe Black',
+          key: '7',
+          project: 'Kubełek',
+          task: 'kurczak',
+          time: 10
+        }
+      ];
 
-  const data = [
-    {
-      key: '1',
-      client: 'KFC',
-      project: 'Kubełek',
-      task: 'kurczak',
-      time: 10,
-    },
-    {
-      key: '2',
-      client: 'KFC',
-      project: 'grander',
-      task: 'kurczak',
-      time: 60,
-    },
-    {
-      key: '3',
-      client: 'KFC',
-      project: 'bsmart',
-      task: 'wołowina',
-      time: 40,
-    },
-    {
-      key: '4',
-      client: 'KFC',
-      project: 'zinger',
-      task: 'kurczak',
-      time: 60,
-    },
-    {
-      key: '5',
-      client: 'KFC',
-      project: 'grander texas',
-      task: 'kurczak',
-      time: 50,
-    },
-    {
-      key: '6',
-      client: 'Jim Green',
-      project: 'Kubełek',
-      task: 'kurczak',
-      time: 20,
-    },
-    {
-      key: '7',
-      client: 'Joe Black',
-      project: 'Kubełek',
-      task: 'kurczak',
-      time: 10,
-    }
-  ];
-
-  export { columns, data }
+export { columns, data };
