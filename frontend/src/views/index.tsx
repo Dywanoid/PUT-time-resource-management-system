@@ -1,3 +1,4 @@
 export { CalendarView } from './CalendarView';
 export { HomeView } from './HomeView';
-export { LoginPage } from './LoginPage';
+export { ApplicationsView } from './ApplicationsView';
+export { ResourcesView} from './ResourcesView';

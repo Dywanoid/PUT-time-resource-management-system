@@ -1,5 +1,5 @@
 import { Table } from 'antd';
-import { columns, data } from './temporaryData';
+import { columns, data } from '../utils/temporaryData';
 import 'antd/dist/antd.css';
 import '../css/HomeView.css';
 
