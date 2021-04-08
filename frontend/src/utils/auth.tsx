@@ -6,7 +6,7 @@ export interface Auth {
 }
 
 export interface ProvideAuthProps {
-  children: JSX.Element | null;
+  children:  JSX.Element | undefined;
 }
 
 const firstContext: Auth = {
@@ -40,7 +40,7 @@ const ProvideAuth = ({children} : ProvideAuthProps) : JSX.Element => {
 };
 
 const useProvideAuth = () : Auth => {
-  const [user, setUser] = useState<string | null>(null);
+  const [user, setUser] = useState<string | null>('user');
 
   const  signin = (cb) => fakeAuth.signin(() => {
     setUser('user');

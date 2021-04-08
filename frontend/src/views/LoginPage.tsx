@@ -33,7 +33,7 @@ export const LoginPage: React.FC = ()  => {
   const { from } = location.state || defaultLocation;
 
   if(shouldRedirect || auth?.user) {
-    return <Redirect to="/home"/>;
+    return <Redirect to="/"/>;
   }
 
   return (
