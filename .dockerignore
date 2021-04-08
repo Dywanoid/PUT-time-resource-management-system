@@ -1,0 +1,3 @@
+frontend/node_modules
+backend/keycloak
+backend/__pycache__

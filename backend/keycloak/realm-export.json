@@ -227,7 +227,7 @@
         "containerId" : "fab50d18-9797-4a7c-ac22-3305ca339037",
         "attributes" : { }
       } ],
-      "pracujta-api" : [ ],
+      "pracujta" : [ ],
       "security-admin-console" : [ ],
       "admin-cli" : [ ],
       "account-console" : [ ],
@@ -523,7 +523,7 @@
     "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "382f495d-7b4c-4f03-8a93-eb42e6cf5e34",
-    "clientId" : "pracujta-api",
+    "clientId" : "pracujta",
     "rootUrl" : "http://localhost",
     "adminUrl" : "http://localhost",
     "surrogateAuthRequired" : false,
