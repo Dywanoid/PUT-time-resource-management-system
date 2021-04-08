@@ -59,7 +59,6 @@ module.exports = {
     ],
     'jsx-a11y/no-noninteractive-tabindex': 'off',
     'jsx-a11y/tabindex-no-positive': 'off',
-    'linebreak-style': ['error', 'windows'],
     'max-len': [
       'error',
       120,
