@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { Layout, Form, Input, Button, Select, FormInstance } from 'antd';
 import 'antd/dist/antd.css';
-import '../css/HomeView.css';
 
 const {Content} = Layout;
 const {Option} = Select;
