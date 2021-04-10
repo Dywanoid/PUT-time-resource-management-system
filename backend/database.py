@@ -5,7 +5,7 @@ db = SQLAlchemy(app)
 
 
 class Client(db.Model):
-    __tablename__ = "clients"
+    __tablename__ = "client"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     contact = db.Column(db.String)
@@ -29,7 +29,7 @@ class Client(db.Model):
 
 
 class Employee(db.Model):
-    __tablename__ = "employees"
+    __tablename__ = "employee"
     id = db.Column(db.Integer,primary_key=True)
     first_name = db.Column(db.String, nullable=False)
     last_name = db.Column(db.String, nullable=False)
@@ -53,13 +53,13 @@ class Employee(db.Model):
 
 
 class ProjectStatuse(db.Model):
-    __tablename__ = "project_statuses"
+    __tablename__ = "project_status"
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String, nullable=False)
 
 
 class Project(db.Model):
-    __tablename__ = "projects"
+    __tablename__ = "project"
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.Integer, db.ForeignKey(Client.id), nullable=False)
     name = db.Column(db.String, nullable=False)
@@ -85,7 +85,7 @@ class Project(db.Model):
     
 
 class ProjectRole(db.Model):
-    __tablename__ = "project_roles"
+    __tablename__ = "project_role"
     id = db.Column(db.Integer, primary_key=True)
     role = db.Column(db.String, nullable=False)
 
