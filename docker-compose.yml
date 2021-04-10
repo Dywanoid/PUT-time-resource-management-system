@@ -10,7 +10,6 @@ services:
     environment:
       PORT: 80
       DATABASE_URL: postgres://postgres:password@db/pracujta
-      SECRET_KEY: secret
       FLASK_DEBUG: 1
       OIDC_CLIENT_ID: pracujta
       OIDC_CLIENT_SECRET: 99188acf-689e-41e2-b949-b4c50c10233d

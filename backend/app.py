@@ -8,10 +8,10 @@ app = Flask(__name__, static_folder='/app/frontend/build')
 app.config.update({
     'SQLALCHEMY_DATABASE_URI': os.getenv("DATABASE_URL"),
     'SQLALCHEMY_TRACK_MODIFICATIONS': False,
-    'SECRET_KEY': os.getenv("SECRET_KEY"),
+    'SECRET_KEY': os.getenv("SECRET_KEY", "secret"),
     'OIDC_SCOPES': ['openid', 'email', 'profile'],
     'OIDC_COOKIE_SECURE': os.getenv("OIDC_COOKIE_SECURE", True),
-    'OIDC_CLIENT_SECRETS': os.getenv("OIDC_CLIENT_SECRETS"),
+    'OIDC_CLIENT_SECRETS': os.getenv("OIDC_CLIENT_SECRETS", "local_client_secrets.json"),
     'OVERWRITE_REDIRECT_URI': os.getenv("OVERWRITE_REDIRECT_URI", False)
 })
 oidc = OpenIDConnect(app)
