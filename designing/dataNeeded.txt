@@ -1,0 +1,50 @@
+Logowanie czasu:
+	- lista dostepnych klientow, projektow, taskow (najlepiej w jakiejs strukturze w stylu:
+													projects: [{
+														id: xxx,
+														name: label,
+														clients: [
+															{
+																id: yyy,
+																name: label,
+																tasks: [
+																	{
+																		id: zzz,
+																		name: label
+																	}, 
+																	{...}
+																]
+															},
+															{...}
+														]
+													}, 
+													{...}
+													])
+	
+	- lista uzytych juz wczesniej taskow
+	- wpisane juz dane, ktore uzytkownik wprowadzil wczesniej
+	- daty do wyswietlenia
+	
+Kalendarz:
+	- lista kategorii, po ktorych mozna filtrowac
+
+Zasoby:
+	- lista projektow
+	- lista zasobow, do ktorych dostep ma uzytkownik (zagregowane po projektach)
+	- wczesniej zuzyte przez pracownika zasoby (+ ogolny stan zasobow?)
+	
+Wnioski:
+	- lista wczesniej wyslanych wnioskow
+	- lista wnioskow oczekujacych
+
+Projekty:
+	- lista klientow,
+	- lista projektow wraz z podtaskami
+	
+Zespoly:
+	- lista pracownikow
+	- lista zespolow (z przypisanymi pracownikami)
+
+Zasoby (edit):
+	- lista zasobów wraz z projektami, do ktorymi sa przypisane
+	- lista projektow
