@@ -1,3 +1,5 @@
+scalar DateTime
+
 schema {
     query: Query
     mutation: Mutation
@@ -6,17 +8,53 @@ schema {
 type Client {
     id: ID!
     name: String!
+    taxId: String
+    streetWithNumber: String
+    zipCode: String
+    city: String
+    createdAt: DateTime!
+    projects: [Project!]
 }
 
-input ClientInput {
+type Project {
+    id: ID!
     name: String!
+    createdAt: DateTime!
+    tasks: [Task!]
+}
+
+type Task {
+    id: ID!,
+    name: String,
+    createdAt: DateTime!
 }
 
 type Query {
-    listClients: [Client]
-    getClient(id: ID!): Client
+    clients(offset: Int = 0, limit: Int = 10): [Client!]
+    client(id: ID!): Client
 }
 
+input CreateClientInput {
+    name: String!
+    taxId: String
+    streetWithNumber: String
+    zipCode: String
+    city: String
+}
+
+input AddProjectInput {
+    clientId: ID!
+    name: String!
+}
+
+input AddTaskInput {
+    projectId: ID!
+    name: String!
+}
+
+"""TODO handle validation errors"""
 type Mutation {
-    createClient(clientInput: ClientInput!): Client!
+    createClient(input: CreateClientInput!): Client!
+    addProject(input: AddProjectInput!): Project
+    addTask(input: AddTaskInput!): Task
 }
