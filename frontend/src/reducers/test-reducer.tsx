@@ -9,7 +9,7 @@ const initialState: TestState = {
   isError: false,
   isLoading: false,
   lang: 'pl',
-  test: 'lol'
+  test: 'test'
 };
 
 export type TestState = {
