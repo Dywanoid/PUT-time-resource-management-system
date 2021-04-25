@@ -2,15 +2,13 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Switch } from 'react-router-dom';
 import { Provider } from 'react-redux';
-// import configureStore from './store';
 import { ApplicationsView, CalendarView, HomeView, ResourcesView } from './views';
 import reportWebVitals from './reportWebVitals';
 import { ProvideAuth } from './utils/auth';
 import { PrivateRoute } from './components';
-import 'antd/dist/antd.css';
-// import configureStore from './store';
 import { configureStore } from '@reduxjs/toolkit';
 import { rootReducer } from './reducers';
+import 'antd/dist/antd.css';
 
 const store = configureStore({ reducer: rootReducer });
 
