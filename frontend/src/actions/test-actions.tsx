@@ -45,5 +45,6 @@ const getTestRequested = (lang: string) => {
 
 export {
   getTestRequested,
+  getTestDone,
   getTestEpic
 };
