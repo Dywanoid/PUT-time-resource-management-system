@@ -5,7 +5,7 @@ import { rootReducer } from './reducers/index';
 import { rootEpic } from './actions/index';
 
 /* eslint-disable sort-vars */
-const initialState = Immutable.fromJS({})
+const initialState = Immutable.fromJS({test: 'abc'})
       , configureStore = () => {
         const epicMiddleware = createEpicMiddleware()
               , store = createStore(
