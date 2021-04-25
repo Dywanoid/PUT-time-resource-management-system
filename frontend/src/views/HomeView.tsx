@@ -1,5 +1,5 @@
 
-import React, {useState, useEffect} from 'react';
+import React, { useEffect } from 'react';
 import { Table } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { columns, data } from '../utils/temporaryData';
