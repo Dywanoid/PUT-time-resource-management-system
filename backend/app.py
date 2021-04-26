@@ -5,7 +5,6 @@ from flask_oidc import OpenIDConnect
 from flask_talisman import Talisman
 from flask_cors import CORS
 app = Flask(__name__, static_folder='/app/frontend/build')
-CORS(app, supports_credentials=True)
 
 app.config.update({
     'SQLALCHEMY_DATABASE_URI': os.getenv("DATABASE_URL"),
