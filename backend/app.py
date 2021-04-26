@@ -14,8 +14,11 @@ app.config.update({
     'OIDC_SCOPES': ['openid', 'email', 'profile'],
     'OIDC_COOKIE_SECURE': os.getenv("OIDC_COOKIE_SECURE", True),
     'OIDC_CLIENT_SECRETS': os.getenv("OIDC_CLIENT_SECRETS", "local_client_secrets.json"),
-    'OVERWRITE_REDIRECT_URI': os.getenv("OVERWRITE_REDIRECT_URI", False)
+    'OVERWRITE_REDIRECT_URI': os.getenv("OVERWRITE_REDIRECT_URI", False),
+    'CORS_SUPPORTS_CREDENTIALS': True,
+    'CORS_ORIGINS': 'http://localhost*'
 })
+cors = CORS(app)
 oidc = OpenIDConnect(app)
 Talisman(app, content_security_policy=None)
 
