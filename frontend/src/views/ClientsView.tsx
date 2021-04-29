@@ -1,40 +1,30 @@
 import React, { useState } from 'react';
-import {gql, useMutation, useQuery} from '@apollo/client';
-import {List, Modal, Form, Input, Button, Typography} from 'antd';
+import {List, Modal, Form, Input, Button, Typography, Space } from 'antd';
+import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 
 import '../css/ClientsView.css';
+import {CreateClientMutationVariables, useCreateClientMutation, useGetAllClientsQuery } from '../generated/graphql';
 
 const {Text} = Typography;
 
-const ALL_CLIENTS = gql`
-    query GetAllClients {
-        listClients {
-            id,
-            name
-        }
-    }
-`;
-
-const CREATE_CLIENT_MUT = gql`
-    mutation CreateClient($name: String!) {
-        createClient(clientInput: {
-                name: $name
-            }) {
-                id, 
-                name
-        }
-    }
-`;
 const layout = {
   labelCol: { span: 4 },
   wrapperCol: { span: 20 }
 };
 const tailLayout = {wrapperCol: { offset: 4 }};
 
+const IconText = ({ icon, text }: any) : JSX.Element => (
+  <Space>
+    {React.createElement(icon)}
+    {text}
+  </Space>
+);
+
 export const ClientsView = () : JSX.Element => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const {error, data, loading} =  useQuery(ALL_CLIENTS, {fetchPolicy: 'no-cache'});
-  const [addClient, {data: mutationData}] = useMutation(CREATE_CLIENT_MUT);
+  const {error, data, loading} = useGetAllClientsQuery({fetchPolicy: 'no-cache'});
+  const [addClient] = useCreateClientMutation();
+  const [form] = Form.useForm();
 
   const showModal = () => {
     setIsModalVisible(true);
@@ -44,10 +34,14 @@ export const ClientsView = () : JSX.Element => {
     setIsModalVisible(false);
   };
 
-  const onFinish = (values: any) => {
-    console.log('Success:', values);
+  const onFinish = async (variables: CreateClientMutationVariables) => {
     setIsModalVisible(false);
-    addClient({refetchQueries:['GetAllClients'],variables:{name: values.name}});
+    await addClient({
+      refetchQueries:['GetAllClients'],
+      variables
+    });
+
+    form.resetFields();
   };
 
   const onFinishFailed = (errorInfo: any) => {
@@ -60,6 +54,7 @@ export const ClientsView = () : JSX.Element => {
   const newClientHandler = () => {
     showModal();
   };
+  const clients = data?.clients || [];
 
   return (
     <>
@@ -67,18 +62,26 @@ export const ClientsView = () : JSX.Element => {
         header={<h1>Klienci</h1>}
         bordered
         itemLayout="vertical"
-        dataSource={[...data.listClients, {name: 'Dodaj nowego ➕', special: true}]}
+        dataSource={[...clients, {name: 'Dodaj nowego ➕', special: true}]}
         renderItem={(item: any) => {
 
           if(item.special) {
             return (
-              <List.Item onClick={newClientHandler}>
+              <List.Item
+                onClick={newClientHandler}
+              >
                 <Text strong>{`${ item.name }`}</Text>
               </List.Item>);
           }
 
           return (
-            <List.Item>
+            <List.Item
+              actions={[
+                <IconText icon={EditFilled} text="Edytuj" key="list-vertical-star-o"/>,
+                <IconText icon={InboxOutlined} text="Archiwizuj" key="list-vertical-like-o"/>,
+                <IconText icon={BarsOutlined} text="Zarządzaj projektami" key="list-vertical-message"/>
+              ]}
+            >
               {
                 <>
                   <div className='hover-button'>
@@ -98,6 +101,7 @@ export const ClientsView = () : JSX.Element => {
         footer={null}>
         <Form
           {...layout}
+          form={form}
           name="basic"
           initialValues={{ remember: true }}
           onFinish={onFinish}
@@ -110,18 +114,28 @@ export const ClientsView = () : JSX.Element => {
           >
             <Input/>
           </Form.Item>
+          <Form.Item
+            label="NIP"
+            name="taxId"
+          >
+            <Input/>
+          </Form.Item>
 
           <Form.Item
-            label="Adres"
-            name="address"
-            rules={[{ message: 'Wpisz adres!' }]}
+            label="Ulica i numer"
+            name="streetWithNumber"
           >
             <Input/>
           </Form.Item>
           <Form.Item
-            label="NIP"
-            name="vatId"
-            rules={[{ message: 'Wpisz NIP!' }]}
+            label="Kod pocztowy"
+            name="zipCode"
+          >
+            <Input/>
+          </Form.Item>
+          <Form.Item
+            label="Miasto"
+            name="city"
           >
             <Input/>
           </Form.Item>
