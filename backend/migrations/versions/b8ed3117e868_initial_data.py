@@ -27,6 +27,7 @@ def upgrade():
                    column('street_with_number', String),
                    column('zip_code', String),
                    column('city', String),
+                   column('archived', Boolean),
                    column('created_at', DateTime)
                    )
 
@@ -50,7 +51,7 @@ def upgrade():
     conn = op.get_bind()
     [c1] = conn.execute(client.insert().returning(client.c.id).values(
         {'name': 'Jeronimo Martins', 'tax_id': 'PL7791011327', 'street_with_number': 'ul. Żniwna 5',
-            'zip_code': '62-025', 'city': 'Kostrzyn', 'created_at': datetime.now()}
+            'zip_code': '62-025', 'city': 'Kostrzyn', 'archived': False, 'created_at': datetime.now()}
     )).fetchone()
 
     [p1] = conn.execute(project.insert().returning(project.c.id).values(
@@ -68,7 +69,7 @@ def upgrade():
     # ### second client data ###
     [c2] = conn.execute(client.insert().returning(client.c.id).values(
         {'name': 'Volkswagen Poznań', 'tax_id': 'PL7820032965', 'street_with_number': 'ul. Warszawska 349',
-            'zip_code': '61-060', 'city': 'Poznań', 'created_at': datetime.now()}
+            'zip_code': '61-060', 'city': 'Poznań', 'archived': False, 'created_at': datetime.now()}
     )).fetchone()
 
     [p2] = conn.execute(project.insert().returning(project.c.id).values(

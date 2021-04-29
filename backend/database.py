@@ -12,6 +12,7 @@ class Client(db.Model):
     street_with_number = db.Column(db.String)
     zip_code = db.Column(db.String)
     city = db.Column(db.String)
+    archived = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False)
     projects = db.relationship("Project", lazy='joined', order_by="desc(Project.created_at)")
 

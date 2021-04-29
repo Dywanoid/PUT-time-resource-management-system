@@ -12,6 +12,7 @@ type Client {
     streetWithNumber: String
     zipCode: String
     city: String
+    archived: Boolean!
     createdAt: DateTime!
     projects(includeArchived: Boolean = false): [Project!]
 }
@@ -32,7 +33,7 @@ type Task {
 }
 
 type Query {
-    clients(offset: Int = 0, limit: Int = 10): [Client!]
+    clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client
 }
 
@@ -51,6 +52,14 @@ input UpdateClientInput {
     streetWithNumber: String
     zipCode: String
     city: String
+}
+
+input ArchiveClientInput {
+    clientId: ID!
+}
+
+input UnarchiveClientInput {
+    clientId: ID!
 }
 
 input AddProjectInput {
@@ -91,6 +100,8 @@ input UpdateTaskInput {
 
 type Mutation {
     createClient(input: CreateClientInput!): Client!
+    archiveClient(input: ArchiveClientInput!): Client!
+    unarchiveClient(input: UnarchiveClientInput!): Client!
     updateClient(input: UpdateClientInput!): Client!
     addProject(input: AddProjectInput!): Project!
     updateProject(input: UpdateProjectInput!): Project!

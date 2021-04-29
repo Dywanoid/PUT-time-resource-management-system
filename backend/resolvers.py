@@ -41,8 +41,12 @@ def serialize_datetime(value):
 
 
 @query.field("clients")
-def resolve_clients(obj, info, offset, limit):
-    return Client.query.order_by(desc(Client.created_at)).offset(offset).limit(limit).all()
+@convert_kwargs_to_snake_case
+def resolve_clients(obj, info, include_archived, offset, limit):
+    filters = []
+    if not include_archived:
+        filters.append(Client.archived == False)
+    return Client.query.order_by(desc(Client.created_at)).filter(db.and_(*filters)).offset(offset).limit(limit).all()
 
 
 @query.field("client")
@@ -86,6 +90,18 @@ def resolve_update_client(client, input):
     client.street_with_number = input.get('street_with_number'),
     client.zip_code = input.get('zip_code'),
     client.city = input.get('city')
+    return client
+
+@mutation.field("archiveClient")
+@mutate_item(Client, 'client_id')
+def resolve_archive_client(client, input):
+    client.archived = True
+    return client
+
+@mutation.field("unarchiveClient")
+@mutate_item(Client, 'client_id')
+def resolve_unarchive_client(client, input):
+    client.archived = False
     return client
 
 
