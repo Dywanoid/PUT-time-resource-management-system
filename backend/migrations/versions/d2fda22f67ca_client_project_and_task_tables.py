@@ -22,7 +22,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('client_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('archived', sa.Boolean(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['client_id'], ['client.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -30,11 +31,12 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('project_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('archived', sa.Boolean(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['project_id'], ['project.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.add_column('client', sa.Column('created_at', sa.DateTime(), nullable=True))
+    op.add_column('client', sa.Column('created_at', sa.DateTime(), nullable=False))
     op.add_column('client', sa.Column('tax_id', sa.String(), nullable=True))
     op.add_column('client', sa.Column('street_with_number', sa.String(), nullable=True))
     op.add_column('client', sa.Column('zip_code', sa.String(), nullable=True))

@@ -9,7 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 from datetime import datetime
 from sqlalchemy.sql import table, column
-from sqlalchemy import String, Integer, DateTime
+from sqlalchemy import String, Integer, DateTime, Boolean
 
 # revision identifiers, used by Alembic.
 revision = 'b8ed3117e868'
@@ -34,6 +34,7 @@ def upgrade():
                     column('id', Integer),
                     column('client_id', Integer),
                     column('name', String),
+                    column('archived', Boolean),
                     column('created_at', DateTime)
                     )
 
@@ -41,6 +42,7 @@ def upgrade():
                  column('id', Integer),
                  column('project_id', Integer),
                  column('name', String),
+                 column('archived', Boolean),
                  column('created_at', DateTime)
                  )
 
@@ -52,12 +54,15 @@ def upgrade():
     )).fetchone()
 
     [p1] = conn.execute(project.insert().returning(project.c.id).values(
-        {'name': 'Online Shop', 'client_id': c1, 'created_at': datetime.now()}
+        {'name': 'Online Shop', 'client_id': c1,
+            'archived': False, 'created_at': datetime.now()}
     )).fetchone()
 
     op.bulk_insert(task, [
-        {'name': 'Maintanance', 'project_id': p1, 'created_at': datetime.now()},
-        {'name': 'Development', 'project_id': p1, 'created_at': datetime.now()}
+        {'name': 'Maintanance', 'project_id': p1,
+            'archived': False, 'created_at': datetime.now()},
+        {'name': 'Development', 'project_id': p1,
+            'archived': False, 'created_at': datetime.now()}
     ])
 
     # ### second client data ###
@@ -67,19 +72,22 @@ def upgrade():
     )).fetchone()
 
     [p2] = conn.execute(project.insert().returning(project.c.id).values(
-        {'name': 'Assembly Line Automation',
-            'client_id': c2, 'created_at': datetime.now()}
+        {'name': 'Assembly Line Automation', 'client_id': c2,
+            'archived': False, 'created_at': datetime.now()}
     )).fetchone()
 
     [p3] = conn.execute(project.insert().returning(project.c.id).values(
-        {'name': 'Smart Manufacturing', 'client_id': c2, 'created_at': datetime.now()}
+        {'name': 'Smart Manufacturing', 'client_id': c2,
+            'archived': False, 'created_at': datetime.now()}
     )).fetchone()
 
     op.bulk_insert(task, [
         {'name': 'Gathering requirements',
-            'project_id': p2, 'created_at': datetime.now()},
-        {'name': 'Monitoring', 'project_id': p3, 'created_at': datetime.now()},
-        {'name': 'Reporting', 'project_id': p3, 'created_at': datetime.now()}
+            'project_id': p2, 'archived': False, 'created_at': datetime.now()},
+        {'name': 'Monitoring', 'project_id': p3,
+            'archived': False, 'created_at': datetime.now()},
+        {'name': 'Reporting', 'project_id': p3,
+            'archived': False, 'created_at': datetime.now()}
     ])
 
     # ### end Alembic commands ###
