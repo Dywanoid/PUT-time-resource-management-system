@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { columns, data } from '../utils/temporaryData';
@@ -23,8 +23,8 @@ export const HomeView= () : JSX.Element => {
   return (
     <div>
       <span>{lang}</span>
-      <button onClick={() => dispatchChangeLang('en')}>change language</button>
-      <Table columns={columns} dataSource={data} className="table"/>
+      <button onClick={ () => dispatchChangeLang('en') }>change language</button>
+      <Table columns={ columns } dataSource={ data } className="table"/>
     </div>
   );
 };

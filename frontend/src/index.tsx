@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 
 import { BrowserRouter as Router, Switch } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { ApplicationsView, CalendarView, ClientsView, HomeView, ResourcesView } from './views';
+import { ApplicationsView, CalendarView, ClientsView, HomeView, ResourcesView, TeamsView } from './views';
 import reportWebVitals from './reportWebVitals';
 import { ProvideAuth } from './utils/auth';
 import { PrivateRoute } from './components';
@@ -21,11 +21,12 @@ ReactDOM.render(
       <ProvideAuth>
         <Router>
           <Switch>
-            <PrivateRoute exact component={HomeView} path='/'/>
-            <PrivateRoute component={CalendarView} path='/calendar'/>
-            <PrivateRoute component={ResourcesView} path='/resources'/>
-            <PrivateRoute component={ApplicationsView} path='/applications'/>
-            <PrivateRoute component={ClientsView} path='/clients'/>
+            <PrivateRoute exact component={ HomeView } path='/'/>
+            <PrivateRoute component={ CalendarView } path='/calendar'/>
+            <PrivateRoute component={ ResourcesView}  path='/resources'/>
+            <PrivateRoute component={ ApplicationsView } path='/applications'/>
+            <PrivateRoute component={ ClientsView } path='/clients'/>
+            <PrivateRoute component={ TeamsView } path='/teams'/>
           </Switch>
         </Router>
       </ProvideAuth>
