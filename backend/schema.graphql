@@ -29,9 +29,19 @@ type Task {
     createdAt: DateTime!
 }
 
+type Team {
+    id: ID!
+    name: String!
+    description: String
+    archived: Boolean!
+    createdAt: DateTime!
+}
+
 type Query {
     clients(offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client
+    teams(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 25): [Team!]
+    team(id: ID!): Team!
 }
 
 input CreateClientInput {
@@ -52,9 +62,32 @@ input AddTaskInput {
     name: String!
 }
 
+input AddTeamInput {
+    name: String!
+    description: String
+}
+
+input UpdateTeamInput {
+    teamId: ID!
+    name: String!
+    description: String
+}
+
+input ArchiveTeamInput {
+    teamId: ID!
+}
+
+input UnarchiveTeamInput {
+    teamId: ID!
+}
+
 """TODO handle validation errors"""
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     addProject(input: AddProjectInput!): Project
     addTask(input: AddTaskInput!): Task
+    addTeam(input: AddTeamInput!): Team!
+    updateTeam(input: UpdateTeamInput!): Team!
+    archiveTeam(input: ArchiveTeamInput!): Team!
+    unarchiveTeam(input: UnarchiveTeamInput!): Team!
 }
