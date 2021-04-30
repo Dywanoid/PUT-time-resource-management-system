@@ -12,26 +12,31 @@ type Client {
     streetWithNumber: String
     zipCode: String
     city: String
+    archived: Boolean!
     createdAt: DateTime!
-    projects: [Project!]
+    projects(includeArchived: Boolean = false): [Project!]
 }
 
 type Project {
     id: ID!
     name: String!
     createdAt: DateTime!
-    tasks: [Task!]
+    tasks(includeArchived: Boolean = false): [Task!]
+    archived: Boolean!
 }
 
 type Task {
     id: ID!,
     name: String,
     createdAt: DateTime!
+    archived: Boolean!
 }
 
 type Query {
-    clients(offset: Int = 0, limit: Int = 10): [Client!]
-    client(id: ID!): Client
+    clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
+    client(id: ID!): Client!
+    project(id: ID!): Project!
+    task(id: ID!): Task!
 }
 
 input CreateClientInput {
@@ -42,9 +47,39 @@ input CreateClientInput {
     city: String
 }
 
+input UpdateClientInput {
+    clientId: ID!
+    name: String!
+    taxId: String
+    streetWithNumber: String
+    zipCode: String
+    city: String
+}
+
+input ArchiveClientInput {
+    clientId: ID!
+}
+
+input UnarchiveClientInput {
+    clientId: ID!
+}
+
 input AddProjectInput {
     clientId: ID!
     name: String!
+}
+
+input UpdateProjectInput {
+    projectId: ID!
+    name: String!
+}
+
+input ArchiveProjectInput {
+    projectId: ID!
+}
+
+input UnarchiveProjectInput {
+    projectId: ID!
 }
 
 input AddTaskInput {
@@ -52,9 +87,30 @@ input AddTaskInput {
     name: String!
 }
 
-"""TODO handle validation errors"""
+input ArchiveTaskInput {
+    taskId: ID!
+}
+
+input UnarchiveTaskInput {
+    taskId: ID!
+}
+
+input UpdateTaskInput {
+    taskId: ID!
+    name: String!
+}
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
-    addProject(input: AddProjectInput!): Project
-    addTask(input: AddTaskInput!): Task
+    archiveClient(input: ArchiveClientInput!): Client!
+    unarchiveClient(input: UnarchiveClientInput!): Client!
+    updateClient(input: UpdateClientInput!): Client!
+    addProject(input: AddProjectInput!): Project!
+    updateProject(input: UpdateProjectInput!): Project!
+    archiveProject(input: ArchiveProjectInput!): Project!
+    unarchiveProject(input: UnarchiveProjectInput!): Project!
+    addTask(input: AddTaskInput!): Task!
+    updateTask(input: UpdateTaskInput!): Task!
+    archiveTask(input: ArchiveTaskInput!): Task!
+    unarchiveTask(input: UnarchiveTaskInput!): Task!
 }
