@@ -202,7 +202,7 @@ def resolve_team(obj, info, id):
 def resolve_create_team(obj, info, input):
     team = Team(
         name=input.get('name'),
-        decription=input.get('decription'),
+        description=input.get('description'),
         created_at=datetime.now()
     )
     db.session.add(team)
@@ -214,7 +214,7 @@ def resolve_create_team(obj, info, input):
 @mutate_item(Team, 'team_id')
 def resolve_update_client(team, input):
     team.name = input.get('name')
-    team.decription = input.get('decription'),
+    team.description = input.get('description'),
     return team
 
 @mutation.field("archiveTeam")
