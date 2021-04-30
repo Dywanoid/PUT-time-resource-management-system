@@ -60,10 +60,20 @@ def resolve_projects(client, info, include_archived):
     return filter(lambda p: True if include_archived else not p.archived, client.projects)
 
 
+@query.field("project")
+def resolve_project(obj, info, id):
+    return find_item(Project, id)
+
+
 @project_object.field("tasks")
 @convert_kwargs_to_snake_case
 def resolve_tasks(project, info, include_archived):
     return filter(lambda t: True if include_archived else not t.archived, project.tasks)
+
+
+@query.field("task")
+def resolve_task(obj, info, id):
+    return find_item(Task, id)
 
 
 @mutation.field("createClient")
@@ -92,11 +102,13 @@ def resolve_update_client(client, input):
     client.city = input.get('city')
     return client
 
+
 @mutation.field("archiveClient")
 @mutate_item(Client, 'client_id')
 def resolve_archive_client(client, input):
     client.archived = True
     return client
+
 
 @mutation.field("unarchiveClient")
 @mutate_item(Client, 'client_id')

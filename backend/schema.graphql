@@ -34,7 +34,9 @@ type Task {
 
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
-    client(id: ID!): Client
+    client(id: ID!): Client!
+    project(id: ID!): Project!
+    task(id: ID!): Task!
 }
 
 input CreateClientInput {
