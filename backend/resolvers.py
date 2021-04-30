@@ -1,6 +1,6 @@
 from ariadne import QueryType, MutationType, convert_kwargs_to_snake_case, ScalarType, ObjectType
 from sqlalchemy import desc
-from database import Client, Project, Task, db
+from database import Client, Project, Team, Task, db
 from datetime import datetime
 from error import NotFound
 

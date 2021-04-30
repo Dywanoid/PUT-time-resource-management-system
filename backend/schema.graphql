@@ -110,7 +110,7 @@ input UpdateTaskInput {
     name: String!
 }
 
-input AddTeamInput {
+input CreateTeamInput {
     name: String!
     description: String
 }
@@ -142,7 +142,7 @@ type Mutation {
     updateTask(input: UpdateTaskInput!): Task!
     archiveTask(input: ArchiveTaskInput!): Task!
     unarchiveTask(input: UnarchiveTaskInput!): Task!
-    addTeam(input: AddTeamInput!): Team!
+    createTeam(input: CreateTeamInput!): Team!
     updateTeam(input: UpdateTeamInput!): Team!
     archiveTeam(input: ArchiveTeamInput!): Team!
     unarchiveTeam(input: UnarchiveTeamInput!): Team!
