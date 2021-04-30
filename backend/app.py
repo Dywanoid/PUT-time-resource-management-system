@@ -21,14 +21,9 @@ cors = CORS(app)
 oidc = OpenIDConnect(app)
 Talisman(app, content_security_policy=None)
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-@oidc.require_login
-def serve(path):
-    if path != "" and os.path.exists(app.static_folder + '/' + path):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
+
+
+
 
 @app.route('/info')
 def info():
@@ -37,12 +32,15 @@ def info():
     else:
         return 'Not logged in'
 
+
 @app.route('/login')
 @oidc.require_login
 def login():
     return 'Welcome %s' % oidc.user_getfield('name')
 
+
 @app.route('/logout')
 def logout():
     oidc.logout()
     return 'You have successfully logged out'
+

@@ -32,11 +32,18 @@ type Task {
     archived: Boolean!
 }
 
+type User {
+    id: ID!
+    name: String!
+}
+
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client!
     project(id: ID!): Project!
     task(id: ID!): Task!
+    users(offset: Int = 0, limit: Int = 10): [User!]
+    user(id: ID!): User!
 }
 
 input CreateClientInput {
