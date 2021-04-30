@@ -75,3 +75,44 @@ def resolve_add_task(obj, info, input):
     else:
         # TODO return error instead of None
         return None
+
+
+@query.field("teams")
+@convert_kwargs_to_snake_case
+def resolve_teams(obj, info, include_archived, offset, limit):
+    filters = []
+    if not include_archived:
+        filters.append(Client.archived == False)
+    return Team.query.order_by(desc(Team.name)).filter(db.and_(*filters)).offset(offset).limit(limit).all()
+
+
+@query.field("team")
+def resolve_team(obj, info, id):
+    return find_item(Team, id)
+
+
+@mutation.field("createTeam")
+@convert_kwargs_to_snake_case
+def resolve_create_team(obj, info, input):
+    team = Team(
+        name=input.get('name'),
+        decription=input.get('decription'),
+        created_at=datetime.now()
+    )
+    db.session.add(team)
+    db.session.commit()
+    return team
+
+
+@mutation.field("updateTeam")
+@mutate_item(Team, 'team_id')
+def resolve_update_client(team, input):
+    team.name = input.get('name')
+    team.decription = input.get('decription'),
+    return team
+
+@mutation.field("archiveTeam")
+@mutate_item(Team, 'team_id')
+def resolve_archive_project(team, input):
+    team.archived = True
+    return team
