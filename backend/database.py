@@ -36,7 +36,7 @@ class Task(db.Model):
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = name = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     archived = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False)

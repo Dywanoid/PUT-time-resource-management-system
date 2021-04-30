@@ -32,11 +32,21 @@ type Task {
     archived: Boolean!
 }
 
+type Team {
+    id: ID!
+    name: String!
+    description: String
+    archived: Boolean!
+    createdAt: DateTime!
+}
+
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client!
     project(id: ID!): Project!
     task(id: ID!): Task!
+    teams(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 25): [Team!]
+    team(id: ID!): Team!
 }
 
 input CreateClientInput {
@@ -100,6 +110,25 @@ input UpdateTaskInput {
     name: String!
 }
 
+input AddTeamInput {
+    name: String!
+    description: String
+}
+
+input UpdateTeamInput {
+    teamId: ID!
+    name: String!
+    description: String
+}
+
+input ArchiveTeamInput {
+    teamId: ID!
+}
+
+input UnarchiveTeamInput {
+    teamId: ID!
+}
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     archiveClient(input: ArchiveClientInput!): Client!
@@ -113,4 +142,8 @@ type Mutation {
     updateTask(input: UpdateTaskInput!): Task!
     archiveTask(input: ArchiveTaskInput!): Task!
     unarchiveTask(input: UnarchiveTaskInput!): Task!
+    addTeam(input: AddTeamInput!): Team!
+    updateTeam(input: UpdateTeamInput!): Team!
+    archiveTeam(input: ArchiveTeamInput!): Team!
+    unarchiveTeam(input: UnarchiveTeamInput!): Team!
 }

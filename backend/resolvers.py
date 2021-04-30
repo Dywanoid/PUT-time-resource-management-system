@@ -222,3 +222,10 @@ def resolve_update_client(team, input):
 def resolve_archive_project(team, input):
     team.archived = True
     return team
+
+
+@mutation.field("unarchiveTeam")
+@mutate_item(Team, 'team_id')
+def resolve_archive_project(team, input):
+    team.archived = False
+    return team
