@@ -1,6 +1,17 @@
 /* eslint-disable max-len */
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import {
+  gql,
+  MutationFunction,
+  MutationHookOptions,
+  useMutation,
+  MutationResult,
+  BaseMutationOptions,
+  useQuery,
+  LazyQueryHookOptions,
+  useLazyQuery,
+  QueryHookOptions,
+  QueryResult
+} from '@apollo/client';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
@@ -166,7 +177,7 @@ export const CreateClientDocument = gql`
   }
 }
     `;
-export type CreateClientMutationFn = Apollo.MutationFunction<CreateClientMutation, CreateClientMutationVariables>;
+export type CreateClientMutationFn = MutationFunction<CreateClientMutation, CreateClientMutationVariables>;
 
 /**
  * __useCreateClientMutation__
@@ -189,23 +200,22 @@ export type CreateClientMutationFn = Apollo.MutationFunction<CreateClientMutatio
  *   },
  * });
  */
-export function useCreateClientMutation(baseOptions?: Apollo.MutationHookOptions<CreateClientMutation, CreateClientMutationVariables>) {
+export function useCreateClientMutation(baseOptions?: MutationHookOptions<CreateClientMutation, CreateClientMutationVariables>) {
   const options = {...defaultOptions, ...baseOptions}
 ;
 
-  return Apollo.useMutation<CreateClientMutation, CreateClientMutationVariables>(CreateClientDocument, options);
+  return useMutation<CreateClientMutation, CreateClientMutationVariables>(CreateClientDocument, options);
 }
 export type CreateClientMutationHookResult = ReturnType<typeof useCreateClientMutation>;
-export type CreateClientMutationResult = Apollo.MutationResult<CreateClientMutation>;
-export type CreateClientMutationOptions = Apollo.BaseMutationOptions<CreateClientMutation, CreateClientMutationVariables>;
+export type CreateClientMutationResult = MutationResult<CreateClientMutation>;
+export type CreateClientMutationOptions = BaseMutationOptions<CreateClientMutation, CreateClientMutationVariables>;
 export const GetAllClientsDocument = gql`
     query GetAllClients {
   clients(limit: 100) {
     id
     name
   }
-}
-    `;
+} `;
 
 /**
  * __useGetAllClientsQuery__
@@ -222,18 +232,17 @@ export const GetAllClientsDocument = gql`
  *   },
  * });
  */
-export function useGetAllClientsQuery(baseOptions?: Apollo.QueryHookOptions<GetAllClientsQuery, GetAllClientsQueryVariables>) {
-  const options = {...defaultOptions, ...baseOptions}
-;
+export function useGetAllClientsQuery(baseOptions?: QueryHookOptions<GetAllClientsQuery, GetAllClientsQueryVariables>) {
+  const options = {...defaultOptions, ...baseOptions};
 
-  return Apollo.useQuery<GetAllClientsQuery, GetAllClientsQueryVariables>(GetAllClientsDocument, options);
+  return useQuery<GetAllClientsQuery, GetAllClientsQueryVariables>(GetAllClientsDocument, options);
 }
-export function useGetAllClientsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllClientsQuery, GetAllClientsQueryVariables>) {
-  const options = {...defaultOptions, ...baseOptions}
-;
+export function useGetAllClientsLazyQuery(baseOptions?: LazyQueryHookOptions<GetAllClientsQuery, GetAllClientsQueryVariables>) {
+  const options = {...defaultOptions, ...baseOptions};
 
-  return Apollo.useLazyQuery<GetAllClientsQuery, GetAllClientsQueryVariables>(GetAllClientsDocument, options);
+  return useLazyQuery<GetAllClientsQuery, GetAllClientsQueryVariables>(GetAllClientsDocument, options);
 }
+
 export type GetAllClientsQueryHookResult = ReturnType<typeof useGetAllClientsQuery>;
 export type GetAllClientsLazyQueryHookResult = ReturnType<typeof useGetAllClientsLazyQuery>;
-export type GetAllClientsQueryResult = Apollo.QueryResult<GetAllClientsQuery, GetAllClientsQueryVariables>;
+export type GetAllClientsQueryResult = QueryResult<GetAllClientsQuery, GetAllClientsQueryVariables>;
