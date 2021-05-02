@@ -20,7 +20,7 @@ def graphql_server():
         schema,
         data,
         context_value=request,
-        debug=True
+        debug=False
     )
 
     status_code = 200 if success else 400
