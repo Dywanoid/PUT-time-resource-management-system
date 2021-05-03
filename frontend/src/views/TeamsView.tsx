@@ -83,6 +83,7 @@ export const TeamsView = () : JSX.Element => {
   };
 
   const onFinish = async () => {
+    setCreateTeamModal(false);
     setIsModalVisible(false);
   };
 
