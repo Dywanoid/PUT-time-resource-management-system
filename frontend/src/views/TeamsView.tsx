@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { List, Modal, Form, Input, Button, Space } from 'antd';
 import { useQuery, useMutation } from '@apollo/client';
-import { GetAllTeams, CreateTeamMutation, UpdateTeamMutation } from '../graphql/queries/teams';
+import {
+  GetAllTeams,
+  CreateTeamMutation,
+  UpdateTeamMutation,
+  ArchiveTeamMutation
+} from '../graphql/queries/teams';
 import { DeleteOutlined, EditFilled, ExclamationCircleOutlined, InboxOutlined  } from '@ant-design/icons';
 import '../css/TeamsView.css';
 
@@ -46,6 +51,7 @@ export const TeamsView = () : JSX.Element => {
   const { error, data, loading } = useQuery(GetAllTeams);
   const [createTeam] = useMutation(CreateTeamMutation);
   const [updateTeam] = useMutation(UpdateTeamMutation);
+  const [archiveTeam] = useMutation(ArchiveTeamMutation);
   const [form] = Form.useForm();
 
   const addTeam = () => {
@@ -66,6 +72,13 @@ export const TeamsView = () : JSX.Element => {
         name: name,
         teamId: id
       }
+    });
+  };
+
+  const hideTeam = (archiveId) => {
+    archiveTeam({
+      refetchQueries: [{ query: GetAllTeams }],
+      variables: { teamId: archiveId }
     });
   };
 
@@ -110,26 +123,33 @@ export const TeamsView = () : JSX.Element => {
         bordered
         itemLayout="vertical"
         dataSource={ [...teams] }
-        renderItem={ (item: any) => (<List.Item
-          actions={ [
-            <Button key="1" size='small' onClick={() => editTeamButton(item.id, item.name, item.description) }>
-              <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
-            </Button>,
-            <Button key="2" size='small'>
-              <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
-            </Button>
-            // ,
-            // <Button size='small' onClick={ showDeleteConfirm } key="3" danger>
-            //   <IconText icon={ DeleteOutlined } text="Usuń" key="list-vertical-like-o"/>
-            // </Button>
-          ] }
-        >
-          <List.Item.Meta
-            title={ <div>{ item.name }</div> }
-            description={ <div>{ item.description }</div> }
-          />
-        </List.Item>
-        )}
+        renderItem={ (item: any) => {
+          if (!item.archived) {
+            return (
+              <List.Item
+                actions={ [
+                  <Button key="1" size='small' onClick={ () => editTeamButton(item.id, item.name, item.description) }>
+                    <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
+                  </Button>,
+                  <Button key="2" size='small' onClick={ () => hideTeam(item.id) }>
+                    <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
+                  </Button>
+                  // ,
+                  // <Button size='small' onClick={ showDeleteConfirm } key="3" danger>
+                  //   <IconText icon={ DeleteOutlined } text="Usuń" key="list-vertical-like-o"/>
+                  // </Button>
+                ] }
+              >
+                <List.Item.Meta
+                  title={ <div>{ item.name }</div> }
+                  description={ <div>{ item.description }</div> }
+                />
+              </List.Item>
+            );
+          }
+
+          return (null);
+        }}
       />
       <Modal
         title={ isCreateTeamModal ? 'Dodaj Zespół' : 'Edytuj Zespół' }
