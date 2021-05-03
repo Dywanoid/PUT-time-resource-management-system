@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { List, Modal, Form, Input, Button, Space } from 'antd';
 import { useQuery, useMutation } from '@apollo/client';
-import { GetAllTeams, CreateTeamMutation } from '../graphql/queries/teams';
+import { GetAllTeams, CreateTeamMutation, UpdateTeamMutation } from '../graphql/queries/teams';
 import { DeleteOutlined, EditFilled, ExclamationCircleOutlined, InboxOutlined  } from '@ant-design/icons';
 import '../css/TeamsView.css';
 
@@ -40,18 +40,31 @@ const IconText = ({ icon, text }: any) : JSX.Element => (
 export const TeamsView = () : JSX.Element => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [name, setName] = useState('');
+  const [id, setId] = useState('');
   const [description, setDescription] = useState('');
+  const [isCreateTeamModal, setCreateTeamModal] = useState(false);
   const { error, data, loading } = useQuery(GetAllTeams);
   const [createTeam] = useMutation(CreateTeamMutation);
+  const [updateTeam] = useMutation(UpdateTeamMutation);
   const [form] = Form.useForm();
 
   const addTeam = () => {
-    console.log(name, description);
     createTeam({
       refetchQueries: [{ query: GetAllTeams }],
       variables: {
         description: description,
         name: name
+      }
+    });
+  };
+
+  const editTeam = () => {
+    updateTeam({
+      refetchQueries: [{ query: GetAllTeams }],
+      variables: {
+        description: description,
+        name: name,
+        teamId: id
       }
     });
   };
@@ -67,6 +80,7 @@ export const TeamsView = () : JSX.Element => {
   };
 
   const handleCancel = () => {
+    setCreateTeamModal(false);
     setIsModalVisible(false);
   };
 
@@ -74,7 +88,16 @@ export const TeamsView = () : JSX.Element => {
   if (error) {return <p>Error :(</p>;}
 
   const newTeamHandler = () => {
+    setCreateTeamModal(true);
     showModal();
+  };
+
+  const editTeamButton = (teamId, teamName, teamDescription) => {
+    setName(teamName);
+    setDescription(teamDescription);
+    setId(teamId);
+    form.setFieldsValue({ description: teamDescription, name: teamName });
+    setIsModalVisible(true);
   };
 
   const teams = data?.teams || [];
@@ -83,81 +106,73 @@ export const TeamsView = () : JSX.Element => {
     <>
       <Button onClick={ newTeamHandler } className="addTeam">Dodaj zespół ➕</Button>
       <List
-        header={<h1>Zespoły</h1>}
+        header={ <h1>Zespoły</h1> }
         bordered
         itemLayout="vertical"
-        dataSource={[...teams]}
-        renderItem={(item: any) => (<List.Item
-          actions={[
-            <Button key="1"size='small'>
+        dataSource={ [...teams] }
+        renderItem={ (item: any) => (<List.Item
+          actions={ [
+            <Button key="1" size='small' onClick={() => editTeamButton(item.id, item.name, item.description) }>
               <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
             </Button>,
-            <Button key="2"size='small'>
+            <Button key="2" size='small'>
               <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
             </Button>
             // ,
             // <Button size='small' onClick={ showDeleteConfirm } key="3" danger>
             //   <IconText icon={ DeleteOutlined } text="Usuń" key="list-vertical-like-o"/>
             // </Button>
-          ]}
+          ] }
         >
-          {
-            <>
-              <div className='hover-button'>
-                <span className='hover-button--off'>{ `${ item.name }` }</span>
-                <span className='hover-button--on'>{ `${ item.name }` }</span>
-              </div>
-            </>
-
-          }
           <List.Item.Meta
-            title={<div>{ item.title }</div>}
-            description={<div>{ item.description }</div>}
+            title={ <div>{ item.name }</div> }
+            description={ <div>{ item.description }</div> }
           />
         </List.Item>
         )}
       />
       <Modal
-        title="Dodaj Zespół"
+        title={ isCreateTeamModal ? 'Dodaj Zespół' : 'Edytuj Zespół' }
         onCancel={ handleCancel }
         visible={ isModalVisible }
-        footer={ null }>
+        footer={ null }
+      >
         <Form
           { ...layout }
           form={ form }
           name="basic"
-          initialValues={{ remember: true }}
           onFinish={ onFinish }
         >
           <Form.Item
             label="Nazwa"
             name="name"
+            initialValue={ name }
             rules={ [{ message: 'Wpisz nazwę zespołu!', required: true }] }
           >
-            <Input onChange={(e) => { setName(e.target.value); }}/>
+            <Input onChange={ (e) => { setName(e.target.value); } }/>
           </Form.Item>
           <Form.Item
             label="Opis"
             name="description"
+            initialValue={ description }
             rules={ [{ message: 'Wypełnij pole dotyczące opisu!', required: true }] }
           >
-            <Input onChange={(e) => { setDescription(e.target.value); }}/>
+            <Input onChange={ (e) => { setDescription(e.target.value); } }/>
           </Form.Item>
-
           <Form.Item { ...tailLayout } shouldUpdate>
-            {() => (
+            { () => (
               <Button
                 type="primary"
                 htmlType="submit"
-                onClick={ addTeam }
+                onClick={ isCreateTeamModal ? addTeam : editTeam }
                 disabled={
                   !form.isFieldsTouched(true)
                   || !!form.getFieldsError().filter(({ errors }) => errors.length).length
                 }
               >
-                Dodaj
+                { isCreateTeamModal ? 'Dodaj' : 'Edytuj' }
               </Button>
-            )}
+            ) }
           </Form.Item>
         </Form>
       </Modal>
