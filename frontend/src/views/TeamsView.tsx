@@ -84,8 +84,6 @@ export const TeamsView = () : JSX.Element => {
 
   const onFinish = async () => {
     setIsModalVisible(false);
-
-    form.resetFields();
   };
 
   const showModal = () => {
@@ -101,15 +99,19 @@ export const TeamsView = () : JSX.Element => {
   if (error) {return <p>Error :(</p>;}
 
   const newTeamHandler = () => {
+    form.resetFields();
+    setName('');
+    setDescription('');
+    setId('');
     setCreateTeamModal(true);
     showModal();
   };
 
   const editTeamButton = (teamId, teamName, teamDescription) => {
+    form.setFieldsValue({ description: teamDescription, name: teamName });
     setName(teamName);
     setDescription(teamDescription);
     setId(teamId);
-    form.setFieldsValue({ description: teamDescription, name: teamName });
     setIsModalVisible(true);
   };
 
@@ -152,6 +154,7 @@ export const TeamsView = () : JSX.Element => {
         }}
       />
       <Modal
+        destroyOnClose={ true }
         title={ isCreateTeamModal ? 'Dodaj Zespół' : 'Edytuj Zespół' }
         onCancel={ handleCancel }
         visible={ isModalVisible }
@@ -186,8 +189,9 @@ export const TeamsView = () : JSX.Element => {
                 htmlType="submit"
                 onClick={ isCreateTeamModal ? addTeam : editTeam }
                 disabled={
-                  !form.isFieldsTouched(true)
-                  || !!form.getFieldsError().filter(({ errors }) => errors.length).length
+                  isCreateTeamModal
+                  && (!form.isFieldsTouched(true)
+                  || !!form.getFieldsError().filter(({ errors }) => errors.length).length)
                 }
               >
                 { isCreateTeamModal ? 'Dodaj' : 'Edytuj' }
