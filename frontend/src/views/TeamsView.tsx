@@ -20,22 +20,22 @@ const IconText = ({ icon, text }: any) : JSX.Element => (
   </Space>
 );
 
-const showDeleteConfirm = () => {
-  confirm({
-    cancelText: 'Wróć',
-    content: 'Czy napewno chcesz usunąć ten zespół ?',
-    icon: <ExclamationCircleOutlined/>,
-    okText: 'Usuń',
-    okType: 'danger',
-    onCancel() {
-      console.log('Cancel');
-    },
-    onOk() {
-      console.log('OK');
-    },
-    title: 'Usuń Zespół'
-  });
-};
+// const showDeleteConfirm = () => {
+//   confirm({
+//     cancelText: 'Wróć',
+//     content: 'Czy napewno chcesz usunąć ten zespół ?',
+//     icon: <ExclamationCircleOutlined/>,
+//     okText: 'Usuń',
+//     okType: 'danger',
+//     onCancel() {
+//       console.log('Cancel');
+//     },
+//     onOk() {
+//       console.log('OK');
+//     },
+//     title: 'Usuń Zespół'
+//   });
+// };
 
 export const TeamsView = () : JSX.Element => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -94,10 +94,11 @@ export const TeamsView = () : JSX.Element => {
             </Button>,
             <Button key="2"size='small'>
               <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
-            </Button>,
-            <Button size='small' onClick={ showDeleteConfirm } key="3" danger>
-              <IconText icon={ DeleteOutlined } text="Usuń" key="list-vertical-like-o"/>
             </Button>
+            // ,
+            // <Button size='small' onClick={ showDeleteConfirm } key="3" danger>
+            //   <IconText icon={ DeleteOutlined } text="Usuń" key="list-vertical-like-o"/>
+            // </Button>
           ]}
         >
           {
@@ -110,8 +111,8 @@ export const TeamsView = () : JSX.Element => {
 
           }
           <List.Item.Meta
-            title={<div>{item.title}</div>}
-            description={<div>{item.description}</div>}
+            title={<div>{ item.title }</div>}
+            description={<div>{ item.description }</div>}
           />
         </List.Item>
         )}
@@ -126,27 +127,37 @@ export const TeamsView = () : JSX.Element => {
           form={ form }
           name="basic"
           initialValues={{ remember: true }}
-          onFinish={onFinish}
+          onFinish={ onFinish }
         >
           <Form.Item
             label="Nazwa"
             name="name"
-            rules={ [{ message: 'Wpisz nazwę!', required: true }] }
+            rules={ [{ message: 'Wpisz nazwę zespołu!', required: true }] }
           >
             <Input onChange={(e) => { setName(e.target.value); }}/>
           </Form.Item>
           <Form.Item
             label="Opis"
             name="description"
-            rules={ [{ message: 'Wpisz nazwę!', required: true }] }
+            rules={ [{ message: 'Wypełnij pole dotyczące opisu!', required: true }] }
           >
             <Input onChange={(e) => { setDescription(e.target.value); }}/>
           </Form.Item>
 
-          <Form.Item { ...tailLayout }>
-            <Button type="primary" htmlType="submit" onClick={ addTeam }>
+          <Form.Item { ...tailLayout } shouldUpdate>
+            {() => (
+              <Button
+                type="primary"
+                htmlType="submit"
+                onClick={ addTeam }
+                disabled={
+                  !form.isFieldsTouched(true)
+                  || !!form.getFieldsError().filter(({ errors }) => errors.length).length
+                }
+              >
                 Dodaj
-            </Button>
+              </Button>
+            )}
           </Form.Item>
         </Form>
       </Modal>
