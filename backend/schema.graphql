@@ -35,6 +35,7 @@ type Task {
 type User {
     id: ID!
     name: String!
+    roles: [String!]
 }
 
 type Query {
@@ -44,6 +45,7 @@ type Query {
     task(id: ID!): Task!
     users(offset: Int = 0, limit: Int = 10): [User!]
     user(id: ID!): User!
+    me: User!
 }
 
 input CreateClientInput {
