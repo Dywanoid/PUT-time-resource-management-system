@@ -40,6 +40,11 @@ type Team {
     createdAt: DateTime!
 }
 
+type User {
+    id: ID!
+    name: String!
+}
+
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client!
@@ -47,6 +52,8 @@ type Query {
     task(id: ID!): Task!
     teams(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 25): [Team!]
     team(id: ID!): Team!
+    users(offset: Int = 0, limit: Int = 10): [User!]
+    user(id: ID!): User!
 }
 
 input CreateClientInput {

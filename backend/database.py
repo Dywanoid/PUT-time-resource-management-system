@@ -39,4 +39,9 @@ class Team(db.Model):
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     archived = db.Column(db.Boolean, nullable=False, default=False)
+
+
+class User(db.Model):
+    id = db.Column(db.String, primary_key=True)
+    name = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)

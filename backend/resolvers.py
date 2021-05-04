@@ -1,6 +1,6 @@
 from ariadne import QueryType, MutationType, convert_kwargs_to_snake_case, ScalarType, ObjectType
 from sqlalchemy import desc
-from database import Client, Project, Team, Task, db
+from database import Client, Project, Team, Task, User, db
 from datetime import datetime
 from error import NotFound
 
@@ -74,6 +74,16 @@ def resolve_tasks(project, info, include_archived):
 @query.field("task")
 def resolve_task(obj, info, id):
     return find_item(Task, id)
+
+
+@query.field("users")
+def resolve_users(obj, info, offset, limit):
+    return User.query.order_by(desc(User.created_at)).offset(offset).limit(limit).all()
+
+
+@query.field("user")
+def resolve_user(obj, info, id):
+    return find_item(User, id)
 
 
 @mutation.field("createClient")
