@@ -201,7 +201,7 @@ export type CreateClientMutationFn = MutationFunction<CreateClientMutation, Crea
  * });
  */
 export function useCreateClientMutation(baseOptions?: MutationHookOptions<CreateClientMutation, CreateClientMutationVariables>) {
-  const options = {...defaultOptions, ...baseOptions}
+  const options = { ...defaultOptions, ...baseOptions }
 ;
 
   return useMutation<CreateClientMutation, CreateClientMutationVariables>(CreateClientDocument, options);
@@ -233,12 +233,12 @@ export const GetAllClientsDocument = gql`
  * });
  */
 export function useGetAllClientsQuery(baseOptions?: QueryHookOptions<GetAllClientsQuery, GetAllClientsQueryVariables>) {
-  const options = {...defaultOptions, ...baseOptions};
+  const options = { ...defaultOptions, ...baseOptions };
 
   return useQuery<GetAllClientsQuery, GetAllClientsQueryVariables>(GetAllClientsDocument, options);
 }
 export function useGetAllClientsLazyQuery(baseOptions?: LazyQueryHookOptions<GetAllClientsQuery, GetAllClientsQueryVariables>) {
-  const options = {...defaultOptions, ...baseOptions};
+  const options = { ...defaultOptions, ...baseOptions };
 
   return useLazyQuery<GetAllClientsQuery, GetAllClientsQueryVariables>(GetAllClientsDocument, options);
 }

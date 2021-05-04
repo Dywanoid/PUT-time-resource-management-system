@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import {List, Modal, Form, Input, Button, Typography, Space } from 'antd';
+import { List, Modal, Form, Input, Button, Typography, Space } from 'antd';
 import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 
 import '../css/ClientsView.css';
-import {CreateClientMutationVariables, useCreateClientMutation, useGetAllClientsQuery } from '../generated/graphql';
+import { CreateClientMutationVariables, useCreateClientMutation, useGetAllClientsQuery } from '../generated/graphql';
 
-const {Text} = Typography;
+const { Text } = Typography;
 
 const layout = {
   labelCol: { span: 4 },
   wrapperCol: { span: 20 }
 };
-const tailLayout = {wrapperCol: { offset: 4 }};
+const tailLayout = { wrapperCol: { offset: 4 } };
 
 const IconText = ({ icon, text }: any) : JSX.Element => (
   <Space>
@@ -22,7 +22,7 @@ const IconText = ({ icon, text }: any) : JSX.Element => (
 
 export const ClientsView = () : JSX.Element => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const {error, data, loading} = useGetAllClientsQuery({fetchPolicy: 'no-cache'});
+  const { error, data, loading } = useGetAllClientsQuery({ fetchPolicy: 'no-cache' });
   const [addClient] = useCreateClientMutation();
   const [form] = Form.useForm();
 
@@ -62,7 +62,7 @@ export const ClientsView = () : JSX.Element => {
         header={<h1>Klienci</h1>}
         bordered
         itemLayout="vertical"
-        dataSource={[...clients, {name: 'Dodaj nowego ➕', special: true}]}
+        dataSource={[...clients, { name: 'Dodaj nowego ➕', special: true }]}
         renderItem={(item: any) => {
 
           if(item.special) {
@@ -100,7 +100,7 @@ export const ClientsView = () : JSX.Element => {
         visible={isModalVisible}
         footer={null}>
         <Form
-          {...layout}
+          { ...layout }
           form={form}
           name="basic"
           initialValues={{ remember: true }}
@@ -140,7 +140,7 @@ export const ClientsView = () : JSX.Element => {
             <Input/>
           </Form.Item>
 
-          <Form.Item {...tailLayout}>
+          <Form.Item { ...tailLayout }>
             <Button type="primary" htmlType="submit">
                 Dodaj
             </Button>

@@ -82,6 +82,7 @@ module.exports = {
     'no-trailing-spaces': 'error',
     'no-unneeded-ternary': 'error',
     'object-curly-newline': ['error', { 'multiline': true }],
+    'object-curly-spacing': ['error', 'always'],
     'operator-linebreak': ['error', 'before'],
     'padding-line-between-statements': [
       'error',

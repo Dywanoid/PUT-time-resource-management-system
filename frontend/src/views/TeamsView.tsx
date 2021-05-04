@@ -120,7 +120,9 @@ export const TeamsView = () : JSX.Element => {
 
   return (
     <>
-      <Button onClick={ newTeamHandler } className="addTeam">Dodaj zespół ➕</Button>
+      <div>
+        <Button onClick={ newTeamHandler } className="addTeam">Dodaj zespół ➕</Button>
+      </div>
       <List
         header={ <h1>Zespoły</h1> }
         bordered
