@@ -24,6 +24,8 @@ RUN python3 -m pip install -r requirements.txt --no-cache-dir && \
 
 COPY --from=frontend-builder /app/frontend/build /app/frontend/build
 
+ENV FLASK_APP=main.py
+
 COPY ./backend .
 
 CMD ["/bin/sh", "-c", "/app/backend/entrypoint.sh"]
