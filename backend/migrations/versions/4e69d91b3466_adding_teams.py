@@ -1,7 +1,7 @@
 """adding teams
 
 Revision ID: 4e69d91b3466
-Revises: b8ed3117e868
+Revises: 68d76de3f110
 Create Date: 2021-04-30 12:56:07.407308
 
 """
@@ -12,7 +12,7 @@ from datetime import datetime
 
 # revision identifiers, used by Alembic.
 revision = '4e69d91b3466'
-down_revision = 'b8ed3117e868'
+down_revision = '68d76de3f110'
 branch_labels = None
 depends_on = None
 
