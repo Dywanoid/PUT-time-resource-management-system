@@ -11,12 +11,15 @@ services:
       PORT: 80
       DATABASE_URL: postgres://postgres:password@db/pracujta
       FLASK_DEBUG: 1
+      SQLALCHEMY_ECHO: 1
+      OAUTHLIB_INSECURE_TRANSPORT: 1
       OIDC_CLIENT_ID: pracujta
       OIDC_CLIENT_SECRET: 99188acf-689e-41e2-b949-b4c50c10233d
-      OIDC_REALM: pracujta-realm
-      OIDC_REDIRECT_URI: http://localhost/*
-      OIDC_KEYCLOAK_ROOT_URI: http://auth:8080
-      OIDC_KEYCLOAK_ROOT_URI_EXTERNAL: http://localhost:8080
+      OIDC_BASE_URL: http://auth:8080/auth/realms/pracujta-realm/protocol/openid-connect
+      OIDC_TOKEN_URL: http://auth:8080/auth/realms/pracujta-realm/protocol/openid-connect/token
+      OIDC_AUTHORIZATION_URL: http://localhost:8080/auth/realms/pracujta-realm/protocol/openid-connect/auth
+      OIDC_USERINFO_URL: http://auth:8080/auth/realms/pracujta-realm/protocol/openid-connect/userinfo
+      OIDC_HOST_HEADER_OVERRIDE: localhost:8080
     depends_on:
       - db
     restart: on-failure

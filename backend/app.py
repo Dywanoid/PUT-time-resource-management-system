@@ -1,48 +1,33 @@
 import os
 
 from flask import Flask, redirect, url_for, send_from_directory
-from flask_oidc import OpenIDConnect
-from flask_talisman import Talisman
+from flask_caching import Cache
 from flask_cors import CORS
+from flask_login import LoginManager
+from flask_talisman import Talisman
+
+OIDC_BASE_URL = os.getenv("OIDC_BASE_URL", "http://localhost:8080/auth/realms/pracujta-realm/protocol/openid-connect")
 
 app = Flask(__name__, static_folder='/app/frontend/build')
 app.config.update({
     'SQLALCHEMY_DATABASE_URI': os.getenv("DATABASE_URL"),
     'SQLALCHEMY_TRACK_MODIFICATIONS': False,
-    'SECRET_KEY': os.getenv("SECRET_KEY", "secret"),
-    'OIDC_SCOPES': ['openid', 'email', 'profile'],
-    'OIDC_COOKIE_SECURE': os.getenv("OIDC_COOKIE_SECURE", True),
-    'OIDC_CLIENT_SECRETS': os.getenv("OIDC_CLIENT_SECRETS", "local_client_secrets.json"),
-    'OVERWRITE_REDIRECT_URI': os.getenv("OVERWRITE_REDIRECT_URI", False),
+    'SQLALCHEMY_ECHO': bool(os.getenv("SQLALCHEMY_ECHO", False)),
+    'SECRET_KEY': os.getenv("SECRET_KEY", os.urandom(16)),
     'CORS_SUPPORTS_CREDENTIALS': True,
-    'CORS_ORIGINS': 'http://localhost*'
+    'CORS_ORIGINS': 'http://localhost*',
+    'CACHE_TYPE': 'SimpleCache',
+    'CACHE_DEFAULT_TIMEOUT': 60,
+    'OIDC_BASE_URL': OIDC_BASE_URL,
+    'OIDC_CLIENT_ID': os.getenv("OIDC_CLIENT_ID", "pracujta"),
+    'OIDC_CLIENT_SECRET': os.getenv("OIDC_CLIENT_SECRET", "99188acf-689e-41e2-b949-b4c50c10233d"),
+    'OIDC_USERINFO_URL': os.getenv("OIDC_USERINFO_URL", f"{OIDC_BASE_URL}/userinfo"),
+    'OIDC_TOKEN_URL': os.getenv("OIDC_TOKEN_URL", f"{OIDC_BASE_URL}/token"),
+    'OIDC_AUTHORIZATION_URL': os.getenv("OIDC_AUTHORIZATION_URL", f"{OIDC_BASE_URL}/auth"),
+    'OIDC_HOST_HEADER_OVERRIDE': os.getenv("OIDC_HOST_HEADER_OVERRIDE", None)
 })
-cors = CORS(app)
-oidc = OpenIDConnect(app)
+cache = Cache(app)
+login_manager = LoginManager(app)
+
+CORS(app)
 Talisman(app, content_security_policy=None)
-
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-@oidc.require_login
-def serve(path):
-    if path != "" and os.path.exists(app.static_folder + '/' + path):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/info')
-def info():
-    if oidc.user_loggedin:
-        return 'Logged in as %s' % oidc.user_getfield('name')
-    else:
-        return 'Not logged in'
-
-@app.route('/login')
-@oidc.require_login
-def login():
-    return 'Welcome %s' % oidc.user_getfield('name')
-
-@app.route('/logout')
-def logout():
-    oidc.logout()
-    return 'You have successfully logged out'

@@ -7,8 +7,6 @@ from flask_migrate import Migrate
 from app import app
 from database import db
 import handler
+import auth
 
 migrate = Migrate(app, db)
-
-logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
