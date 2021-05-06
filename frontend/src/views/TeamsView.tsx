@@ -7,10 +7,8 @@ import {
   UpdateTeamMutation,
   ArchiveTeamMutation
 } from '../graphql/queries/teams';
-import { DeleteOutlined, EditFilled, ExclamationCircleOutlined, InboxOutlined  } from '@ant-design/icons';
+import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
 import '../css/TeamsView.css';
-
-const { confirm } = Modal;
 
 const layout = {
   labelCol: { span: 4 },
@@ -25,28 +23,12 @@ const IconText = ({ icon, text }: any) : JSX.Element => (
   </Space>
 );
 
-// const showDeleteConfirm = () => {
-//   confirm({
-//     cancelText: 'Wróć',
-//     content: 'Czy napewno chcesz usunąć ten zespół ?',
-//     icon: <ExclamationCircleOutlined/>,
-//     okText: 'Usuń',
-//     okType: 'danger',
-//     onCancel() {
-//       console.log('Cancel');
-//     },
-//     onOk() {
-//       console.log('OK');
-//     },
-//     title: 'Usuń Zespół'
-//   });
-// };
-
 export const TeamsView = () : JSX.Element => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [name, setName] = useState('');
   const [id, setId] = useState('');
   const [description, setDescription] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
   const [isCreateTeamModal, setCreateTeamModal] = useState(false);
   const { error, data, loading } = useQuery(GetAllTeams);
   const [createTeam] = useMutation(CreateTeamMutation);
@@ -124,26 +106,36 @@ export const TeamsView = () : JSX.Element => {
         <Button onClick={ newTeamHandler } className="addTeam">Dodaj zespół ➕</Button>
       </div>
       <List
-        header={ <h1>Zespoły</h1> }
+        header={ <div>
+          <h1>Zespoły</h1>
+          <a onClick={ () => setShowArchived(!showArchived) } className="showArchivedLink">
+            { showArchived ? 'Ukryj zarchiwizowane zespoły' : 'Pokaż zarchiwizowane zespoły' }
+          </a>
+        </div> }
         bordered
         itemLayout="vertical"
         dataSource={ [...teams] }
         renderItem={ (item: any) => {
-          if (!item.archived) {
+          if (!item.archived || showArchived) {
             return (
               <List.Item
-                actions={ [
-                  <Button key="1" size='small' onClick={ () => editTeamButton(item.id, item.name, item.description) }>
-                    <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
-                  </Button>,
-                  <Button key="2" size='small' onClick={ () => hideTeam(item.id) }>
-                    <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
-                  </Button>
-                  // ,
-                  // <Button size='small' onClick={ showDeleteConfirm } key="3" danger>
-                  //   <IconText icon={ DeleteOutlined } text="Usuń" key="list-vertical-like-o"/>
-                  // </Button>
-                ] }
+                actions={
+                  (!item.archived)
+                    ? ([
+                      <Button key="1" size='small' onClick={
+                        () => editTeamButton(item.id, item.name, item.description) }
+                      >
+                        <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
+                      </Button>,
+                      <Button key="2" size='small' onClick={ () => hideTeam(item.id) }>
+                        <IconText icon={ InboxOutlined } text="Zarchiwizuj" key="list-vertical-like-o"/>
+                      </Button>,
+                      <Button size='small' key="3">
+                        <IconText icon={ FormOutlined } text="Zarządzaj zespołem" key="list-vertical-like-o"/>
+                      </Button>
+                    ])
+                    : undefined
+                }
               >
                 <List.Item.Meta
                   title={ <div>{ item.name }</div> }
