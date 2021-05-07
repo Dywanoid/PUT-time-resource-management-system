@@ -270,18 +270,18 @@ def resolve_create_team_member(obj, info, input):
         team_id=input.get('team_id'),
         created_at=datetime.now()
     )
-    db.session.add(team)
+    db.session.add(team_member)
     db.session.commit()
-    return team
+    return team_member
 
 @mutation.field("deleteTeamMember")
 @convert_kwargs_to_snake_case
 def resolve_delete_team_member(obj, info, input):
     user_id = input.get('user_id')
     team_id = input.get('team_id')
-    db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).delete()
+    test = db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).delete()
     db.session.commit()
-    return db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id)
+    return test
 
 @query.field("teamMembers")
 @convert_kwargs_to_snake_case

@@ -155,6 +155,7 @@ input CreateTeamMemberInput {
 input DeleteTeamMemberInput {
     userId: ID!
     teamId: ID!
+}
 
 type Mutation {
     createClient(input: CreateClientInput!): Client!
