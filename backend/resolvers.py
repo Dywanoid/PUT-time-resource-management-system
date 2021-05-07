@@ -1,7 +1,7 @@
 from flask_login import current_user
 from ariadne import QueryType, MutationType, convert_kwargs_to_snake_case, ScalarType, ObjectType
 from sqlalchemy import desc
-from database import Client, Project, Team, Task, User, db
+from database import Client, Project, Team, Task, User, TeamMember, db
 from datetime import datetime
 from error import NotFound
 from auth import roles_required
@@ -260,3 +260,42 @@ def resolve_archive_project(team, input):
 def resolve_archive_project(team, input):
     team.archived = False
     return team
+
+
+@mutation.field("createTeamMember")
+@convert_kwargs_to_snake_case
+def resolve_create_team_member(obj, info, input):
+    team_member = TeamMember(
+        user_id=input.get('user_id'),
+        team_id=input.get('team_id'),
+        created_at=datetime.now()
+    )
+    db.session.add(team)
+    db.session.commit()
+    return team
+
+@mutation.field("deleteTeamMember")
+@convert_kwargs_to_snake_case
+def resolve_delete_team_member(obj, info, input):
+    user_id = input.get('user_id')
+    team_id = input.get('team_id')
+    db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).delete()
+    db.session.commit()
+    return db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id)
+
+@query.field("teamMembers")
+@convert_kwargs_to_snake_case
+def resolve_team_members(obj, info, team_id):
+    return db.session.query(TeamMember).filter(TeamMember.team_id == team_id)
+
+
+@query.field("userTeams")
+@convert_kwargs_to_snake_case
+def resolve_team_members(obj, info, user_id):
+    return db.session.query(TeamMember).filter(TeamMember.user_id == user_id)
+
+
+@query.field("userTeams")
+@convert_kwargs_to_snake_case
+def resolve_team_member(obj, info, user_id, team_id):
+    return db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id)

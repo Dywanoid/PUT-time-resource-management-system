@@ -46,6 +46,12 @@ type User {
     roles: [String!]
 }
 
+type TeamMember {
+    userId: ID!
+    teamId: ID!
+    createdAt: DateTime!
+}
+
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client!
@@ -56,6 +62,9 @@ type Query {
     users(offset: Int = 0, limit: Int = 10): [User!]
     user(id: ID!): User!
     me: User!
+    teamMembers(teamId: ID!): TeamMember!
+    userTeams(userId: ID!): TeamMember!
+    TeamMember(userId: ID!, teamId: ID!): TeamMember!
 }
 
 input CreateClientInput {
@@ -138,6 +147,15 @@ input UnarchiveTeamInput {
     teamId: ID!
 }
 
+input CreateTeamMemberInput {
+    userId: ID!
+    teamId: ID!
+}
+
+input DeleteTeamMemberInput {
+    userId: ID!
+    teamId: ID!
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     archiveClient(input: ArchiveClientInput!): Client!
@@ -155,4 +173,6 @@ type Mutation {
     updateTeam(input: UpdateTeamInput!): Team!
     archiveTeam(input: ArchiveTeamInput!): Team!
     unarchiveTeam(input: UnarchiveTeamInput!): Team!
+    createTeamMember(input: CreateTeamMemberInput!): TeamMember!
+    deleteTeamMember(input: DeleteTeamMemberInput!): TeamMember
 }

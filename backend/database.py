@@ -49,6 +49,12 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, nullable=False)
 
 
+class TeamMember(db.Model):
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True)
+    team_id = db.Column(db.Integer, db.ForeignKey(Team.id), primary_key=True)
+    created_at = db.Column(db.DateTime, nullable=False)
+
+
 class OAuth(OAuthConsumerMixin, db.Model):
     provider_user_id = db.Column(db.String, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id))
