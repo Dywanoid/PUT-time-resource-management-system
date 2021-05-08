@@ -279,9 +279,11 @@ def resolve_create_team_member(obj, info, input):
 def resolve_delete_team_member(obj, info, input):
     user_id = input.get('user_id')
     team_id = input.get('team_id')
-    test = db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).delete()
+    db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).delete()
     db.session.commit()
-    return test
+    if(TeamMember.query.filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id)):
+        return False
+    return True
 
 @query.field("teamMembers")
 @convert_kwargs_to_snake_case

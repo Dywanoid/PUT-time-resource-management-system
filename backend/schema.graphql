@@ -62,8 +62,8 @@ type Query {
     users(offset: Int = 0, limit: Int = 10): [User!]
     user(id: ID!): User!
     me: User!
-    teamMembers(teamId: ID!): TeamMember!
-    userTeams(userId: ID!): TeamMember!
+    teamMembers(teamId: ID!): [TeamMember!]
+    userTeams(userId: ID!): [TeamMember!]
     TeamMember(userId: ID!, teamId: ID!): TeamMember!
 }
 
@@ -175,5 +175,5 @@ type Mutation {
     archiveTeam(input: ArchiveTeamInput!): Team!
     unarchiveTeam(input: UnarchiveTeamInput!): Team!
     createTeamMember(input: CreateTeamMemberInput!): TeamMember!
-    deleteTeamMember(input: DeleteTeamMemberInput!): TeamMember
+    deleteTeamMember(input: DeleteTeamMemberInput!): Boolean!
 }
