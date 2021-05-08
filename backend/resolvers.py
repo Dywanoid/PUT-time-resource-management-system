@@ -293,7 +293,7 @@ def resolve_team_members(obj, info, team_id):
 
 @query.field("userTeams")
 @convert_kwargs_to_snake_case
-def resolve_team_members(obj, info, user_id):
+def resolve_user_teams(obj, info, user_id):
     return db.session.query(TeamMember).filter(TeamMember.user_id == user_id)
 
 
