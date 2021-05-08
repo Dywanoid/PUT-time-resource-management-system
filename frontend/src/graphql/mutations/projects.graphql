@@ -1,0 +1,19 @@
+mutation AddProject($clientId: ID!, $name: String!) {
+  addProject(input: {
+    	id: $clientId,
+    	name: $name,
+  }) {
+    id,
+    name
+  }
+}
+
+mutation UpdateProject($id: ID!, $name: String!) {
+  updateProject(input: {
+    id: $id,
+    name: $name
+  }) {
+    id,
+    name
+  }
+}

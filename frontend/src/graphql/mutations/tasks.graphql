@@ -1,0 +1,19 @@
+mutation AddTask($projectId: ID!, $name: String!) {
+  addTask(input: {
+    projectId: $projectId,
+    name: $name
+  }) {
+    id,
+    name
+  }
+}
+
+mutation UpdateTask($taskId: ID!, $name: String!) {
+  updateTask(input: {
+    taskId: $taskId,
+    name: $name
+  }) {
+    id,
+    name
+  }
+}

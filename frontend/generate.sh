@@ -1,0 +1,1 @@
+sed -i '1s/^/\/* eslint-disable *\/ \n/' src/generated/graphql.tsx

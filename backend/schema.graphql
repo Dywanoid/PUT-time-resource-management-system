@@ -48,7 +48,7 @@ input CreateClientInput {
 }
 
 input UpdateClientInput {
-    clientId: ID!
+    id: ID!
     name: String!
     taxId: String
     streetWithNumber: String
@@ -57,20 +57,20 @@ input UpdateClientInput {
 }
 
 input ArchiveClientInput {
-    clientId: ID!
+    id: ID!
 }
 
 input UnarchiveClientInput {
-    clientId: ID!
+    id: ID!
 }
 
 input AddProjectInput {
-    clientId: ID!
+    id: ID!
     name: String!
 }
 
 input UpdateProjectInput {
-    projectId: ID!
+    id: ID!
     name: String!
 }
 

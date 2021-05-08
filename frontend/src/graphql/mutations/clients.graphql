@@ -6,7 +6,29 @@ mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String,
             zipCode: $zipCode,
             city: $city
         }) {
-            id, 
-            name
+            id,
+            name,
+            taxId,
+            streetWithNumber,
+            zipCode,
+            city
+    }
+}
+
+mutation UpdateClient($id: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+    updateClient(input: {
+            id: $id,
+            name: $name,
+            taxId: $taxId,
+            streetWithNumber: $streetWithNumber,
+            zipCode: $zipCode,
+            city: $city
+        }) {
+            id,
+            name,
+            taxId,
+            streetWithNumber,
+            zipCode,
+            city
     }
 }
