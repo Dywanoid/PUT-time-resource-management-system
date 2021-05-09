@@ -136,73 +136,75 @@ export const ClientsView = () : JSX.Element => {
 
   return (
     <>
-      <Breadcrumb>
-        <Breadcrumb.Item>Wszyscy klienci</Breadcrumb.Item>
-      </Breadcrumb>
-      <Button onClick={ newClientHandler }><Text strong>Dodaj klienta ➕</Text></Button>
-      <List
-        header={<h1>Klienci</h1>}
-        bordered
-        itemLayout="vertical"
-        dataSource={clients}
-        renderItem={(client) => (
-          <List.Item
-            actions={[
-              <Button
-                key="1"
-                size='small'
-                onClick={() => editClientHandler(client)}
-              >
-                <IconText
-                  icon={ EditFilled }
-                  text="Edytuj"
-                  key="list-vertical-star-o"
-                />
-              </Button>,
-              <Button
-                key="2"
-                size='small'
-                onClick={() => showArchiveModal(client)}
-              >
-                <IconText
-                  icon={ InboxOutlined }
-                  text="Archiwizuj"
-                  key="list-vertical-like-o"
-                />
-              </Button>,
-              <Button
-                key="2"
-                size='small'
-                onClick={() => projectsHandler(client)}
-              >
-                <IconText
-                  icon={ BarsOutlined }
-                  text="Zarządzaj projektami"
-                  key="list-vertical-message"
-                />
-              </Button>
-            ]}
-          >
-            {`${ client.name }`}
-          </List.Item>
-        )}
-      />
+      <Space direction="vertical" size="middle">
+        <Breadcrumb>
+          <Breadcrumb.Item>Wszyscy klienci</Breadcrumb.Item>
+        </Breadcrumb>
+        <Button onClick={ newClientHandler }><Text strong>Dodaj klienta ➕</Text></Button>
+        <List
+          header={<h1>Klienci</h1>}
+          bordered
+          itemLayout="vertical"
+          dataSource={clients}
+          renderItem={(client) => (
+            <List.Item
+              actions={[
+                <Button
+                  key="1"
+                  size='small'
+                  onClick={() => editClientHandler(client)}
+                >
+                  <IconText
+                    icon={ EditFilled }
+                    text="Edytuj"
+                    key="list-vertical-star-o"
+                  />
+                </Button>,
+                <Button
+                  key="2"
+                  size='small'
+                  onClick={() => showArchiveModal(client)}
+                >
+                  <IconText
+                    icon={ InboxOutlined }
+                    text="Archiwizuj"
+                    key="list-vertical-like-o"
+                  />
+                </Button>,
+                <Button
+                  key="2"
+                  size='small'
+                  onClick={() => projectsHandler(client)}
+                >
+                  <IconText
+                    icon={ BarsOutlined }
+                    text="Zarządzaj projektami"
+                    key="list-vertical-message"
+                  />
+                </Button>
+              ]}
+            >
+              {`${ client.name }`}
+            </List.Item>
+          )}
+        />
 
-      <ClientModal
-        form={form}
-        handleCancel={handleClientModalCancel}
-        isEditMode={isEditMode}
-        isModalVisible={isClientModalVisible}
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
-      />
+        <ClientModal
+          form={form}
+          handleCancel={handleClientModalCancel}
+          isEditMode={isEditMode}
+          isModalVisible={isClientModalVisible}
+          onFinish={onFinish}
+          onFinishFailed={onFinishFailed}
+        />
 
-      <ArchiveModal
-        isModalVisible={isArchiveModalVisible}
-        handleCancel={hideArchiveModal}
-        handleOk={() => handleArchive(clientToBeArchived)}
-        title={`Archiwizuj ${ clientToBeArchived?.name }`}
-        modalText={`Czy na pewno chcesz archiwizować klienta ${ clientToBeArchived?.name }?`}
-      />
+        <ArchiveModal
+          isModalVisible={isArchiveModalVisible}
+          handleCancel={hideArchiveModal}
+          handleOk={() => handleArchive(clientToBeArchived)}
+          title={`Archiwizuj ${ clientToBeArchived?.name }`}
+          modalText={`Czy na pewno chcesz archiwizować klienta ${ clientToBeArchived?.name }?`}
+        />
+      </Space>
     </>
   );};

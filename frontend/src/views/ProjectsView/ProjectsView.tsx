@@ -160,77 +160,79 @@ export const ProjectsView = () : JSX.Element => {
 
   return (
     <>
-      <Breadcrumb>
-        <Breadcrumb.Item>
-          <Link to={{pathname: '/clients'}}>
+      <Space direction="vertical" size="middle">
+        <Breadcrumb>
+          <Breadcrumb.Item>
+            <Link to={{pathname: '/clients'}}>
             Klienci
-          </Link>
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>{`Projekty klienta "${ clientName }"`}</Breadcrumb.Item>
-      </Breadcrumb>
-      <Button onClick={ newProjectHandler }><Text strong>Dodaj projekt ➕</Text></Button>
-      <List
-        header={<h1>{`Projekty klienta: "${ location.state.client.name }"`}</h1>}
-        bordered
-        itemLayout="vertical"
-        dataSource={projects}
-        renderItem={(project) => (
-          <List.Item
-            actions={[
-              <Button
-                key="1"
-                size='small'
-                onClick={() => editProjectHandler(project)}
-              >
-                <IconText
-                  icon={ EditFilled }
-                  text="Edytuj"
-                  key="list-vertical-star-o"
-                />
-              </Button>,
-              <Button
-                key="2"
-                size='small'
-                onClick={() => showArchiveModal(project)}
-              >
-                <IconText
-                  icon={ InboxOutlined }
-                  text="Archiwizuj"
-                  key="list-vertical-like-o"
-                />
-              </Button>,
-              <Button
-                key="2"
-                size='small'
-                onClick={() => tasksHandler(project)}
-              >
-                <IconText
-                  icon={ BarsOutlined }
-                  text="Zarządzaj zadaniami"
-                  key="list-vertical-message"
-                />
-              </Button>
-            ]}
-          >
-            {`${ project.name }`}
-          </List.Item>
-        )}
-      />
-      <ProjectModal
-        form={form}
-        handleCancel={handleCancel}
-        isEditMode={isEditMode}
-        isModalVisible={isModalVisible}
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
-      />
+            </Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>{`Projekty klienta "${ clientName }"`}</Breadcrumb.Item>
+        </Breadcrumb>
+        <Button onClick={ newProjectHandler }><Text strong>Dodaj projekt ➕</Text></Button>
+        <List
+          header={<h1>{`Projekty klienta: "${ location.state.client.name }"`}</h1>}
+          bordered
+          itemLayout="vertical"
+          dataSource={projects}
+          renderItem={(project) => (
+            <List.Item
+              actions={[
+                <Button
+                  key="1"
+                  size='small'
+                  onClick={() => editProjectHandler(project)}
+                >
+                  <IconText
+                    icon={ EditFilled }
+                    text="Edytuj"
+                    key="list-vertical-star-o"
+                  />
+                </Button>,
+                <Button
+                  key="2"
+                  size='small'
+                  onClick={() => showArchiveModal(project)}
+                >
+                  <IconText
+                    icon={ InboxOutlined }
+                    text="Archiwizuj"
+                    key="list-vertical-like-o"
+                  />
+                </Button>,
+                <Button
+                  key="2"
+                  size='small'
+                  onClick={() => tasksHandler(project)}
+                >
+                  <IconText
+                    icon={ BarsOutlined }
+                    text="Zarządzaj zadaniami"
+                    key="list-vertical-message"
+                  />
+                </Button>
+              ]}
+            >
+              {`${ project.name }`}
+            </List.Item>
+          )}
+        />
+        <ProjectModal
+          form={form}
+          handleCancel={handleCancel}
+          isEditMode={isEditMode}
+          isModalVisible={isModalVisible}
+          onFinish={onFinish}
+          onFinishFailed={onFinishFailed}
+        />
 
-      <ArchiveModal
-        isModalVisible={isArchiveModalVisible}
-        handleCancel={hideArchiveModal}
-        handleOk={() => handleArchive(projectToBeArchived)}
-        title={`Archiwizuj ${ projectToBeArchived?.name }`}
-        modalText={`Czy na pewno chcesz archiwizować projekt ${ projectToBeArchived?.name }?`}
-      />
+        <ArchiveModal
+          isModalVisible={isArchiveModalVisible}
+          handleCancel={hideArchiveModal}
+          handleOk={() => handleArchive(projectToBeArchived)}
+          title={`Archiwizuj ${ projectToBeArchived?.name }`}
+          modalText={`Czy na pewno chcesz archiwizować projekt ${ projectToBeArchived?.name }?`}
+        />
+      </Space>
     </>
   );};
