@@ -1,28 +1,26 @@
-import React, { FunctionComponent, ReactNode, useState } from 'react';
+import React, { useState } from 'react';
+import { useLocation } from 'react-router';
+import { Link } from 'react-router-dom';
 import {Breadcrumb, List, Form, Button, Typography, Space } from 'antd';
 import {InboxOutlined, EditFilled } from '@ant-design/icons';
+
 import {
   AddTaskMutationVariables,
   namedOperations,
+  Task,
   UpdateTaskMutationVariables,
   useAddTaskMutation,
+  useArchiveTaskMutation,
   useGetTasksQuery,
   useUpdateTaskMutation
 } from '../../generated/graphql';
-
-import '../../css/ProjectsView.css';
-import { useLocation } from 'react-router';
+import '../../css/TasksView.css';
 import { TaskModal } from './TaskModal';
-import { Link } from 'react-router-dom';
+import { ArchiveModal } from '../../components';
 
 const {Text} = Typography;
 
-type IconTextProps = {
-  text: string,
-  icon: any
-}
-
-const IconText = ({ icon: Icon, text }: IconTextProps) : JSX.Element => (
+const IconText = ({ icon: Icon, text }: any) : JSX.Element => (
   <Space>
     <Icon/>
     {text}
@@ -41,7 +39,9 @@ interface TaskLocation {
 }
 
 export const TaskView = () : JSX.Element => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
+  const [isArchiveModalVisible, setIsArchiveModalVisible] = useState(false);
+  const [taskToBeArchived, setTaskToBeArchived] = useState<Task | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const location = useLocation<TaskLocation>();
   const {
@@ -55,23 +55,44 @@ export const TaskView = () : JSX.Element => {
   });
   const [addTask] = useAddTaskMutation();
   const [updateTask] = useUpdateTaskMutation();
+  const [archiveTask] = useArchiveTaskMutation();
 
   const [form] = Form.useForm();
 
   const showModal = (editMode = false) => {
-    setIsModalVisible(true);
+    setIsTaskModalVisible(true);
     setIsEditMode(editMode);
     if(!editMode) {
       form.resetFields();
     }
   };
 
+  const showArchiveModal = (task) => {
+    setTaskToBeArchived(task);
+    setIsArchiveModalVisible(true);
+  };
+
+  const hideArchiveModal = () => {
+    setTaskToBeArchived(null);
+    setIsArchiveModalVisible(false);
+
+  };
+
+  const handleArchive = (task) => {
+    archiveTask({
+      refetchQueries:[namedOperations.Query.GetTasks],
+      variables: {taskId: task.id}
+    });
+
+    hideArchiveModal();
+  };
+
   const handleCancel = () => {
-    setIsModalVisible(false);
+    setIsTaskModalVisible(false);
   };
 
   const onFinishAdd = async (variables: AddTaskMutationVariables) => {
-    setIsModalVisible(false);
+    setIsTaskModalVisible(false);
     await addTask({
       refetchQueries:[namedOperations.Query.GetTasks],
       variables: {...variables, projectId}
@@ -83,7 +104,7 @@ export const TaskView = () : JSX.Element => {
   const onFinishEdit = (formVars) => {
     const vars = {...formVars, taskId: formVars.id};
     const realFn = async (variables: UpdateTaskMutationVariables) => {
-      setIsModalVisible(false);
+      setIsTaskModalVisible(false);
 
       await updateTask({
         refetchQueries:[namedOperations.Query.GetTasks],
@@ -140,7 +161,7 @@ export const TaskView = () : JSX.Element => {
               <Button key="1" size='small' onClick={() => editTaskHandler(task)}>
                 <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
               </Button>,
-              <Button key="2" size='small'>
+              <Button key="2" size='small' onClick={() => showArchiveModal(task)}>
                 <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
               </Button>
             ]}
@@ -149,13 +170,22 @@ export const TaskView = () : JSX.Element => {
           </List.Item>
         )}
       />
+
       <TaskModal
         form={form}
         handleCancel={handleCancel}
         isEditMode={isEditMode}
-        isModalVisible={isModalVisible}
+        isModalVisible={isTaskModalVisible}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
+      />
+
+      <ArchiveModal
+        isModalVisible={isArchiveModalVisible}
+        handleCancel={hideArchiveModal}
+        handleOk={() => handleArchive(taskToBeArchived)}
+        title={`Archiwizuj ${ taskToBeArchived?.name }`}
+        modalText={`Czy na pewno chcesz archiwizować projekt ${ taskToBeArchived?.name }?`}
       />
     </>
   );};

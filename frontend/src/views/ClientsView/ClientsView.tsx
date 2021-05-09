@@ -7,47 +7,74 @@ import {
   UpdateClientMutationVariables,
   useCreateClientMutation,
   useGetAllClientsQuery,
-  useUpdateClientMutation
+  useArchiveClientMutation,
+  useUpdateClientMutation,
+  Client
 } from '../../generated/graphql';
 import { ClientModal } from './ClientModal';
 
 import '../../css/ClientsView.css';
 import { Redirect } from 'react-router-dom';
+import { ArchiveModal } from '../../components';
 
 const {Text} = Typography;
 
-const IconText = ({ icon, text }: any) : JSX.Element => (
+const IconText = ({ icon: Icon, text }: any) : JSX.Element => (
   <Space>
-    {React.createElement(icon)}
+    <Icon/>
     {text}
   </Space>
 );
 
 export const ClientsView = () : JSX.Element => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isClientModalVisible, setIsClientModalVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [clientState, setClientState] = useState(null);
+  const [clientStateForRedirect, setClientStateForRedirect] = useState(null);
+  const [isArchiveModalVisible, setIsArchiveModalVisible] = useState(false);
+  const [clientToBeArchived, setClientToBeArchived] = useState<Client | null>(null);
 
   const {error, data, loading} = useGetAllClientsQuery({fetchPolicy: 'no-cache'});
   const [addClient] = useCreateClientMutation();
   const [updateClient] = useUpdateClientMutation();
+  const [archiveClient] = useArchiveClientMutation();
 
   const [form] = Form.useForm();
 
-  const showModal = (editMode = false) => {
-    setIsModalVisible(true);
+  const clients = data?.clients || [];
+
+  const showClientModal = (editMode = false) => {
     setIsEditMode(editMode);
-    if(!editMode) {
-      form.resetFields();
-    }
+    setIsClientModalVisible(true);
   };
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
+  const showArchiveModal = (client) => {
+    setClientToBeArchived(client);
+    setIsArchiveModalVisible(true);
+  };
+
+  const hideArchiveModal = () => {
+    setClientToBeArchived(null);
+    setIsArchiveModalVisible(false);
+
+  };
+
+  const handleArchive = (client) => {
+    archiveClient({
+      refetchQueries:[namedOperations.Query.GetAllClients],
+      variables: {clientId: client.id}
+    });
+
+    hideArchiveModal();
+  };
+
+  const handleClientModalCancel = () => {
+    setIsClientModalVisible(false);
+    form.resetFields();
   };
 
   const onFinishAdd = async (variables: CreateClientMutationVariables) => {
-    setIsModalVisible(false);
+    setIsClientModalVisible(false);
+
     await addClient({
       refetchQueries:[namedOperations.Query.GetAllClients],
       variables
@@ -56,54 +83,55 @@ export const ClientsView = () : JSX.Element => {
     form.resetFields();
   };
 
-  const onFinishEditHandler = (formVars) => {
-    const vars = {...formVars, clientId: formVars.id};
-    const onFinishEdit = async (variables: UpdateClientMutationVariables) => {
-      setIsModalVisible(false);
+  const onFinishEdit = async (variables: UpdateClientMutationVariables) => {
+    setIsClientModalVisible(false);
 
-      await updateClient({
-        refetchQueries:[namedOperations.Query.GetAllClients],
-        variables
-      });
+    await updateClient({
+      refetchQueries:[namedOperations.Query.GetAllClients],
+      variables
+    });
 
-      form.resetFields();
-    };
-
-    onFinishEdit(vars);
+    form.resetFields();
   };
 
-  const onFinishFailed = (errorInfo: any) => {
-    console.log('Failed:', errorInfo);
+  const onFinishEditHandler = (formVariables) => {
+    const variables = {...formVariables, clientId: formVariables.id};
+
+    onFinishEdit(variables);
   };
 
-  const clients = data?.clients || [];
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed: ', errorInfo);
+  };
 
   const newClientHandler = () => {
-    showModal();
+    showClientModal();
   };
 
   const editClientHandler = (client) => {
     form.setFieldsValue(client);
-    showModal(true);
+    showClientModal(true);
   };
 
   const onFinish = isEditMode ? onFinishEditHandler : onFinishAdd;
 
   const projectsHandler = (client) => {
-    setClientState(client);
+    setClientStateForRedirect(client);
   };
 
   if (loading) {return <p>Loading...</p>;}
   if (error) {return <p>Error :(</p>;}
 
-  if(clientState) {
-    return (<Redirect
-      push
-      to={{
-        pathname: '/projects',
-        state: { client: clientState }
-      }}
-    />);
+  if(clientStateForRedirect) {
+    return (
+      <Redirect
+        push
+        to={{
+          pathname: '/projects',
+          state: { client: clientStateForRedirect }
+        }}
+      />
+    );
   }
 
   return (
@@ -118,14 +146,38 @@ export const ClientsView = () : JSX.Element => {
         renderItem={(client) => (
           <List.Item
             actions={[
-              <Button key="1" size='small' onClick={() => editClientHandler(client)}>
-                <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
+              <Button
+                key="1"
+                size='small'
+                onClick={() => editClientHandler(client)}
+              >
+                <IconText
+                  icon={ EditFilled }
+                  text="Edytuj"
+                  key="list-vertical-star-o"
+                />
               </Button>,
-              <Button key="2" size='small'>
-                <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
+              <Button
+                key="2"
+                size='small'
+                onClick={() => showArchiveModal(client)}
+              >
+                <IconText
+                  icon={ InboxOutlined }
+                  text="Archiwizuj"
+                  key="list-vertical-like-o"
+                />
               </Button>,
-              <Button key="2" size='small' onClick={() => projectsHandler(client)}>
-                <IconText icon={ BarsOutlined } text="Zarządzaj projektami" key="list-vertical-message"/>
+              <Button
+                key="2"
+                size='small'
+                onClick={() => projectsHandler(client)}
+              >
+                <IconText
+                  icon={ BarsOutlined }
+                  text="Zarządzaj projektami"
+                  key="list-vertical-message"
+                />
               </Button>
             ]}
           >
@@ -136,11 +188,19 @@ export const ClientsView = () : JSX.Element => {
 
       <ClientModal
         form={form}
-        handleCancel={handleCancel}
+        handleCancel={handleClientModalCancel}
         isEditMode={isEditMode}
-        isModalVisible={isModalVisible}
+        isModalVisible={isClientModalVisible}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
+      />
+
+      <ArchiveModal
+        isModalVisible={isArchiveModalVisible}
+        handleCancel={hideArchiveModal}
+        handleOk={() => handleArchive(clientToBeArchived)}
+        title={`Archiwizuj ${ clientToBeArchived?.name }`}
+        modalText={`Czy na pewno chcesz archiwizować klienta ${ clientToBeArchived?.name }?`}
       />
     </>
   );};

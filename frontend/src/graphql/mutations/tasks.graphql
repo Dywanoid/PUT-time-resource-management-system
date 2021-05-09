@@ -17,3 +17,11 @@ mutation UpdateTask($taskId: ID!, $name: String!) {
     name
   }
 }
+
+mutation ArchiveTask($taskId: ID!) {
+  archiveTask(input:{
+    taskId: $taskId
+  }) {
+    id
+  }
+}

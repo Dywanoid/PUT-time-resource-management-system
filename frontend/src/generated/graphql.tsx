@@ -259,6 +259,19 @@ export type UpdateClientMutation = (
   ) }
 );
 
+export type ArchiveClientMutationVariables = Exact<{
+  clientId: Scalars['ID'];
+}>;
+
+
+export type ArchiveClientMutation = (
+  { __typename?: 'Mutation' }
+  & { archiveClient: (
+    { __typename?: 'Client' }
+    & Pick<Client, 'id'>
+  ) }
+);
+
 export type AddProjectMutationVariables = Exact<{
   clientId: Scalars['ID'];
   name: Scalars['String'];
@@ -287,6 +300,19 @@ export type UpdateProjectMutation = (
   ) }
 );
 
+export type ArchiveProjectMutationVariables = Exact<{
+  projectId: Scalars['ID'];
+}>;
+
+
+export type ArchiveProjectMutation = (
+  { __typename?: 'Mutation' }
+  & { archiveProject: (
+    { __typename?: 'Project' }
+    & Pick<Project, 'id'>
+  ) }
+);
+
 export type AddTaskMutationVariables = Exact<{
   projectId: Scalars['ID'];
   name: Scalars['String'];
@@ -312,6 +338,19 @@ export type UpdateTaskMutation = (
   & { updateTask: (
     { __typename?: 'Task' }
     & Pick<Task, 'id' | 'name'>
+  ) }
+);
+
+export type ArchiveTaskMutationVariables = Exact<{
+  taskId: Scalars['ID'];
+}>;
+
+
+export type ArchiveTaskMutation = (
+  { __typename?: 'Mutation' }
+  & { archiveTask: (
+    { __typename?: 'Task' }
+    & Pick<Task, 'id'>
   ) }
 );
 
@@ -449,6 +488,39 @@ export function useUpdateClientMutation(baseOptions?: Apollo.MutationHookOptions
 export type UpdateClientMutationHookResult = ReturnType<typeof useUpdateClientMutation>;
 export type UpdateClientMutationResult = Apollo.MutationResult<UpdateClientMutation>;
 export type UpdateClientMutationOptions = Apollo.BaseMutationOptions<UpdateClientMutation, UpdateClientMutationVariables>;
+export const ArchiveClientDocument = gql`
+    mutation ArchiveClient($clientId: ID!) {
+  archiveClient(input: {clientId: $clientId}) {
+    id
+  }
+}
+    `;
+export type ArchiveClientMutationFn = Apollo.MutationFunction<ArchiveClientMutation, ArchiveClientMutationVariables>;
+
+/**
+ * __useArchiveClientMutation__
+ *
+ * To run a mutation, you first call `useArchiveClientMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useArchiveClientMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [archiveClientMutation, { data, loading, error }] = useArchiveClientMutation({
+ *   variables: {
+ *      clientId: // value for 'clientId'
+ *   },
+ * });
+ */
+export function useArchiveClientMutation(baseOptions?: Apollo.MutationHookOptions<ArchiveClientMutation, ArchiveClientMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ArchiveClientMutation, ArchiveClientMutationVariables>(ArchiveClientDocument, options);
+      }
+export type ArchiveClientMutationHookResult = ReturnType<typeof useArchiveClientMutation>;
+export type ArchiveClientMutationResult = Apollo.MutationResult<ArchiveClientMutation>;
+export type ArchiveClientMutationOptions = Apollo.BaseMutationOptions<ArchiveClientMutation, ArchiveClientMutationVariables>;
 export const AddProjectDocument = gql`
     mutation AddProject($clientId: ID!, $name: String!) {
   addProject(input: {clientId: $clientId, name: $name}) {
@@ -519,6 +591,39 @@ export function useUpdateProjectMutation(baseOptions?: Apollo.MutationHookOption
 export type UpdateProjectMutationHookResult = ReturnType<typeof useUpdateProjectMutation>;
 export type UpdateProjectMutationResult = Apollo.MutationResult<UpdateProjectMutation>;
 export type UpdateProjectMutationOptions = Apollo.BaseMutationOptions<UpdateProjectMutation, UpdateProjectMutationVariables>;
+export const ArchiveProjectDocument = gql`
+    mutation ArchiveProject($projectId: ID!) {
+  archiveProject(input: {projectId: $projectId}) {
+    id
+  }
+}
+    `;
+export type ArchiveProjectMutationFn = Apollo.MutationFunction<ArchiveProjectMutation, ArchiveProjectMutationVariables>;
+
+/**
+ * __useArchiveProjectMutation__
+ *
+ * To run a mutation, you first call `useArchiveProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useArchiveProjectMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [archiveProjectMutation, { data, loading, error }] = useArchiveProjectMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useArchiveProjectMutation(baseOptions?: Apollo.MutationHookOptions<ArchiveProjectMutation, ArchiveProjectMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ArchiveProjectMutation, ArchiveProjectMutationVariables>(ArchiveProjectDocument, options);
+      }
+export type ArchiveProjectMutationHookResult = ReturnType<typeof useArchiveProjectMutation>;
+export type ArchiveProjectMutationResult = Apollo.MutationResult<ArchiveProjectMutation>;
+export type ArchiveProjectMutationOptions = Apollo.BaseMutationOptions<ArchiveProjectMutation, ArchiveProjectMutationVariables>;
 export const AddTaskDocument = gql`
     mutation AddTask($projectId: ID!, $name: String!) {
   addTask(input: {projectId: $projectId, name: $name}) {
@@ -589,6 +694,39 @@ export function useUpdateTaskMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateTaskMutationHookResult = ReturnType<typeof useUpdateTaskMutation>;
 export type UpdateTaskMutationResult = Apollo.MutationResult<UpdateTaskMutation>;
 export type UpdateTaskMutationOptions = Apollo.BaseMutationOptions<UpdateTaskMutation, UpdateTaskMutationVariables>;
+export const ArchiveTaskDocument = gql`
+    mutation ArchiveTask($taskId: ID!) {
+  archiveTask(input: {taskId: $taskId}) {
+    id
+  }
+}
+    `;
+export type ArchiveTaskMutationFn = Apollo.MutationFunction<ArchiveTaskMutation, ArchiveTaskMutationVariables>;
+
+/**
+ * __useArchiveTaskMutation__
+ *
+ * To run a mutation, you first call `useArchiveTaskMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useArchiveTaskMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [archiveTaskMutation, { data, loading, error }] = useArchiveTaskMutation({
+ *   variables: {
+ *      taskId: // value for 'taskId'
+ *   },
+ * });
+ */
+export function useArchiveTaskMutation(baseOptions?: Apollo.MutationHookOptions<ArchiveTaskMutation, ArchiveTaskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ArchiveTaskMutation, ArchiveTaskMutationVariables>(ArchiveTaskDocument, options);
+      }
+export type ArchiveTaskMutationHookResult = ReturnType<typeof useArchiveTaskMutation>;
+export type ArchiveTaskMutationResult = Apollo.MutationResult<ArchiveTaskMutation>;
+export type ArchiveTaskMutationOptions = Apollo.BaseMutationOptions<ArchiveTaskMutation, ArchiveTaskMutationVariables>;
 export const GetAllClientsDocument = gql`
     query GetAllClients {
   clients(limit: 100) {
@@ -715,9 +853,12 @@ export const namedOperations = {
   Mutation: {
     CreateClient: 'CreateClient',
     UpdateClient: 'UpdateClient',
+    ArchiveClient: 'ArchiveClient',
     AddProject: 'AddProject',
     UpdateProject: 'UpdateProject',
+    ArchiveProject: 'ArchiveProject',
     AddTask: 'AddTask',
-    UpdateTask: 'UpdateTask'
+    UpdateTask: 'UpdateTask',
+    ArchiveTask: 'ArchiveTask'
   }
 }

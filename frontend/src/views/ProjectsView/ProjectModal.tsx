@@ -1,10 +1,14 @@
 import React from 'react';
-import {Modal, Form, Input, Button } from 'antd';
-const layout = {
-  labelCol: { span: 4 },
-  wrapperCol: { span: 20 }
-};
-const tailLayout = {wrapperCol: { offset: 4 }};
+import {Modal, Form, Input, Button, FormInstance } from 'antd';
+
+interface ProjectModalInput {
+  isEditMode: boolean,
+  isModalVisible: boolean,
+  handleCancel: () => void,
+  onFinish: (any) => Promise<void> | void,
+  onFinishFailed: (any) => void,
+  form: FormInstance
+}
 
 export const ProjectModal = ({
   handleCancel,
@@ -13,13 +17,14 @@ export const ProjectModal = ({
   form,
   onFinish,
   onFinishFailed
-}: any) : JSX.Element => ( <Modal
+}: ProjectModalInput) : JSX.Element => ( <Modal
   title="Dodaj projekt"
   onCancel={handleCancel}
   visible={isModalVisible}
   footer={null}>
   <Form
-    {...layout}
+    labelCol={{span: 4}}
+    wrapperCol={{span: 20}}
     form={form}
     name="basic"
     onFinish={onFinish}
@@ -46,7 +51,9 @@ export const ProjectModal = ({
     >
       <Input/>
     </Form.Item>
-    <Form.Item {...tailLayout}>
+    <Form.Item
+      wrapperCol= {{ offset: 4 }}
+    >
       <Button type="primary" htmlType="submit">
         {isEditMode ? 'Edytuj' : 'Dodaj'}
       </Button>

@@ -32,3 +32,11 @@ mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWit
             city
     }
 }
+
+mutation ArchiveClient($clientId: ID!) {
+  archiveClient(input:{
+    clientId: $clientId
+  }) {
+    id
+  }
+}

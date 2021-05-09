@@ -4,15 +4,18 @@ import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 import {
   AddProjectMutationVariables,
   namedOperations,
+  useArchiveProjectMutation,
   UpdateProjectMutationVariables,
   useAddProjectMutation,
   useUpdateProjectMutation,
-  useGetProjectsQuery
+  useGetProjectsQuery,
+  Project
 } from '../../generated/graphql';
 
 import '../../css/ProjectsView.css';
 import { Redirect, useLocation } from 'react-router';
 import { ProjectModal } from './ProjectModal';
+import { ArchiveModal } from '../../components';
 
 const {Text} = Typography;
 
@@ -43,9 +46,11 @@ interface ProjectState {
 
 export const ProjectsView = () : JSX.Element => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isArchiveModalVisible, setIsArchiveModalVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [projectState, setProjectState] = useState<ProjectState | null>(null);
-
+  const [projectToBeArchived, setProjectToBeArchived] = useState<Project | null>(null);
+  const [archiveProject] = useArchiveProjectMutation();
   const location = useLocation<ProjectLocation>();
   const {client} = location.state;
   const {id: clientId, name: clientName} = client;
@@ -59,6 +64,26 @@ export const ProjectsView = () : JSX.Element => {
   const [updateProject] = useUpdateProjectMutation();
 
   const [form] = Form.useForm();
+
+  const showArchiveModal = (project) => {
+    setProjectToBeArchived(project);
+    setIsArchiveModalVisible(true);
+  };
+
+  const hideArchiveModal = () => {
+    setProjectToBeArchived(null);
+    setIsArchiveModalVisible(false);
+
+  };
+
+  const handleArchive = (project) => {
+    archiveProject({
+      refetchQueries:[namedOperations.Query.GetProjects],
+      variables: {projectId: project.id}
+    });
+
+    hideArchiveModal();
+  };
 
   const showModal = (editMode = false) => {
     setIsModalVisible(true);
@@ -98,7 +123,7 @@ export const ProjectsView = () : JSX.Element => {
     onFinishEdit(vars);
   };
 
-  const onFinishFailed = (errorInfo: any) => {
+  const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
   };
 
@@ -146,14 +171,38 @@ export const ProjectsView = () : JSX.Element => {
         renderItem={(project) => (
           <List.Item
             actions={[
-              <Button key="1" size='small' onClick={() => editProjectHandler(project)}>
-                <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
+              <Button
+                key="1"
+                size='small'
+                onClick={() => editProjectHandler(project)}
+              >
+                <IconText
+                  icon={ EditFilled }
+                  text="Edytuj"
+                  key="list-vertical-star-o"
+                />
               </Button>,
-              <Button key="2" size='small'>
-                <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
+              <Button
+                key="2"
+                size='small'
+                onClick={() => showArchiveModal(project)}
+              >
+                <IconText
+                  icon={ InboxOutlined }
+                  text="Archiwizuj"
+                  key="list-vertical-like-o"
+                />
               </Button>,
-              <Button key="2" size='small' onClick={() => tasksHandler(project)}>
-                <IconText icon={ BarsOutlined } text="Zarządzaj zadaniami" key="list-vertical-message"/>
+              <Button
+                key="2"
+                size='small'
+                onClick={() => tasksHandler(project)}
+              >
+                <IconText
+                  icon={ BarsOutlined }
+                  text="Zarządzaj zadaniami"
+                  key="list-vertical-message"
+                />
               </Button>
             ]}
           >
@@ -168,6 +217,14 @@ export const ProjectsView = () : JSX.Element => {
         isModalVisible={isModalVisible}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
+      />
+
+      <ArchiveModal
+        isModalVisible={isArchiveModalVisible}
+        handleCancel={hideArchiveModal}
+        handleOk={() => handleArchive(projectToBeArchived)}
+        title={`Archiwizuj ${ projectToBeArchived?.name }`}
+        modalText={`Czy na pewno chcesz archiwizować projekt ${ projectToBeArchived?.name }?`}
       />
     </>
   );};

@@ -17,3 +17,11 @@ mutation UpdateProject($projectId: ID!, $name: String!) {
     name
   }
 }
+
+mutation ArchiveProject($projectId: ID!) {
+  archiveProject(input:{
+    projectId: $projectId
+  }) {
+    id
+  }
+}
