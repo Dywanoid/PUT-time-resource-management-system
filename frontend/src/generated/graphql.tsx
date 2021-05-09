@@ -17,7 +17,7 @@ export type Scalars = {
 };
 
 export type AddProjectInput = {
-  id: Scalars['ID'];
+  clientId: Scalars['ID'];
   name: Scalars['String'];
 };
 
@@ -27,7 +27,7 @@ export type AddTaskInput = {
 };
 
 export type ArchiveClientInput = {
-  id: Scalars['ID'];
+  clientId: Scalars['ID'];
 };
 
 export type ArchiveProjectInput = {
@@ -194,7 +194,7 @@ export type Task = {
 };
 
 export type UnarchiveClientInput = {
-  id: Scalars['ID'];
+  clientId: Scalars['ID'];
 };
 
 export type UnarchiveProjectInput = {
@@ -206,7 +206,7 @@ export type UnarchiveTaskInput = {
 };
 
 export type UpdateClientInput = {
-  id: Scalars['ID'];
+  clientId: Scalars['ID'];
   name: Scalars['String'];
   taxId?: Maybe<Scalars['String']>;
   streetWithNumber?: Maybe<Scalars['String']>;
@@ -215,7 +215,7 @@ export type UpdateClientInput = {
 };
 
 export type UpdateProjectInput = {
-  id: Scalars['ID'];
+  projectId: Scalars['ID'];
   name: Scalars['String'];
 };
 
@@ -242,7 +242,7 @@ export type CreateClientMutation = (
 );
 
 export type UpdateClientMutationVariables = Exact<{
-  id: Scalars['ID'];
+  clientId: Scalars['ID'];
   name: Scalars['String'];
   taxId?: Maybe<Scalars['String']>;
   streetWithNumber?: Maybe<Scalars['String']>;
@@ -274,7 +274,7 @@ export type AddProjectMutation = (
 );
 
 export type UpdateProjectMutationVariables = Exact<{
-  id: Scalars['ID'];
+  projectId: Scalars['ID'];
   name: Scalars['String'];
 }>;
 
@@ -405,9 +405,9 @@ export type CreateClientMutationHookResult = ReturnType<typeof useCreateClientMu
 export type CreateClientMutationResult = Apollo.MutationResult<CreateClientMutation>;
 export type CreateClientMutationOptions = Apollo.BaseMutationOptions<CreateClientMutation, CreateClientMutationVariables>;
 export const UpdateClientDocument = gql`
-    mutation UpdateClient($id: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+    mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
   updateClient(
-    input: {id: $id, name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, zipCode: $zipCode, city: $city}
+    input: {clientId: $clientId, name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, zipCode: $zipCode, city: $city}
   ) {
     id
     name
@@ -433,7 +433,7 @@ export type UpdateClientMutationFn = Apollo.MutationFunction<UpdateClientMutatio
  * @example
  * const [updateClientMutation, { data, loading, error }] = useUpdateClientMutation({
  *   variables: {
- *      id: // value for 'id'
+ *      clientId: // value for 'clientId'
  *      name: // value for 'name'
  *      taxId: // value for 'taxId'
  *      streetWithNumber: // value for 'streetWithNumber'
@@ -451,7 +451,7 @@ export type UpdateClientMutationResult = Apollo.MutationResult<UpdateClientMutat
 export type UpdateClientMutationOptions = Apollo.BaseMutationOptions<UpdateClientMutation, UpdateClientMutationVariables>;
 export const AddProjectDocument = gql`
     mutation AddProject($clientId: ID!, $name: String!) {
-  addProject(input: {id: $clientId, name: $name}) {
+  addProject(input: {clientId: $clientId, name: $name}) {
     id
     name
   }
@@ -485,8 +485,8 @@ export type AddProjectMutationHookResult = ReturnType<typeof useAddProjectMutati
 export type AddProjectMutationResult = Apollo.MutationResult<AddProjectMutation>;
 export type AddProjectMutationOptions = Apollo.BaseMutationOptions<AddProjectMutation, AddProjectMutationVariables>;
 export const UpdateProjectDocument = gql`
-    mutation UpdateProject($id: ID!, $name: String!) {
-  updateProject(input: {id: $id, name: $name}) {
+    mutation UpdateProject($projectId: ID!, $name: String!) {
+  updateProject(input: {projectId: $projectId, name: $name}) {
     id
     name
   }
@@ -507,7 +507,7 @@ export type UpdateProjectMutationFn = Apollo.MutationFunction<UpdateProjectMutat
  * @example
  * const [updateProjectMutation, { data, loading, error }] = useUpdateProjectMutation({
  *   variables: {
- *      id: // value for 'id'
+ *      projectId: // value for 'projectId'
  *      name: // value for 'name'
  *   },
  * });

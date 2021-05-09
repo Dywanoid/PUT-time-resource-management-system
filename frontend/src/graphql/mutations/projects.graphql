@@ -1,6 +1,6 @@
 mutation AddProject($clientId: ID!, $name: String!) {
   addProject(input: {
-    	id: $clientId,
+    	clientId: $clientId,
     	name: $name,
   }) {
     id,
@@ -8,9 +8,9 @@ mutation AddProject($clientId: ID!, $name: String!) {
   }
 }
 
-mutation UpdateProject($id: ID!, $name: String!) {
+mutation UpdateProject($projectId: ID!, $name: String!) {
   updateProject(input: {
-    id: $id,
+    projectId: $projectId,
     name: $name
   }) {
     id,

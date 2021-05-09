@@ -82,15 +82,20 @@ export const ProjectsView = () : JSX.Element => {
     form.resetFields();
   };
 
-  const onFinishEdit = async (variables: UpdateProjectMutationVariables) => {
-    setIsModalVisible(false);
+  const onFinishEditHandler = (formVars) => {
+    const vars = {...formVars, projectId: formVars.id};
+    const onFinishEdit = async (variables: UpdateProjectMutationVariables) => {
+      setIsModalVisible(false);
 
-    await updateProject({
-      refetchQueries:[namedOperations.Query.GetProjects],
-      variables
-    });
+      await updateProject({
+        refetchQueries:[namedOperations.Query.GetProjects],
+        variables
+      });
 
-    form.resetFields();
+      form.resetFields();
+    };
+
+    onFinishEdit(vars);
   };
 
   const onFinishFailed = (errorInfo: any) => {
@@ -108,7 +113,7 @@ export const ProjectsView = () : JSX.Element => {
     showModal(true);
   };
 
-  const onFinish = isEditMode ? onFinishEdit : onFinishAdd;
+  const onFinish = isEditMode ? onFinishEditHandler : onFinishAdd;
 
   const tasksHandler = (project) => {
     setProjectState({client, project});

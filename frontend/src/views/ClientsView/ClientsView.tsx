@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import {List, Form, Button, Typography, Space } from 'antd';
 import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 import {
-  CreateClientMutationHookResult,
   CreateClientMutationVariables,
   namedOperations,
-  UpdateClientMutationHookResult,
   UpdateClientMutationVariables,
   useCreateClientMutation,
   useGetAllClientsQuery,
@@ -58,15 +56,20 @@ export const ClientsView = () : JSX.Element => {
     form.resetFields();
   };
 
-  const onFinishEdit = async (variables: UpdateClientMutationVariables) => {
-    setIsModalVisible(false);
+  const onFinishEditHandler = (formVars) => {
+    const vars = {...formVars, clientId: formVars.id};
+    const onFinishEdit = async (variables: UpdateClientMutationVariables) => {
+      setIsModalVisible(false);
 
-    await updateClient({
-      refetchQueries:[namedOperations.Query.GetAllClients],
-      variables
-    });
+      await updateClient({
+        refetchQueries:[namedOperations.Query.GetAllClients],
+        variables
+      });
 
-    form.resetFields();
+      form.resetFields();
+    };
+
+    onFinishEdit(vars);
   };
 
   const onFinishFailed = (errorInfo: any) => {
@@ -84,7 +87,7 @@ export const ClientsView = () : JSX.Element => {
     showModal(true);
   };
 
-  const onFinish = isEditMode ? onFinishEdit : onFinishAdd;
+  const onFinish = isEditMode ? onFinishEditHandler : onFinishAdd;
 
   const projectsHandler = (client) => {
     setClientState(client);

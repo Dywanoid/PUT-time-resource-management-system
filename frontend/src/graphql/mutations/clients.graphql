@@ -15,9 +15,9 @@ mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String,
     }
 }
 
-mutation UpdateClient($id: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
     updateClient(input: {
-            id: $id,
+            clientId: $clientId,
             name: $name,
             taxId: $taxId,
             streetWithNumber: $streetWithNumber,

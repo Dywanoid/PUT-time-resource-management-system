@@ -93,7 +93,7 @@ def resolve_create_client(obj, info, input):
 
 
 @mutation.field("updateClient")
-@mutate_item(Client, 'id')
+@mutate_item(Client, 'client_id')
 def resolve_update_client(client, input):
     client.name = input['name']
     client.tax_id = input.get('tax_id'),
@@ -104,21 +104,21 @@ def resolve_update_client(client, input):
 
 
 @mutation.field("archiveClient")
-@mutate_item(Client, 'id')
+@mutate_item(Client, 'client_id')
 def resolve_archive_client(client, input):
     client.archived = True
     return client
 
 
 @mutation.field("unarchiveClient")
-@mutate_item(Client, 'id')
+@mutate_item(Client, 'client_id')
 def resolve_unarchive_client(client, input):
     client.archived = False
     return client
 
 
 @mutation.field("addProject")
-@mutate_item(Client, 'id')
+@mutate_item(Client, 'client_id')
 def resolve_add_project(client, input):
     project = Project(
         name=input['name'],
@@ -130,7 +130,7 @@ def resolve_add_project(client, input):
 
 
 @mutation.field("updateProject")
-@mutate_item(Project, 'id')
+@mutate_item(Project, 'project_id')
 def resolve_update_project(project, input):
     project.name = input['name']
     return project
