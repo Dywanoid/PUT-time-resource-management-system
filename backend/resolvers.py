@@ -274,6 +274,24 @@ def resolve_create_team_member(obj, info, input):
     db.session.commit()
     return team_member
 
+
+@mutation.field("createTeamMemberBatch")
+@convert_kwargs_to_snake_case
+def resolve_create_team_member(obj, info, input):
+    user_id_list = input.get('user_id_list')
+    team_members = []
+    for user_id in user_id_list:
+        team_member = TeamMember(
+            user_id=user_id,
+            team_id=input.get('team_id'),
+            created_at=datetime.now()
+        )
+        db.session.add(team_member)
+        team_members.append(team_member)
+    db.session.commit()
+    return team_members
+
+
 @mutation.field("deleteTeamMember")
 @convert_kwargs_to_snake_case
 def resolve_delete_team_member(obj, info, input):
@@ -281,9 +299,22 @@ def resolve_delete_team_member(obj, info, input):
     team_id = input.get('team_id')
     db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).delete()
     db.session.commit()
-    if(TeamMember.query.filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id)):
+    if(TeamMember.query.filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).count()):
         return False
     return True
+
+
+@mutation.field("deleteTeamMemberBatch")
+@convert_kwargs_to_snake_case
+def resolve_delete_team_member_batch(obj, info, input):
+    user_id = input.get('user_id_list')
+    team_id = input.get('team_id')
+    db.session.query(TeamMember).filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).delete()
+    db.session.commit()
+    if(TeamMember.query.filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).count()):
+        return False
+    return True
+
 
 @query.field("teamMembers")
 @convert_kwargs_to_snake_case

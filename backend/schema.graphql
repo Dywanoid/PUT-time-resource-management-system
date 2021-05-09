@@ -157,6 +157,16 @@ input DeleteTeamMemberInput {
     teamId: ID!
 }
 
+input DeleteTeamMemberBatchInput {
+    userIdList: [ID!]
+    teamId: ID!
+}
+
+input CreateTeamMemberBatchInput {
+    userIdList: [ID!]
+    teamId: ID!
+}
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     archiveClient(input: ArchiveClientInput!): Client!
@@ -176,4 +186,6 @@ type Mutation {
     unarchiveTeam(input: UnarchiveTeamInput!): Team!
     createTeamMember(input: CreateTeamMemberInput!): TeamMember!
     deleteTeamMember(input: DeleteTeamMemberInput!): Boolean!
+    deleteTeamMemberBatch(input: DeleteTeamMemberBatchInput!): Boolean!
+    createTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
 }
