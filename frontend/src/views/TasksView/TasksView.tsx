@@ -140,14 +140,22 @@ export const TaskView = () : JSX.Element => {
   return (
     <>
       <Breadcrumb>
-        <Breadcrumb.Item>Klienci</Breadcrumb.Item>
         <Breadcrumb.Item>
           <Link to={{pathname: '/clients'}}>
-            {`Klient: ${ clientName }`}
+            Klienci
           </Link>
         </Breadcrumb.Item>
-        <Breadcrumb.Item>{`Projekt: ${ projectName }`}</Breadcrumb.Item>
-        <Breadcrumb.Item>Wszystkie zadania</Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Link
+            to={{
+              pathname: '/projects',
+              state: location.state
+            }}
+          >
+            {`Projekty klienta "${ clientName }"`}
+          </Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>{`Zadania projektu: "${ projectName }"`}</Breadcrumb.Item>
       </Breadcrumb>
       <Button onClick={ newProjectHandler }><Text strong>Dodaj zadanie ➕</Text></Button>
       <List

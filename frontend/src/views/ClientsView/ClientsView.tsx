@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {List, Form, Button, Typography, Space } from 'antd';
+import {List, Form, Button, Typography, Space, Breadcrumb } from 'antd';
 import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 import {
   CreateClientMutationVariables,
@@ -136,8 +136,10 @@ export const ClientsView = () : JSX.Element => {
 
   return (
     <>
+      <Breadcrumb>
+        <Breadcrumb.Item>Wszyscy klienci</Breadcrumb.Item>
+      </Breadcrumb>
       <Button onClick={ newClientHandler }><Text strong>Dodaj klienta ➕</Text></Button>
-
       <List
         header={<h1>Klienci</h1>}
         bordered

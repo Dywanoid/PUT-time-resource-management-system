@@ -16,6 +16,7 @@ import '../../css/ProjectsView.css';
 import { Redirect, useLocation } from 'react-router';
 import { ProjectModal } from './ProjectModal';
 import { ArchiveModal } from '../../components';
+import { Link } from 'react-router-dom';
 
 const {Text} = Typography;
 
@@ -160,7 +161,12 @@ export const ProjectsView = () : JSX.Element => {
   return (
     <>
       <Breadcrumb>
-        <Breadcrumb.Item>{`Klient: ${ clientName }`}</Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Link to={{pathname: '/clients'}}>
+            Klienci
+          </Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>{`Projekty klienta "${ clientName }"`}</Breadcrumb.Item>
       </Breadcrumb>
       <Button onClick={ newProjectHandler }><Text strong>Dodaj projekt ➕</Text></Button>
       <List
