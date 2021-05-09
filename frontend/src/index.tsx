@@ -1,23 +1,37 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+
 import { BrowserRouter as Router, Switch } from 'react-router-dom';
-import { ApplicationsView, CalendarView, HomeView, ResourcesView } from './views';
+import { Provider } from 'react-redux';
+import { ApplicationsView, CalendarView, ClientsView, HomeView, ResourcesView, TeamsView } from './views';
 import reportWebVitals from './reportWebVitals';
 import { ProvideAuth } from './utils/auth';
 import { PrivateRoute } from './components';
+import { configureStore } from '@reduxjs/toolkit';
+import { rootReducer } from './reducers';
 import 'antd/dist/antd.css';
+import { ApolloProvider } from '@apollo/client';
+import { client } from './graphql/apolloClient';
+
+const store = configureStore({ reducer: rootReducer });
 
 ReactDOM.render(
-  <ProvideAuth>
-    <Router>
-      <Switch>
-        <PrivateRoute exact component={HomeView} path='/'/>
-        <PrivateRoute component={CalendarView} path='/calendar'/>
-        <PrivateRoute component={ResourcesView} path='/resources'/>
-        <PrivateRoute component={ApplicationsView} path='/applications'/>
-      </Switch>
-    </Router>
-  </ProvideAuth>,
+  <ApolloProvider client={client}>
+    <Provider store={ store }>
+      <ProvideAuth>
+        <Router>
+          <Switch>
+            <PrivateRoute exact component={ HomeView } path='/'/>
+            <PrivateRoute component={ CalendarView } path='/calendar'/>
+            <PrivateRoute component={ ResourcesView}  path='/resources'/>
+            <PrivateRoute component={ ApplicationsView } path='/applications'/>
+            <PrivateRoute component={ ClientsView } path='/clients'/>
+            <PrivateRoute component={ TeamsView } path='/teams'/>
+          </Switch>
+        </Router>
+      </ProvideAuth>
+    </Provider>
+  </ApolloProvider>,
   document.getElementById('root')
 );
 

@@ -1,0 +1,12 @@
+mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+    createClient(input: {
+            name: $name,
+            taxId: $taxId,
+            streetWithNumber: $streetWithNumber,
+            zipCode: $zipCode,
+            city: $city
+        }) {
+            id, 
+            name
+    }
+}

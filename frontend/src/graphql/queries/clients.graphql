@@ -1,0 +1,6 @@
+query GetAllClients {
+        clients(limit: 100) {
+            id,
+            name
+        }
+    }
