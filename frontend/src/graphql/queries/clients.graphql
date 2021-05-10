@@ -1,0 +1,10 @@
+query GetAllClients {
+        clients(limit: 100) {
+            id,
+            name,
+            taxId,
+            streetWithNumber,
+            zipCode,
+            city
+        }
+    }
