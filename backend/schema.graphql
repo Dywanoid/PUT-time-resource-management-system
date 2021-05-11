@@ -1,3 +1,5 @@
+scalar DateTime
+
 schema {
     query: Query
     mutation: Mutation
@@ -6,17 +8,118 @@ schema {
 type Client {
     id: ID!
     name: String!
+    taxId: String
+    streetWithNumber: String
+    zipCode: String
+    city: String
+    archived: Boolean!
+    createdAt: DateTime!
+    projects(includeArchived: Boolean = false): [Project!]
 }
 
-input ClientInput {
+type Project {
+    id: ID!
     name: String!
+    createdAt: DateTime!
+    tasks(includeArchived: Boolean = false): [Task!]
+    archived: Boolean!
+}
+
+type Task {
+    id: ID!,
+    name: String,
+    createdAt: DateTime!
+    archived: Boolean!
+}
+
+type User {
+    id: ID!
+    name: String!
+    roles: [String!]
 }
 
 type Query {
-    listClients: [Client]
-    getClient(id: ID!): Client
+    clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
+    client(id: ID!): Client!
+    project(id: ID!): Project!
+    task(id: ID!): Task!
+    users(offset: Int = 0, limit: Int = 10): [User!]
+    user(id: ID!): User!
+    me: User!
+}
+
+input CreateClientInput {
+    name: String!
+    taxId: String
+    streetWithNumber: String
+    zipCode: String
+    city: String
+}
+
+input UpdateClientInput {
+    clientId: ID!
+    name: String!
+    taxId: String
+    streetWithNumber: String
+    zipCode: String
+    city: String
+}
+
+input ArchiveClientInput {
+    clientId: ID!
+}
+
+input UnarchiveClientInput {
+    clientId: ID!
+}
+
+input AddProjectInput {
+    clientId: ID!
+    name: String!
+}
+
+input UpdateProjectInput {
+    projectId: ID!
+    name: String!
+}
+
+input ArchiveProjectInput {
+    projectId: ID!
+}
+
+input UnarchiveProjectInput {
+    projectId: ID!
+}
+
+input AddTaskInput {
+    projectId: ID!
+    name: String!
+}
+
+input ArchiveTaskInput {
+    taskId: ID!
+}
+
+input UnarchiveTaskInput {
+    taskId: ID!
+}
+
+input UpdateTaskInput {
+    taskId: ID!
+    name: String!
 }
 
 type Mutation {
-    createClient(clientInput: ClientInput!): Client!
+    createClient(input: CreateClientInput!): Client!
+    archiveClient(input: ArchiveClientInput!): Client!
+    unarchiveClient(input: UnarchiveClientInput!): Client!
+    updateClient(input: UpdateClientInput!): Client!
+    addProject(input: AddProjectInput!): Project!
+    updateProject(input: UpdateProjectInput!): Project!
+    archiveProject(input: ArchiveProjectInput!): Project!
+    unarchiveProject(input: UnarchiveProjectInput!): Project!
+    addTask(input: AddTaskInput!): Task!
+    updateTask(input: UpdateTaskInput!): Task!
+    archiveTask(input: ArchiveTaskInput!): Task!
+    unarchiveTask(input: UnarchiveTaskInput!): Task!
 }
