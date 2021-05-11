@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, { useContext, useState } from 'react';
 import { Form, Input, Button, Checkbox, Row, Col } from 'antd';
 import { Redirect, useHistory, useLocation } from 'react-router-dom';
 import { Auth, AuthenticationContext } from '../utils/auth';
@@ -11,11 +11,11 @@ interface LocationState {
   };
 }
 
-const defaultLocation: LocationState = {from: {pathname: '/'}};
+const defaultLocation: LocationState = { from: { pathname: '/' } };
 
 export const LoginPage: React.FC = ()  => {
   const auth = useContext<Auth>(AuthenticationContext);
-  const handleSubmit = ({username, password}) => {
+  const handleSubmit = ({ username, password }) => {
     if(username === 'test' && password === 'test123') {
       auth?.signin(() => {
         history.replace(from);
@@ -42,7 +42,7 @@ export const LoginPage: React.FC = ()  => {
         <Form
           name="basic"
           initialValues={{ remember: true }}
-          onFinish={handleSubmit}
+          onFinish={ handleSubmit }
         >
           <Form.Item
             label="Username"
