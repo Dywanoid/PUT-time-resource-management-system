@@ -27,7 +27,7 @@ type Project {
 
 type Task {
     id: ID!,
-    name: String,
+    name: String!,
     createdAt: DateTime!
     archived: Boolean!
 }

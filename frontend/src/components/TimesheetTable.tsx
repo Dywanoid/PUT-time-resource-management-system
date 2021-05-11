@@ -1,7 +1,8 @@
 import {Table} from 'antd';
 import React, { useReducer } from 'react';
-import {data } from '../utils/temporaryData';
+import {data as temporaryData } from '../utils/temporaryData';
 import '../css/TimesheetTable.css';
+import { useGetTaskTreeQuery } from '../generated/graphql';
 
 // TEMPORATY UTILS FOR DATA MOCKUP
 function dates(current) {
@@ -27,6 +28,12 @@ interface TableColumn {
   key: string;
   render?: React.FC;
   title: string;
+}
+
+interface ColumnData {
+  project: string;
+  client: string;
+  task: string;
 }
 
 interface TimeComponentProps {
@@ -81,7 +88,7 @@ const sumColumn: TableColumn = {
   title: 'Sum'
 };
 
-const myData = data.map((d) => {
+const myData = temporaryData.map((d) => {
   const values = weekDates.reduce((acc, weekDate) => {
     const rand =  Math.floor(Math.random() * 17) * 15;
 
@@ -159,6 +166,27 @@ const getRenderAdder = (dispatch) => (column: TableColumn) => {
 export const TimesheetTable: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, myData);
   const renderAdder = getRenderAdder(dispatch);
+  const {data, loading, error} = useGetTaskTreeQuery({fetchPolicy: 'no-cache'});
+
+  const transformedData: ColumnData[] = [];
+
+  data?.clients?.forEach((client) => {
+    client?.projects?.forEach((project) => {
+      project?.tasks?.forEach((task) => {
+        transformedData.push(
+          {
+            client: client.name,
+            project: project.name,
+            task: task.name
+          }
+        );
+
+      });
+    });
+  });
+
+  if (loading) {return <p>Loading...</p>;}
+  if (error) {return <p>Error :(</p>;}
 
   const myColumns = [
     ...dataColumns,

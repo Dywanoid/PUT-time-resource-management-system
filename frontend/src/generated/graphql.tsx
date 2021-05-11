@@ -161,6 +161,9 @@ export type Query = {
   client: Client;
   project: Project;
   task: Task;
+  users?: Maybe<Array<User>>;
+  user: User;
+  me: User;
 };
 
 
@@ -185,10 +188,21 @@ export type QueryTaskArgs = {
   id: Scalars['ID'];
 };
 
+
+export type QueryUsersArgs = {
+  offset?: Maybe<Scalars['Int']>;
+  limit?: Maybe<Scalars['Int']>;
+};
+
+
+export type QueryUserArgs = {
+  id: Scalars['ID'];
+};
+
 export type Task = {
   __typename?: 'Task';
   id: Scalars['ID'];
-  name?: Maybe<Scalars['String']>;
+  name: Scalars['String'];
   createdAt: Scalars['DateTime'];
   archived: Scalars['Boolean'];
 };
@@ -222,6 +236,13 @@ export type UpdateProjectInput = {
 export type UpdateTaskInput = {
   taskId: Scalars['ID'];
   name: Scalars['String'];
+};
+
+export type User = {
+  __typename?: 'User';
+  id: Scalars['ID'];
+  name: Scalars['String'];
+  roles?: Maybe<Array<Scalars['String']>>;
 };
 
 export type CreateClientMutationVariables = Exact<{
@@ -396,6 +417,25 @@ export type GetTasksQuery = (
       & Pick<Task, 'id' | 'name'>
     )>> }
   ) }
+);
+
+export type GetTaskTreeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetTaskTreeQuery = (
+  { __typename?: 'Query' }
+  & { clients?: Maybe<Array<(
+    { __typename?: 'Client' }
+    & Pick<Client, 'id' | 'name'>
+    & { projects?: Maybe<Array<(
+      { __typename?: 'Project' }
+      & Pick<Project, 'id' | 'name'>
+      & { tasks?: Maybe<Array<(
+        { __typename?: 'Task' }
+        & Pick<Task, 'id' | 'name'>
+      )>> }
+    )>> }
+  )>> }
 );
 
 
@@ -844,11 +884,55 @@ export function useGetTasksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<G
 export type GetTasksQueryHookResult = ReturnType<typeof useGetTasksQuery>;
 export type GetTasksLazyQueryHookResult = ReturnType<typeof useGetTasksLazyQuery>;
 export type GetTasksQueryResult = Apollo.QueryResult<GetTasksQuery, GetTasksQueryVariables>;
+export const GetTaskTreeDocument = gql`
+    query GetTaskTree {
+  clients {
+    id
+    name
+    projects {
+      id
+      name
+      tasks {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetTaskTreeQuery__
+ *
+ * To run a query within a React component, call `useGetTaskTreeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTaskTreeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTaskTreeQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetTaskTreeQuery(baseOptions?: Apollo.QueryHookOptions<GetTaskTreeQuery, GetTaskTreeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTaskTreeQuery, GetTaskTreeQueryVariables>(GetTaskTreeDocument, options);
+      }
+export function useGetTaskTreeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTaskTreeQuery, GetTaskTreeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTaskTreeQuery, GetTaskTreeQueryVariables>(GetTaskTreeDocument, options);
+        }
+export type GetTaskTreeQueryHookResult = ReturnType<typeof useGetTaskTreeQuery>;
+export type GetTaskTreeLazyQueryHookResult = ReturnType<typeof useGetTaskTreeLazyQuery>;
+export type GetTaskTreeQueryResult = Apollo.QueryResult<GetTaskTreeQuery, GetTaskTreeQueryVariables>;
 export const namedOperations = {
   Query: {
     GetAllClients: 'GetAllClients',
     GetProjects: 'GetProjects',
-    GetTasks: 'GetTasks'
+    GetTasks: 'GetTasks',
+    GetTaskTree: 'GetTaskTree'
   },
   Mutation: {
     CreateClient: 'CreateClient',
