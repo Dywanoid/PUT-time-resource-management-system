@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { List, Modal, Form, Input, Button, Space } from 'antd';
-import { useQuery, useMutation } from '@apollo/client';
+import { List, Modal, Form, Input, Button, Space, Transfer } from 'antd';
+import { useQuery, useMutation , useApolloClient } from '@apollo/client';
 import {
   GetAllTeams,
+  GetAllUsers,
   CreateTeamMutation,
+  createTeamMembersMutation,
   UpdateTeamMutation,
-  ArchiveTeamMutation
+  ArchiveTeamMutation,
+  GetAllUsersInTeam
 } from '../graphql/queries/teams';
 import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
 import '../css/TeamsView.css';
@@ -24,17 +27,23 @@ const IconText = ({ icon, text }: any) : JSX.Element => (
 );
 
 export const TeamsView = () : JSX.Element => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [name, setName] = useState('');
-  const [id, setId] = useState('');
-  const [description, setDescription] = useState('');
-  const [showArchived, setShowArchived] = useState(false);
-  const [isCreateTeamModal, setCreateTeamModal] = useState(false);
   const { error, data, loading } = useQuery(GetAllTeams);
+  const { data: userData } = useQuery(GetAllUsers);
   const [createTeam] = useMutation(CreateTeamMutation);
   const [updateTeam] = useMutation(UpdateTeamMutation);
   const [archiveTeam] = useMutation(ArchiveTeamMutation);
+  const [createTeamMembers] = useMutation(createTeamMembersMutation);
+  const [name, setName] = useState('');
+  const [teamIdentify, setTeamId] = useState('');
+  const [description, setDescription] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isTeamManagementModalVisible, setIsTeamManagementVisible] = useState(false);
+  const [isCreateTeamModal, setCreateTeamModal] = useState(false);
+  const [targetKeys, setTargetKeys] = useState<string[]>([]);
+  const [selectedKeys, setSelectedKeys] = useState([]);
   const [form] = Form.useForm();
+  const client = useApolloClient();
 
   const addTeam = () => {
     createTeam({
@@ -52,7 +61,7 @@ export const TeamsView = () : JSX.Element => {
       variables: {
         description: description,
         name: name,
-        teamId: id
+        teamId: teamIdentify
       }
     });
   };
@@ -61,6 +70,13 @@ export const TeamsView = () : JSX.Element => {
     archiveTeam({
       refetchQueries: [{ query: GetAllTeams }],
       variables: { teamId: archiveId }
+    });
+  };
+
+  const addTeamMembers = (teamId, teamList) => {
+    createTeamMembers({
+      refetchQueries: [{ query: GetAllUsersInTeam, variables: { teamId: teamIdentify } }],
+      variables: { teamId: teamId, userIdList: teamList }
     });
   };
 
@@ -73,9 +89,40 @@ export const TeamsView = () : JSX.Element => {
     setIsModalVisible(true);
   };
 
+  const showTeamManagementModal = async (teamId) => {
+    setTeamId(teamId);
+    const { data:usersInTeamData } = await client.query({
+      query: GetAllUsersInTeam,
+      variables: { teamId }
+    });
+
+    const usersInTeam = await usersInTeamData?.teamMembers || [];
+    const rightColumn: string[] = [];
+
+    for (let i = 0; i < usersInTeam.length; i++) {
+      rightColumn.push(usersInTeam[i].userId);
+    }
+    setTargetKeys(rightColumn);
+    setIsTeamManagementVisible(true);
+  };
+
   const handleCancel = () => {
     setCreateTeamModal(false);
     setIsModalVisible(false);
+  };
+
+  const handleTeamManagementModalCancel = (e) => {
+    setTargetKeys([]);
+    setTeamId('');
+    setIsTeamManagementVisible(false);
+  };
+
+  const handleTeamManagementModalConfirm = () => {
+    console.log(teamIdentify);
+    addTeamMembers(teamIdentify, targetKeys);
+    setTargetKeys([]);
+    setTeamId('');
+    setIsTeamManagementVisible(false);
   };
 
   if (loading) {return <p>Loading...</p>;}
@@ -85,7 +132,7 @@ export const TeamsView = () : JSX.Element => {
     form.resetFields();
     setName('');
     setDescription('');
-    setId('');
+    setTeamId('');
     setCreateTeamModal(true);
     showModal();
   };
@@ -94,11 +141,34 @@ export const TeamsView = () : JSX.Element => {
     form.setFieldsValue({ description: teamDescription, name: teamName });
     setName(teamName);
     setDescription(teamDescription);
-    setId(teamId);
+    setTeamId(teamId);
     setIsModalVisible(true);
   };
 
   const teams = data?.teams || [];
+  const users = userData?.users || [];
+
+  const mockData: Array<{ key: string, username: string }> = [];
+
+  for (let i = 0; i < users.length; i++) {
+    mockData.push({
+      key: users[i].id,
+      username: users[i].name
+    });
+  }
+
+  const onElementChange = (nextTargetKeys, direction, moveKeys) => {
+    console.log('targetKeys:', nextTargetKeys);
+    console.log('direction:', direction);
+    console.log('moveKeys:', moveKeys);
+
+    setTargetKeys(nextTargetKeys);
+  };
+
+  const onSelectChange = (sourceSelectedKeys, targetSelectedKeys) => {
+    // console.log(sourceSelectedKeys, targetSelectedKeys);
+    setSelectedKeys([...sourceSelectedKeys, ...targetSelectedKeys] as any);
+  };
 
   return (
     <>
@@ -130,7 +200,7 @@ export const TeamsView = () : JSX.Element => {
                       <Button key="2" size='small' onClick={ () => hideTeam(item.id) }>
                         <IconText icon={ InboxOutlined } text="Zarchiwizuj" key="list-vertical-like-o"/>
                       </Button>,
-                      <Button size='small' key="3">
+                      <Button size='small' key="3" onClick={ () => showTeamManagementModal(item.id) }>
                         <IconText icon={ FormOutlined } text="Zarządzaj zespołem" key="list-vertical-like-o"/>
                       </Button>
                     ])
@@ -153,7 +223,6 @@ export const TeamsView = () : JSX.Element => {
         title={ isCreateTeamModal ? 'Dodaj Zespół' : 'Edytuj Zespół' }
         onCancel={ handleCancel }
         visible={ isModalVisible }
-        footer={ null }
       >
         <Form
           { ...layout }
@@ -194,6 +263,27 @@ export const TeamsView = () : JSX.Element => {
             ) }
           </Form.Item>
         </Form>
+      </Modal>
+      <Modal
+        title="Zarządzanie zespołem"
+        onCancel={ handleTeamManagementModalCancel }
+        onOk={ handleTeamManagementModalConfirm }
+        visible={ isTeamManagementModalVisible }
+        destroyOnClose
+      >
+        <Transfer
+          dataSource={ mockData }
+          titles={['Source', 'Target']}
+          targetKeys={ targetKeys }
+          selectedKeys={ selectedKeys }
+          onChange={ onElementChange }
+          onSelectChange={ onSelectChange }
+          render={ (item) => (<List.Item.Meta
+            key={ item.key }
+            title={ <div>{ item.username }</div> }
+          />)
+          }
+        />
       </Modal>
     </>
   );};
