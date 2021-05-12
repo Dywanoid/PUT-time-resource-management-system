@@ -5,7 +5,8 @@ import {
   GetAllTeams,
   GetAllUsers,
   CreateTeamMutation,
-  createTeamMembersMutation,
+  CreateTeamMembersMutation,
+  DeleteTeamMembersMutation,
   UpdateTeamMutation,
   ArchiveTeamMutation,
   GetAllUsersInTeam
@@ -32,7 +33,8 @@ export const TeamsView = () : JSX.Element => {
   const [createTeam] = useMutation(CreateTeamMutation);
   const [updateTeam] = useMutation(UpdateTeamMutation);
   const [archiveTeam] = useMutation(ArchiveTeamMutation);
-  const [createTeamMembers] = useMutation(createTeamMembersMutation);
+  const [createTeamMembers] = useMutation(CreateTeamMembersMutation);
+  const [deleteTeamMembers] = useMutation(DeleteTeamMembersMutation);
   const [name, setName] = useState('');
   const [teamIdentify, setTeamId] = useState('');
   const [description, setDescription] = useState('');
@@ -41,6 +43,7 @@ export const TeamsView = () : JSX.Element => {
   const [isTeamManagementModalVisible, setIsTeamManagementVisible] = useState(false);
   const [isCreateTeamModal, setCreateTeamModal] = useState(false);
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
+  const [targetKeysInitial, setTargetKeysInitial] = useState<string[]>([]);
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [form] = Form.useForm();
   const client = useApolloClient();
@@ -80,6 +83,13 @@ export const TeamsView = () : JSX.Element => {
     });
   };
 
+  const removeTeamMembers = (teamId, teamList) => {
+    deleteTeamMembers({
+      refetchQueries: [{ query: GetAllUsersInTeam, variables: { teamId: teamIdentify } }],
+      variables: { teamId: teamId, userIdList: teamList }
+    });
+  };
+
   const onFinish = async () => {
     setCreateTeamModal(false);
     setIsModalVisible(false);
@@ -102,6 +112,7 @@ export const TeamsView = () : JSX.Element => {
     for (let i = 0; i < usersInTeam.length; i++) {
       rightColumn.push(usersInTeam[i].userId);
     }
+    setTargetKeysInitial(rightColumn);
     setTargetKeys(rightColumn);
     setIsTeamManagementVisible(true);
   };
@@ -118,8 +129,21 @@ export const TeamsView = () : JSX.Element => {
   };
 
   const handleTeamManagementModalConfirm = () => {
-    console.log(teamIdentify);
-    addTeamMembers(teamIdentify, targetKeys);
+    const teamsToRemove: Array<string> = [];
+
+    if (!(JSON.stringify(targetKeys)==JSON.stringify(targetKeysInitial))) {
+      for (const i in targetKeysInitial) {
+        const index = targetKeys.indexOf(targetKeysInitial[i]);
+
+        targetKeys.includes(targetKeysInitial[i])
+          ? targetKeys.splice(index, 1)
+          : teamsToRemove.push(targetKeysInitial[i]);
+      }
+      addTeamMembers(teamIdentify, targetKeys);
+    }
+
+    removeTeamMembers(teamIdentify, teamsToRemove);
+
     setTargetKeys([]);
     setTeamId('');
     setIsTeamManagementVisible(false);
@@ -158,9 +182,9 @@ export const TeamsView = () : JSX.Element => {
   }
 
   const onElementChange = (nextTargetKeys, direction, moveKeys) => {
-    console.log('targetKeys:', nextTargetKeys);
-    console.log('direction:', direction);
-    console.log('moveKeys:', moveKeys);
+    // console.log('targetKeys:', nextTargetKeys);
+    // console.log('direction:', direction);
+    // console.log('moveKeys:', moveKeys);
 
     setTargetKeys(nextTargetKeys);
   };

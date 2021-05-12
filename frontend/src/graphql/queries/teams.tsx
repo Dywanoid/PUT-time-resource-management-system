@@ -19,6 +19,10 @@ export const ArchiveTeamMutation = gql`
 mutation archiveTeam($teamId: ID!)
 { archiveTeam(input: { teamId: $teamId }){ id } }`;
 
-export const createTeamMembersMutation = gql`
+export const CreateTeamMembersMutation = gql`
 mutation createTeamMemberBatch($teamId: ID!, $userIdList: [ID!])
 { createTeamMemberBatch(input:{ teamId: $teamId, userIdList: $userIdList }){ userId, teamId } }`;
+
+export const DeleteTeamMembersMutation = gql`
+mutation deleteTeamMemberBatch($teamId: ID!, $userIdList: [ID!])
+{ deleteTeamMemberBatch(input:{ teamId: $teamId, userIdList: $userIdList }) }`;
