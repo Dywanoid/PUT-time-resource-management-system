@@ -298,12 +298,11 @@ def resolve_create_team_member(obj, info, input):
 def resolve_delete_team_member(obj, info, input):
     user_id = input.get('user_id')
     team_id = input.get('team_id')
-    result = True
     db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).delete()
     db.session.commit()
     if(TeamMember.query.filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).count()):
-        result = False
-    return {"result": result}
+        return False
+    return True
 
 
 @mutation.field("deleteTeamMemberBatch")
@@ -311,12 +310,11 @@ def resolve_delete_team_member(obj, info, input):
 def resolve_delete_team_member_batch(obj, info, input):
     user_id_list = input.get('user_id_list')
     team_id = input.get('team_id')
-    result = True
     db.session.query(TeamMember).filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).delete(synchronize_session=False)
     db.session.commit()
     if(TeamMember.query.filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).count()):
-        result = False
-    return {"result": result}
+        return False
+    return True
 
 
 @query.field("teamMembers")

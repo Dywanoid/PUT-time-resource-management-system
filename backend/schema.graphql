@@ -52,10 +52,6 @@ type TeamMember {
     createdAt: DateTime!
 }
 
-type DeleteResult {
-    result: Boolean!
-}
-
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client!
@@ -189,7 +185,7 @@ type Mutation {
     archiveTeam(input: ArchiveTeamInput!): Team!
     unarchiveTeam(input: UnarchiveTeamInput!): Team!
     createTeamMember(input: CreateTeamMemberInput!): TeamMember!
-    deleteTeamMember(input: DeleteTeamMemberInput!): DeleteResult!
-    deleteTeamMemberBatch(input: DeleteTeamMemberBatchInput!): DeleteResult!
+    deleteTeamMember(input: DeleteTeamMemberInput!): Boolean!
+    deleteTeamMemberBatch(input: DeleteTeamMemberBatchInput!): Boolean!
     createTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
 }
