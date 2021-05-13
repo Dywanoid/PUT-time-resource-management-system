@@ -140,9 +140,10 @@ export const TeamsView = () : JSX.Element => {
           : teamsToRemove.push(targetKeysInitial[i]);
       }
       addTeamMembers(teamIdentify, targetKeys);
+      if (teamsToRemove.length !== 0) {
+        removeTeamMembers(teamIdentify, teamsToRemove);
+      }
     }
-
-    removeTeamMembers(teamIdentify, teamsToRemove);
 
     setTargetKeys([]);
     setTeamId('');
