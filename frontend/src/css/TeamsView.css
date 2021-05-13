@@ -1,6 +1,6 @@
 .showArchivedLink {
     float:right;
-    margin-top: -50px;
+    margin-top: -35px;
 }
 
 .searchInput {
@@ -13,4 +13,8 @@
 
 .teamsList {
     margin-top: 10px;
+}
+
+.archivedItem {
+    background-color:#F0F0F0;
 }
