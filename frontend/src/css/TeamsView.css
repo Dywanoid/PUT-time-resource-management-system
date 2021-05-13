@@ -2,3 +2,15 @@
     float:right;
     margin-top: -50px;
 }
+
+.searchInput {
+    max-width: 50%;
+}
+
+.addTeam {
+    float: right;
+}
+
+.teamsList {
+    margin-top: 10px;
+}

@@ -14,6 +14,8 @@ import {
 import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
 import '../css/TeamsView.css';
 
+const { Search } = Input;
+
 const layout = {
   labelCol: { span: 4 },
   wrapperCol: { span: 20 }
@@ -38,6 +40,7 @@ export const TeamsView = () : JSX.Element => {
   const [name, setName] = useState('');
   const [teamIdentify, setTeamId] = useState('');
   const [description, setDescription] = useState('');
+  const [searchValue, setSearchValue] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isTeamManagementModalVisible, setIsTeamManagementVisible] = useState(false);
@@ -195,11 +198,17 @@ export const TeamsView = () : JSX.Element => {
     setSelectedKeys([...sourceSelectedKeys, ...targetSelectedKeys] as any);
   };
 
+  console.log(searchValue);
+
   return (
     <>
-      <div>
-        <Button onClick={ newTeamHandler } className="addTeam">Dodaj zespół ➕</Button>
-      </div>
+      <Button onClick={ newTeamHandler } className="addTeam">Dodaj zespół ➕</Button>
+      <Search
+        className="searchInput"
+        placeholder="Szukaj zespołu"
+        onSearch={(value) => setSearchValue(value.toLowerCase())}
+        enterButton
+      />
       <List
         header={ <div>
           <h1>Zespoły</h1>
@@ -208,10 +217,11 @@ export const TeamsView = () : JSX.Element => {
           </a>
         </div> }
         bordered
+        className="teamsList"
         itemLayout="vertical"
         dataSource={ [...teams] }
         renderItem={ (item: any) => {
-          if (!item.archived || showArchived) {
+          if ((!item.archived || showArchived) && item.name.toLowerCase().startsWith(searchValue)) {
             return (
               <List.Item
                 actions={
