@@ -1,27 +1,35 @@
-import {Table, Typography} from 'antd';
-import React, { useReducer } from 'react';
-import {data as temporaryData } from '../utils/temporaryData';
+import {DatePicker, Table, Typography, Space, notification } from 'antd';
+import React, { useEffect, useMemo, useReducer, useState } from 'react';
+import moment, {Moment} from 'moment';
+import 'moment/locale/pl';
+import locale from 'antd/es/date-picker/locale/pl_PL';
+
 import '../css/TimesheetTable.css';
 import { useGetTaskTreeQuery } from '../generated/graphql';
 const { Text } = Typography;
 
+const NUMBER_OF_MINUTES_IN_A_DAY = 24 * 60;
+
 // TEMPORATY UTILS FOR DATA MOCKUP
 function dates(current) {
   const week: Date[] = [];
+  const dateToUse = new Date(current);
 
   // Starting Monday not Sunday
-  current.setDate((current.getDate() - current.getDay() +1));
+  dateToUse.setDate((dateToUse.getDate() - dateToUse.getDay() +1));
   for (let i = 0; i < 7; i++) {
     week.push(
-      new Date(current)
+      new Date(dateToUse)
     );
-    current.setDate(current.getDate() +1);
+    dateToUse.setDate(dateToUse.getDate() +1);
   }
 
   return week;
 }
 
-const weekDates = dates(new Date()).map((date) => `${ date.getDate() }/${ date.getMonth()+1 }`);
+const getWeekDates = (givenDate) =>
+  dates(givenDate).map((date) => `${ date.getDate() }/${ date.getMonth()+1 }`);
+
 // END OF UTILS
 
 interface TableColumn {
@@ -36,6 +44,7 @@ interface RowData {
   key: string;
   project: string;
   task: string;
+  [dates: string]: string;
 }
 
 interface TimeComponentProps {
@@ -43,9 +52,12 @@ interface TimeComponentProps {
   dispatch: React.Dispatch<Action>;
   rowIndex: number;
   value: string;
+  rowsData: RowData[]
 }
 
-type Action = { type: 'timeChange', payload: string, index: number, key: string};
+type Action =
+{ type: 'timeChange', payload: string, index: number, key: string} |
+  { type: 'setState', payload: RowData[]};
 
 function reducer(state, action: Action) {
   switch (action.type) {
@@ -53,6 +65,10 @@ function reducer(state, action: Action) {
       state[action.index][action.key] = `${ action.payload }`;
 
       return [...state];
+    }
+    case 'setState': {
+
+      return [...action.payload];
     }
     default:
       throw new Error();
@@ -73,16 +89,30 @@ const dataColumns : TableColumn[] = [{
 }];
 
 const sumColumn: TableColumn = {
+  align: 'center',
   dataIndex: 'sum',
   title: 'Suma'
 };
 
-const attachFakeWeeks = (data) =>
+const fromMinutesToTime = (givenMinutes: number): string => {
+  const hours = `${ Math.floor(givenMinutes/60) }`;
+  const minutes = `${ givenMinutes % 60 }`;
+
+  return `${ hours.padStart(2, '0') }:${ minutes.padEnd(2, '0') }`;
+};
+
+const fromTimeToMinutes = (time) => {
+  const [hours, minutes] = time.split(':');
+
+  return parseInt(hours || 0) * 60 + parseInt(minutes || 0);
+};
+
+const attachFakeWeeks = (data, weekDates) =>
   data.map((d) => {
     const values = weekDates.reduce((acc, weekDate) => {
       const rand =  Math.floor(Math.random() * 17) * 15;
 
-      acc[weekDate] = `${ `${ Math.floor(rand/60) }:${ rand % 60 }` }`;
+      acc[weekDate] = fromMinutesToTime(0);
 
       return acc;
     }, {});
@@ -90,35 +120,10 @@ const attachFakeWeeks = (data) =>
     return {...d, ...values};
   });
 
-const myData = temporaryData.map((d) => {
-  const values = weekDates.reduce((acc, weekDate) => {
-    const rand =  Math.floor(Math.random() * 17) * 15;
-
-    acc[weekDate] = `${ `${ Math.floor(rand/60) }:${ rand % 60 }` }`;
-
-    return acc;
-  }, {});
-
-  return {...d, ...values};
-});
-
-const fromTimeToMinutes = (time) => {
-  const [hours, minutes] = time.split(':');
-
-  return parseInt(hours) * 60 + parseInt(minutes);
-};
-
-const fromMinutesToTime = (givenMinutes) => {
-  const hours = Math.floor(givenMinutes/60);
-  const minutes = givenMinutes % 60;
-
-  return `${ hours }:${ minutes }`;
-};
-
 const calculateSums = (currentState, timeColumns) => {
 
   const getMinutesSum = (row) => timeColumns.reduce((acc, curr) => {
-    const minutes = fromTimeToMinutes(row[curr.key]);
+    const minutes = fromTimeToMinutes(row[curr.dataIndex]);
 
     return  acc + minutes;
   }, 0);
@@ -132,7 +137,7 @@ const calculateSums = (currentState, timeColumns) => {
   return summedRows;
 };
 
-const timeFormat = /[0-9]{0,2}:[0-9]{0,2}/g;
+const timeFormat = /[0-9]{0,2}:?[0-9]{0,2}/g;
 
 const checkIfTimeFormat = (input: string): boolean => {
   const foundInput = input.match(timeFormat);
@@ -140,7 +145,10 @@ const checkIfTimeFormat = (input: string): boolean => {
   return !!foundInput && input.length === foundInput[0].length;
 };
 
-const TimeComponent = ({dispatch, rowIndex, columnKey, value}: TimeComponentProps): JSX.Element => {
+const getColumnsMinuteSum = (rowsData, columnKey, {rowIndex, time} = {rowIndex: -1, time: -1}) =>
+  rowsData.reduce((sum, curr, i) => sum + (i === rowIndex ? time : fromTimeToMinutes(curr[columnKey])), 0);
+
+const TimeComponent = ({dispatch, rowsData, rowIndex, columnKey, value}: TimeComponentProps): JSX.Element => {
   const onChange = (event) => {
     const isPayloadTimeFormat = checkIfTimeFormat(`${ event.target.value }`);
 
@@ -154,29 +162,69 @@ const TimeComponent = ({dispatch, rowIndex, columnKey, value}: TimeComponentProp
     });
   };
 
-  return (<input className="timeInput" value={value} onChange={onChange}/>);
+  const onBlur = (event) => {
+    const isPayloadTimeFormat = checkIfTimeFormat(`${ event.target.value }`);
+
+    if(!isPayloadTimeFormat) {return;}
+    const time = fromTimeToMinutes(event.target.value);
+
+    const sum = getColumnsMinuteSum(rowsData, columnKey, {rowIndex, time});
+    const isTooMuch = sum > NUMBER_OF_MINUTES_IN_A_DAY;
+
+    if(isTooMuch) {
+      notification.error({
+        description: 'Dzień ma tylko 24 godziny!',
+        duration: 5,
+        message: 'Za dużo godzin!'
+      });
+    }
+    dispatch({
+      index: rowIndex,
+      key: columnKey,
+      payload: fromMinutesToTime(isTooMuch ? 0 : time),
+      type: 'timeChange'
+    });
+  };
+
+  const onFocus = (event) => {
+    if(event.target.value === '00:00') {
+      event.target.select();
+    }
+  };
+
+  return (
+    <input
+      className="timeInput"
+      style={{color: value==='00:00' ? '#c2c2c2' : 'black'}}
+      value={value}
+      onBlur={onBlur}
+      onChange={onChange}
+      onFocus={onFocus}
+    />
+  );
 };
 
-const getRenderAdder = (dispatch) => (column: TableColumn) => {
-
+const getRenderAdder = (dispatch, state) => (column: TableColumn) => {
   return {
     ...column,
     render: function TimeInput(value, record, rowIndex) {
 
       return column.dataIndex === 'sum'
         ? (<Text strong>{value}</Text>)
-        : (<TimeComponent dispatch={dispatch} columnKey={`${ column.dataIndex }`} rowIndex={rowIndex} value={value}/>);
+        : (
+          <TimeComponent
+            rowsData={state}
+            dispatch={dispatch}
+            columnKey={`${ column.dataIndex }`}
+            rowIndex={rowIndex}
+            value={value}
+          />
+        );
     }
   };
 };
 
-export const TimesheetTable: React.FC = () => {
-  const [state, dispatch] = useReducer(reducer, myData);
-  const renderAdder = getRenderAdder(dispatch);
-  const {data, loading, error} = useGetTaskTreeQuery({fetchPolicy: 'no-cache'});
-
-  if (loading) {return <p>Loading...</p>;}
-  if (error) {return <p>Error :(</p>;}
+const setTransformedData = (data, dispatch, weekDates) => {
 
   const transformedData: RowData[] = [];
 
@@ -196,13 +244,42 @@ export const TimesheetTable: React.FC = () => {
     });
   });
 
-  const timeColumns: TableColumn[] = weekDates.map((date) => {
+  dispatch({payload: attachFakeWeeks(transformedData, weekDates), type: 'setState'});
+};
+
+export const TimesheetTable: React.FC = () => {
+  const [state, dispatch] = useReducer(reducer, []);
+  const [fetched, setFetched] = useState(false);
+
+  const renderAdder = getRenderAdder(dispatch, state);
+  const {data, loading, error} = useGetTaskTreeQuery({fetchPolicy: 'no-cache'});
+  const [date, setDate] = useState<Moment>(() => moment());
+  const weekDates = useMemo(() => getWeekDates(date), [date]);
+
+  useEffect(
+    () => {
+      if(!fetched && !loading && !error) {
+        setTransformedData(data, dispatch, weekDates);
+        setFetched(true);
+      }
+    },
+    [
+      data,
+      date,
+      fetched,
+      loading
+    ]
+  );
+
+  if (loading || !fetched) {return <p>Loading...</p>;}
+  if (error) {return <p>Error :(</p>;}
+
+  const timeColumns: TableColumn[] = weekDates.map((weekDate) => {
 
     return {
       align: 'center',
-      dataIndex: date,
-      key: date,
-      title: date
+      dataIndex: weekDate,
+      title: weekDate
     };
   });
 
@@ -212,55 +289,81 @@ export const TimesheetTable: React.FC = () => {
     renderAdder(sumColumn)
   ];
 
-  const dataSource = calculateSums(attachFakeWeeks(transformedData), timeColumns);
+  const dataSource = calculateSums(state, timeColumns);
+  const onChangeForDataPicker = (d) => {
+    setDate(d);
+    setFetched(false);
+  };
+
+  const customFormat = (value) => {
+    const firstDayOfWeek = value.clone().startOf('week').format('D/M/Y');
+    const lastDayOfWeek = value.clone().endOf('week').format('D/M/Y');
+
+    return `${ firstDayOfWeek }  -  ${ lastDayOfWeek }`;
+  };
 
   return (
-    <Table
-      bordered
-      pagination={false}
-      columns={columns}
-      dataSource={dataSource}
-      className="table"
-      summary={(tableData) => {
-        const dataIndexes = [...timeColumns, sumColumn].map(({dataIndex}) => dataIndex);
+    <>
+      <Space direction="vertical" size="middle">
+        <Text strong>Wybór tygodnia:</Text>
+        <DatePicker
+          locale={locale}
+          onChange={onChangeForDataPicker}
+          picker="week"
+          format={customFormat}
+          value={date}
+        />
+        <Table
+          bordered
+          pagination={false}
+          columns={columns}
+          dataSource={dataSource}
+          className="table"
+          summary={(tableData) => {
+            const dataIndexes = [...timeColumns, sumColumn].map(({dataIndex}) => dataIndex);
 
-        const summedColumnsRow = tableData.reduce(
-          (acc, currentRow) => {
-            dataIndexes.forEach((dataIndex) => {
-              if(!acc[dataIndex]) {
-                acc[dataIndex] = 0;
-              }
+            const summedColumnsRow = tableData.reduce(
+              (acc, currentRow) => {
+                dataIndexes.forEach((dataIndex) => {
+                  if(!acc[dataIndex]) {
+                    acc[dataIndex] = 0;
+                  }
 
-              acc[dataIndex] += fromTimeToMinutes(currentRow[dataIndex]);
-            });
+                  acc[dataIndex] += fromTimeToMinutes(currentRow[dataIndex]);
+                });
 
-            return acc;
-          },
-          {}
-        );
+                return acc;
+              },
+              {}
+            );
 
-        dataIndexes.forEach((dataIndex) => {
-          summedColumnsRow[dataIndex] = fromMinutesToTime(summedColumnsRow[dataIndex]);
-        });
-
-        return (
-          <>
-            <Table.Summary.Row>
-              <Table.Summary.Cell index={0}/>
-              <Table.Summary.Cell index={1}/>
-              <Table.Summary.Cell index={2}/>
-              {
-                dataIndexes.map(
-                  (dataIndex, i) => (
-                    <Table.Summary.Cell key={i+dataIndex} index={i+3}>
-                      <Text strong>{summedColumnsRow[dataIndex]}</Text>
-                    </Table.Summary.Cell>
-                  )
-                )
-              }
-            </Table.Summary.Row>
-          </>
-        );}}
-    />
+            return (
+              <>
+                <Table.Summary.Row className="summaryRow">
+                  <Table.Summary.Cell   colSpan={3} index={0}/>
+                  {
+                    dataIndexes.map(
+                      (dataIndex, i) => (
+                        <Table.Summary.Cell align="center" key={i+dataIndex} index={i+1}>
+                          <Text
+                            type={
+                              NUMBER_OF_MINUTES_IN_A_DAY < summedColumnsRow[dataIndex] && dataIndex !== 'sum'
+                                ? 'danger'
+                                : undefined
+                            }
+                            strong
+                          >
+                            {fromMinutesToTime(summedColumnsRow[dataIndex])}
+                          </Text>
+                        </Table.Summary.Cell>
+                      )
+                    )
+                  }
+                </Table.Summary.Row>
+              </>
+            );}}
+        />
+      </Space>
+    </>
   );
 };

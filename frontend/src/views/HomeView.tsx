@@ -23,8 +23,8 @@ export const HomeView= () : JSX.Element => {
 
   return (
     <div>
-      <span>{lang}</span>
-      <button onClick={() => dispatchChangeLang('en')}>change language</button>
+      {/* <span>{lang}</span>
+      <button onClick={() => dispatchChangeLang('en')}>change language</button> */}
       {/* <Table columns={columns} dataSource={data} className="table"/> */}
       <TimesheetTable/>
     </div>
