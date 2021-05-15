@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import { BrowserRouter as Router, Switch } from 'react-router-dom';
 import {
   ApplicationsView,
@@ -14,12 +13,12 @@ import {
 import reportWebVitals from './reportWebVitals';
 import { ProvideAuth } from './utils/auth';
 import { PrivateRoute } from './components';
-import 'antd/dist/antd.css';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './graphql/apolloClient';
+import 'antd/dist/antd.css';
 
 ReactDOM.render(
-  <ApolloProvider client={client}>
+  <ApolloProvider client={ client }>
     <ProvideAuth>
       <Router>
         <Switch>
