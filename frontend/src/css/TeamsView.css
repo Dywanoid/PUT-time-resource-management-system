@@ -18,3 +18,11 @@
 .archivedItem {
     background-color:#F0F0F0;
 }
+
+.teamManagementModal {
+    width: 700px !important;
+}
+
+.teamManagementTransfer {
+    min-width: 600px !important;
+}
