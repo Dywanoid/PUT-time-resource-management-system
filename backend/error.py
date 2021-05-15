@@ -1,7 +1,10 @@
 class NotFound(Exception):
-    def __init__(self, type_name, id):
-        super().__init__(f"Could not resolve {type_name} with id {id}")
+    def __init__(self, message):
+        super().__init__(message)
 
+    @classmethod
+    def item(cls, type_name, id):
+        return cls(f"Could not resolve {type_name} with id {id}")
 
 class Unauthorized(Exception):
     def __init__(self, user_name):

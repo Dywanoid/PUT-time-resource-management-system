@@ -3,7 +3,7 @@ from ariadne import QueryType, MutationType, convert_kwargs_to_snake_case, Scala
 from sqlalchemy import desc
 from database import Client, Project, Team, Task, User, TeamMember, db
 from datetime import datetime
-from error import NotFound, DeleteError
+from error import NotFound
 from auth import roles_required
 
 query = QueryType()
@@ -18,7 +18,7 @@ def find_item(item_type, id):
     if item:
         return item
     else:
-        raise NotFound(item_type.__name__, id)
+        raise NotFound.item(item_type.__name__, id)
 
 
 def mutate_item(item_type, id_property):
@@ -298,7 +298,7 @@ def resolve_create_team_member(obj, info, input):
 def resolve_delete_team_member(obj, info, input):
     user_id = input.get('user_id')
     team_id = input.get('team_id')
-    team_member = db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).with_for_update().one()
+    team_member = find_item(TeamMember, {"team_id": team_id, "user_id": user_id})
     db.session.delete(team_member)
     db.session.commit()
     return team_member
@@ -307,9 +307,14 @@ def resolve_delete_team_member(obj, info, input):
 @mutation.field("deleteTeamMemberBatch")
 @convert_kwargs_to_snake_case
 def resolve_delete_team_member_batch(obj, info, input):
-    user_id_list = input.get('user_id_list')
+    user_id_list = set(input.get('user_id_list'))
     team_id = input.get('team_id')
     team_members = db.session.query(TeamMember).filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).with_for_update().all()
+    if(len(user_id_list) != len(team_members)):
+        result_user_id = {str(x.user_id) for x in team_members}
+        not_found = user_id_list - result_user_id
+        db.session.close()
+        raise NotFound(f"Can't find user {not_found} in team {team_id}")
     for team_member in team_members:
         db.session.delete(team_member)
     db.session.commit()
