@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Switch } from 'react-router-dom';
 import {
   ApplicationsView,
   CalendarView,
+  ClientsView,
   HomeView,
   ResourcesView,
   TeamsView,
@@ -24,6 +25,7 @@ ReactDOM.render(
         <Switch>
           <PrivateRoute exact component={ HomeView } path='/'/>
           <PrivateRoute component={ CalendarView } path='/calendar'/>
+          <PrivateRoute component={ ClientsView } path='/clients'/>
           <PrivateRoute component={ ResourcesView}  path='/resources'/>
           <PrivateRoute component={ ApplicationsView } path='/applications'/>
           <PrivateRoute component={ TeamsView } path='/teams'/>

@@ -5,3 +5,4 @@ export { ResourcesView } from './ResourcesView';
 export { TeamsView } from './TeamsView';
 export { ProjectsView } from './ProjectsView/ProjectsView';
 export { TaskView } from './TasksView/TasksView';
+export { ClientsView } from './ClientsView/ClientsView';
