@@ -300,9 +300,6 @@ def resolve_delete_team_member(obj, info, input):
     team_id = input.get('team_id')
     team_member = db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).with_for_update().one()
     db.session.delete(team_member)
-    if(db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).count()):
-        db.session.rollback()
-        raise DeleteError()
     db.session.commit()
     return team_member
 
@@ -315,9 +312,6 @@ def resolve_delete_team_member_batch(obj, info, input):
     team_members = db.session.query(TeamMember).filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).with_for_update().all()
     for team_member in team_members:
         db.session.delete(team_member)
-    if(db.session.query(TeamMember).filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).count()):
-        db.session.rollback()
-        raise DeleteError()
     db.session.commit()
     return team_members
 
