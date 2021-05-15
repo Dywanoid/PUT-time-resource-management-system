@@ -325,10 +325,10 @@ def resolve_delete_team_member_batch(obj, info, input):
 @query.field("teamMembers")
 @convert_kwargs_to_snake_case
 def resolve_team_members(obj, info, team_id):
-    return db.session.query(TeamMember).filter(TeamMember.team_id == team_id).all()
+    return TeamMember.query.filter(TeamMember.team_id == team_id).all()
 
 
 @query.field("userTeams")
 @convert_kwargs_to_snake_case
 def resolve_user_teams(obj, info, user_id):
-    return db.session.query(TeamMember).filter(TeamMember.user_id == user_id).all()
+    return TeamMember.query.filter(TeamMember.user_id == user_id).all()
