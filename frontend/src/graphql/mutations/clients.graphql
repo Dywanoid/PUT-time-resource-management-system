@@ -6,7 +6,37 @@ mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String,
             zipCode: $zipCode,
             city: $city
         }) {
-            id, 
-            name
+            id,
+            name,
+            taxId,
+            streetWithNumber,
+            zipCode,
+            city
     }
+}
+
+mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+    updateClient(input: {
+            clientId: $clientId,
+            name: $name,
+            taxId: $taxId,
+            streetWithNumber: $streetWithNumber,
+            zipCode: $zipCode,
+            city: $city
+        }) {
+            id,
+            name,
+            taxId,
+            streetWithNumber,
+            zipCode,
+            city
+    }
+}
+
+mutation ArchiveClient($clientId: ID!) {
+  archiveClient(input:{
+    clientId: $clientId
+  }) {
+    id
+  }
 }
