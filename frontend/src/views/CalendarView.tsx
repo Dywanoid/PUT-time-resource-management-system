@@ -97,7 +97,7 @@ const dateCellRender = (value) => {
     <ul className="events">
       {listData.map((item) => (
         <li key={item.content}>
-          <Badge status={item.type} text={item.content} />
+          <Badge status={item.type} text={item.content}/>
         </li>
       ))}
     </ul>

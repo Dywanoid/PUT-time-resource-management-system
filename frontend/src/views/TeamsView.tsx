@@ -11,6 +11,7 @@ import {
   ArchiveTeamMutation,
   GetAllUsersInTeam
 } from '../graphql/queries/teams';
+import PropTypes from 'prop-types';
 import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
 import '../css/TeamsView.css';
 
@@ -21,12 +22,17 @@ const layout = {
   wrapperCol: { span: 20 }
 };
 
-const IconText = ({ icon, text }: any) : JSX.Element => (
+const IconText = ({ icon, text } ) : JSX.Element => (
   <Space>
     { React.createElement(icon) }
     { text }
   </Space>
 );
+
+IconText.propTypes = {
+  icon: PropTypes.object,
+  text: PropTypes.string
+};
 
 const openNotificationWithIcon = (type, action) => {
   notification[type]({
@@ -76,7 +82,7 @@ export const TeamsView = () : JSX.Element => {
   const [isCreateTeamModal, setCreateTeamModal] = useState(false);
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
   const [targetKeysInitial, setTargetKeysInitial] = useState<string[]>([]);
-  const [selectedKeys, setSelectedKeys] = useState([]);
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [form] = Form.useForm();
   const client = useApolloClient();
 
@@ -170,7 +176,7 @@ export const TeamsView = () : JSX.Element => {
     setIsModalVisible(false);
   };
 
-  const handleTeamManagementModalCancel = (e) => {
+  const handleTeamManagementModalCancel = () => {
     setTargetKeys([]);
     setTeamId('');
     setIsTeamManagementVisible(false);
@@ -232,7 +238,7 @@ export const TeamsView = () : JSX.Element => {
     });
   }
 
-  const onElementChange = (nextTargetKeys, direction, moveKeys) => {
+  const onElementChange = (nextTargetKeys) => {
     // console.log('targetKeys:', nextTargetKeys);
     // console.log('direction:', direction);
     // console.log('moveKeys:', moveKeys);
@@ -242,7 +248,7 @@ export const TeamsView = () : JSX.Element => {
 
   const onSelectChange = (sourceSelectedKeys, targetSelectedKeys) => {
     // console.log(sourceSelectedKeys, targetSelectedKeys);
-    setSelectedKeys([...sourceSelectedKeys, ...targetSelectedKeys] as any);
+    setSelectedKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
   };
 
   return (
