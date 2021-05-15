@@ -6,3 +6,8 @@ class NotFound(Exception):
 class Unauthorized(Exception):
     def __init__(self, user_name):
         super().__init__(f"User {user_name} is not authorized to perform this action")
+
+
+class DeleteError(Exception):
+    def __init__(self, user_name):
+        super().__init__(f"Could not delete selected rows")

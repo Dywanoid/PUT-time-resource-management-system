@@ -3,7 +3,7 @@ from ariadne import QueryType, MutationType, convert_kwargs_to_snake_case, Scala
 from sqlalchemy import desc
 from database import Client, Project, Team, Task, User, TeamMember, db
 from datetime import datetime
-from error import NotFound
+from error import NotFound, DeleteError
 from auth import roles_required
 
 query = QueryType()
@@ -298,11 +298,13 @@ def resolve_create_team_member(obj, info, input):
 def resolve_delete_team_member(obj, info, input):
     user_id = input.get('user_id')
     team_id = input.get('team_id')
-    db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).delete()
+    team_member = db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).with_for_update().one()
+    db.session.delete(team_member)
+    if(db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).count()):
+        db.session.rollback()
+        raise DeleteError()
     db.session.commit()
-    if(TeamMember.query.filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id).count()):
-        return False
-    return True
+    return team_member
 
 
 @mutation.field("deleteTeamMemberBatch")
@@ -310,26 +312,23 @@ def resolve_delete_team_member(obj, info, input):
 def resolve_delete_team_member_batch(obj, info, input):
     user_id_list = input.get('user_id_list')
     team_id = input.get('team_id')
-    db.session.query(TeamMember).filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).delete(synchronize_session=False)
+    team_members = db.session.query(TeamMember).filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).with_for_update().all()
+    for team_member in team_members:
+        db.session.delete(team_member)
+    if(db.session.query(TeamMember).filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).count()):
+        db.session.rollback()
+        raise DeleteError()
     db.session.commit()
-    if(TeamMember.query.filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).count()):
-        return False
-    return True
+    return team_members
 
 
 @query.field("teamMembers")
 @convert_kwargs_to_snake_case
 def resolve_team_members(obj, info, team_id):
-    return db.session.query(TeamMember).filter(TeamMember.team_id == team_id)
+    return db.session.query(TeamMember).filter(TeamMember.team_id == team_id).all()
 
 
 @query.field("userTeams")
 @convert_kwargs_to_snake_case
 def resolve_user_teams(obj, info, user_id):
-    return db.session.query(TeamMember).filter(TeamMember.user_id == user_id)
-
-
-@query.field("userTeams")
-@convert_kwargs_to_snake_case
-def resolve_team_member(obj, info, user_id, team_id):
-    return db.session.query(TeamMember).filter(TeamMember.user_id == user_id, TeamMember.team_id == team_id)
+    return db.session.query(TeamMember).filter(TeamMember.user_id == user_id).all()

@@ -1,4 +1,4 @@
-"""empty message
+"""adding team members
 
 Revision ID: 4c08e2ba93cb
 Revises: 4e69d91b3466

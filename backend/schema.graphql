@@ -64,7 +64,6 @@ type Query {
     me: User!
     teamMembers(teamId: ID!): [TeamMember!]
     userTeams(userId: ID!): [TeamMember!]
-    TeamMember(userId: ID!, teamId: ID!): TeamMember!
 }
 
 input CreateClientInput {
@@ -185,7 +184,7 @@ type Mutation {
     archiveTeam(input: ArchiveTeamInput!): Team!
     unarchiveTeam(input: UnarchiveTeamInput!): Team!
     createTeamMember(input: CreateTeamMemberInput!): TeamMember!
-    deleteTeamMember(input: DeleteTeamMemberInput!): Boolean!
-    deleteTeamMemberBatch(input: DeleteTeamMemberBatchInput!): Boolean!
+    deleteTeamMember(input: DeleteTeamMemberInput!): TeamMember!
+    deleteTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
     createTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
 }
