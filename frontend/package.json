@@ -9,7 +9,7 @@
     "eject": "react-scripts eject",
     "watch": "npm-watch",
     "lint": "eslint src/**/*.ts*",
-    "gen": "graphql-codegen --config codegen.yml"
+    "gen": "graphql-codegen --config codegen.yml && sh ./generate.sh"
   },
   "eslintConfig": {
     "extends": [
@@ -32,6 +32,7 @@
   "dependencies": {
     "@apollo/client": "3.3.15",
     "@reduxjs/toolkit": "1.5.1",
+    "@graphql-codegen/named-operations-object": "1.18.2",
     "antd": "4.13.1",
     "graphql": "15.5.0",
     "react": "17.0.2",

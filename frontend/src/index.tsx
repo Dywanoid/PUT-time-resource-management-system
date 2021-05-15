@@ -2,7 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import { BrowserRouter as Router, Switch } from 'react-router-dom';
-import { ApplicationsView, CalendarView, ClientsView, HomeView, ResourcesView, TeamsView } from './views';
+import {
+  ApplicationsView,
+  CalendarView,
+  HomeView,
+  ResourcesView,
+  TeamsView,
+  ProjectsView,
+  TaskView
+} from './views';
 import reportWebVitals from './reportWebVitals';
 import { ProvideAuth } from './utils/auth';
 import { PrivateRoute } from './components';
@@ -19,8 +27,9 @@ ReactDOM.render(
           <PrivateRoute component={ CalendarView } path='/calendar'/>
           <PrivateRoute component={ ResourcesView}  path='/resources'/>
           <PrivateRoute component={ ApplicationsView } path='/applications'/>
-          <PrivateRoute component={ ClientsView } path='/clients'/>
           <PrivateRoute component={ TeamsView } path='/teams'/>
+          <PrivateRoute component={ ProjectsView } path='/projects'/>
+          <PrivateRoute component={ TaskView } path='/tasks'/>
         </Switch>
       </Router>
     </ProvideAuth>
