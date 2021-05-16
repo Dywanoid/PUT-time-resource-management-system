@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { List, Modal, Form, Input, Button, Space, Transfer, notification } from 'antd';
-import { useQuery, useMutation , useApolloClient } from '@apollo/client';
+import { useApolloClient } from '@apollo/client';
 import {
-  GetAllTeams,
-  GetAllUsers,
-  CreateTeamMutation,
-  CreateTeamMembersMutation,
-  DeleteTeamMembersMutation,
-  UpdateTeamMutation,
-  ArchiveTeamMutation,
-  GetAllUsersInTeam
-} from '../graphql/queries/teams';
+  useGetAllTeamsQuery,
+  useGetAllUsersQuery,
+  useCreateTeamMutation,
+  useCreateTeamMembersMutation,
+  useDeleteTeamMembersMutation,
+  useUpdateTeamMutation,
+  useArchiveTeamMutation,
+  namedOperations,
+  GetAllUsersInTeamDocument
+} from '../generated/graphql';
 import PropTypes from 'prop-types';
 import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
 import '../css/TeamsView.css';
@@ -43,29 +44,32 @@ const openNotificationWithIcon = (type, action) => {
   });
 };
 
+const elementCompare = (a, b) =>
+  a.length === b.length
+  && a.every((v, i) => v === b[i]);
+
 export const TeamsView = () : JSX.Element => {
-  const { error, data, loading } = useQuery(GetAllTeams);
-  const { data: userData } = useQuery(GetAllUsers);
-  const [createTeam] = useMutation(
-    CreateTeamMutation,
-    {
-      onCompleted(){ openNotificationWithIcon('success', 'tworzenia zespołu'); },
-      onError() { openNotificationWithIcon('error', 'tworzenia zespołu'); }
-    }
-  );
-  const [updateTeam] = useMutation(UpdateTeamMutation, {
+  const { data } = useGetAllTeamsQuery();
+  const { data: userData } = useGetAllUsersQuery();
+  const [createTeam] = useCreateTeamMutation({
+    onCompleted(){ openNotificationWithIcon('success', 'tworzenia zespołu'); },
+    onError() { openNotificationWithIcon('error', 'tworzenia zespołu'); }
+  });
+  const [updateTeam] = useUpdateTeamMutation({
     onCompleted(){ openNotificationWithIcon('success', 'edycji zespołu'); },
     onError() { openNotificationWithIcon('error', 'edycji zespołu'); }
   });
-  const [archiveTeam] = useMutation(ArchiveTeamMutation, {
+  const [archiveTeam] = useArchiveTeamMutation({
     onCompleted(){ openNotificationWithIcon('success', 'archiwizacji zespołu'); },
     onError() { openNotificationWithIcon('error', 'archiwizacji zespołu'); }
   });
-  const [createTeamMembers] = useMutation(CreateTeamMembersMutation, {
-    onCompleted(){ openNotificationWithIcon('success', 'przydzielania użytkowników do zespołu'); },
+  const [createTeamMembers] = useCreateTeamMembersMutation({
+    onCompleted(){
+      openNotificationWithIcon('success', 'przydzielania użytkowników do zespołu');
+    },
     onError() { openNotificationWithIcon('error', 'przydzielania użytkowników do zespołu'); }
   });
-  const [deleteTeamMembers] = useMutation(DeleteTeamMembersMutation, {
+  const [deleteTeamMembers] = useDeleteTeamMembersMutation({
     onCompleted(){ openNotificationWithIcon('success', 'usuwania użytkowników z zespołu'); },
     onError() { openNotificationWithIcon('error', 'usuwania użytkowników z zespołu'); }
   });
@@ -88,18 +92,19 @@ export const TeamsView = () : JSX.Element => {
 
   const addTeam = () => {
     createTeam({
-      refetchQueries: [{ query: GetAllTeams }],
+      refetchQueries:[namedOperations.Query.GetAllTeams],
       variables: {
         description: description,
         name: name
       }
     });
+    setCreateTeamModal(false);
     setIsModalVisible(false);
   };
 
   const editTeam = () => {
     updateTeam({
-      refetchQueries: [{ query: GetAllTeams }],
+      refetchQueries:[namedOperations.Query.GetAllTeams],
       variables: {
         description: description,
         name: name,
@@ -111,38 +116,29 @@ export const TeamsView = () : JSX.Element => {
 
   const hideTeam = (archiveId) => {
     archiveTeam({
-      refetchQueries: [{ query: GetAllTeams }],
+      refetchQueries:[namedOperations.Query.GetAllTeams],
       variables: { teamId: archiveId }
     });
   };
 
   const addTeamMembers = (teamId, teamList) => {
     createTeamMembers({
-      refetchQueries: [{ query: GetAllUsersInTeam, variables: { teamId: teamIdentify } }],
+      refetchQueries: [{ query: GetAllUsersInTeamDocument, variables: { teamId: teamIdentify } }],
       variables: { teamId: teamId, userIdList: teamList }
     });
   };
 
   const removeTeamMembers = (teamId, teamList) => {
     deleteTeamMembers({
-      refetchQueries: [{ query: GetAllUsersInTeam, variables: { teamId: teamIdentify } }],
+      refetchQueries: [{ query: GetAllUsersInTeamDocument, variables: { teamId: teamIdentify } }],
       variables: { teamId: teamId, userIdList: teamList }
     });
-  };
-
-  const onFinish = async () => {
-    setCreateTeamModal(false);
-    setIsModalVisible(false);
-  };
-
-  const showModal = () => {
-    setIsModalVisible(true);
   };
 
   const showTeamManagementModal = async (teamId) => {
     setTeamId(teamId);
     const { data:usersInTeamData } = await client.query({
-      query: GetAllUsersInTeam,
+      query: GetAllUsersInTeamDocument,
       variables: { teamId }
     });
 
@@ -183,19 +179,23 @@ export const TeamsView = () : JSX.Element => {
   };
 
   const handleTeamManagementModalConfirm = () => {
-    const teamsToRemove: Array<string> = [];
+    const arrayOfUsersToRemove: Array<string> = [];
 
-    if (!(JSON.stringify(targetKeys)==JSON.stringify(targetKeysInitial))) {
+    if (!(elementCompare(targetKeys, targetKeysInitial))) {
       for (const i in targetKeysInitial) {
         const index = targetKeys.indexOf(targetKeysInitial[i]);
 
-        targetKeys.includes(targetKeysInitial[i])
-          ? targetKeys.splice(index, 1)
-          : teamsToRemove.push(targetKeysInitial[i]);
+        if (index === -1) {
+          arrayOfUsersToRemove.push(targetKeysInitial[i]);
+        } else {
+          targetKeys.splice(index, 1);
+        }
       }
-      addTeamMembers(teamIdentify, targetKeys);
-      if (teamsToRemove.length !== 0) {
-        removeTeamMembers(teamIdentify, teamsToRemove);
+      if (targetKeys.length !== 0) {
+        addTeamMembers(teamIdentify, targetKeys);
+      }
+      if (arrayOfUsersToRemove.length !== 0) {
+        removeTeamMembers(teamIdentify, arrayOfUsersToRemove);
       }
     }
 
@@ -204,16 +204,13 @@ export const TeamsView = () : JSX.Element => {
     setIsTeamManagementVisible(false);
   };
 
-  if (loading) {return <p>Loading...</p>;}
-  if (error) {return <p>Error :(</p>;}
-
   const newTeamHandler = () => {
     form.resetFields();
     setName('');
     setDescription('');
     setTeamId('');
     setCreateTeamModal(true);
-    showModal();
+    setIsModalVisible(true);
   };
 
   const editTeamButton = (teamId, teamName, teamDescription) => {
@@ -325,7 +322,6 @@ export const TeamsView = () : JSX.Element => {
           { ...layout }
           form={ form }
           name="basic"
-          onFinish={ onFinish }
         >
           <Form.Item
             label="Nazwa"
