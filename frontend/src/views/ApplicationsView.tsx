@@ -2,8 +2,8 @@ import React, { useRef } from 'react';
 import { Layout, Form, Input, Button, Select, FormInstance } from 'antd';
 import 'antd/dist/antd.css';
 
-const {Content} = Layout;
-const {Option} = Select;
+const { Content } = Layout;
+const { Option } = Select;
 
 export const ApplicationsView = (): JSX.Element => {
   const formRef = useRef<FormInstance>(null);

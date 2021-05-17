@@ -32,10 +32,24 @@ type Task {
     archived: Boolean!
 }
 
+type Team {
+    id: ID!
+    name: String!
+    description: String
+    archived: Boolean!
+    createdAt: DateTime!
+}
+
 type User {
     id: ID!
     name: String!
     roles: [String!]
+}
+
+type TeamMember {
+    userId: ID!
+    teamId: ID!
+    createdAt: DateTime!
 }
 
 type Query {
@@ -43,9 +57,13 @@ type Query {
     client(id: ID!): Client!
     project(id: ID!): Project!
     task(id: ID!): Task!
+    teams(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 25): [Team!]
+    team(id: ID!): Team!
     users(offset: Int = 0, limit: Int = 10): [User!]
     user(id: ID!): User!
     me: User!
+    teamMembers(teamId: ID!): [TeamMember!]
+    userTeams(userId: ID!): [TeamMember!]
 }
 
 input CreateClientInput {
@@ -109,6 +127,45 @@ input UpdateTaskInput {
     name: String!
 }
 
+input CreateTeamInput {
+    name: String!
+    description: String
+}
+
+input UpdateTeamInput {
+    teamId: ID!
+    name: String!
+    description: String
+}
+
+input ArchiveTeamInput {
+    teamId: ID!
+}
+
+input UnarchiveTeamInput {
+    teamId: ID!
+}
+
+input CreateTeamMemberInput {
+    userId: ID!
+    teamId: ID!
+}
+
+input DeleteTeamMemberInput {
+    userId: ID!
+    teamId: ID!
+}
+
+input DeleteTeamMemberBatchInput {
+    userIdList: [ID!]
+    teamId: ID!
+}
+
+input CreateTeamMemberBatchInput {
+    userIdList: [ID!]
+    teamId: ID!
+}
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     archiveClient(input: ArchiveClientInput!): Client!
@@ -122,4 +179,12 @@ type Mutation {
     updateTask(input: UpdateTaskInput!): Task!
     archiveTask(input: ArchiveTaskInput!): Task!
     unarchiveTask(input: UnarchiveTaskInput!): Task!
+    createTeam(input: CreateTeamInput!): Team!
+    updateTeam(input: UpdateTeamInput!): Team!
+    archiveTeam(input: ArchiveTeamInput!): Team!
+    unarchiveTeam(input: UnarchiveTeamInput!): Team!
+    createTeamMember(input: CreateTeamMemberInput!): TeamMember!
+    deleteTeamMember(input: DeleteTeamMemberInput!): TeamMember!
+    deleteTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
+    createTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
 }

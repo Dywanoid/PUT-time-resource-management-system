@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {Breadcrumb, List, Form, Button, Typography, Space } from 'antd';
+import { Breadcrumb, List, Form, Button, Typography, Space } from 'antd';
 import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 import {
   AddProjectMutationVariables,
@@ -18,12 +18,12 @@ import { ProjectModal } from './ProjectModal';
 import { ArchiveModal } from '../../components';
 import { Link } from 'react-router-dom';
 
-const {Text} = Typography;
+const { Text } = Typography;
 
 const IconText = ({ icon, text }: any) : JSX.Element => (
   <Space>
-    {React.createElement(icon)}
-    {text}
+    { React.createElement(icon) }
+    { text }
   </Space>
 );
 
@@ -53,12 +53,12 @@ export const ProjectsView = () : JSX.Element => {
   const [projectToBeArchived, setProjectToBeArchived] = useState<Project | null>(null);
   const [archiveProject] = useArchiveProjectMutation();
   const location = useLocation<ProjectLocation>();
-  const {client} = location.state;
-  const {id: clientId, name: clientName} = client;
+  const { client } = location.state;
+  const { id: clientId, name: clientName } = client;
 
-  const {error, data, loading} = useGetProjectsQuery({
+  const { error, data, loading } = useGetProjectsQuery({
     fetchPolicy: 'no-cache',
-    variables: {clientId}
+    variables: { clientId }
   });
 
   const [addProject] = useAddProjectMutation();
@@ -80,7 +80,7 @@ export const ProjectsView = () : JSX.Element => {
   const handleArchive = (project) => {
     archiveProject({
       refetchQueries:[namedOperations.Query.GetProjects],
-      variables: {projectId: project.id}
+      variables: { projectId: project.id }
     });
 
     hideArchiveModal();
@@ -102,14 +102,14 @@ export const ProjectsView = () : JSX.Element => {
     setIsModalVisible(false);
     await addProject({
       refetchQueries:[namedOperations.Query.GetProjects],
-      variables: {...variables, clientId}
+      variables: { ...variables, clientId }
     });
 
     form.resetFields();
   };
 
   const onFinishEditHandler = (formVars) => {
-    const vars = {...formVars, projectId: formVars.id};
+    const vars = { ...formVars, projectId: formVars.id };
     const onFinishEdit = async (variables: UpdateProjectMutationVariables) => {
       setIsModalVisible(false);
 
@@ -135,18 +135,18 @@ export const ProjectsView = () : JSX.Element => {
   };
 
   const editProjectHandler = (project) => {
-    form.setFieldsValue({...project, clientId});
+    form.setFieldsValue({ ...project, clientId });
     showModal(true);
   };
 
   const onFinish = isEditMode ? onFinishEditHandler : onFinishAdd;
 
   const tasksHandler = (project) => {
-    setProjectState({client, project});
+    setProjectState({ client, project });
   };
 
-  if (loading) {return <p>Loading...</p>;}
-  if (error) {return <p>Error :(</p>;}
+  if (loading) { return <p>Loading...</p>; }
+  if (error) { return <p>Error :(</p>; }
 
   if(projectState) {
     return (<Redirect
@@ -163,7 +163,7 @@ export const ProjectsView = () : JSX.Element => {
       <Space direction="vertical" size="middle">
         <Breadcrumb>
           <Breadcrumb.Item>
-            <Link to={{pathname: '/clients'}}>
+            <Link to={{ pathname: '/clients' }}>
             Klienci
             </Link>
           </Breadcrumb.Item>
@@ -171,17 +171,17 @@ export const ProjectsView = () : JSX.Element => {
         </Breadcrumb>
         <Button onClick={ newProjectHandler }><Text strong>Dodaj projekt ➕</Text></Button>
         <List
-          header={<h1>{`Projekty klienta: "${ location.state.client.name }"`}</h1>}
+          header={ <h1>{`Projekty klienta: "${ location.state.client.name }"`}</h1> }
           bordered
           itemLayout="vertical"
-          dataSource={projects}
-          renderItem={(project) => (
+          dataSource={ projects }
+          renderItem={ (project) => (
             <List.Item
               actions={[
                 <Button
                   key="1"
                   size='small'
-                  onClick={() => editProjectHandler(project)}
+                  onClick={ () => editProjectHandler(project) }
                 >
                   <IconText
                     icon={ EditFilled }
@@ -192,7 +192,7 @@ export const ProjectsView = () : JSX.Element => {
                 <Button
                   key="2"
                   size='small'
-                  onClick={() => showArchiveModal(project)}
+                  onClick={ () => showArchiveModal(project) }
                 >
                   <IconText
                     icon={ InboxOutlined }
@@ -203,7 +203,7 @@ export const ProjectsView = () : JSX.Element => {
                 <Button
                   key="2"
                   size='small'
-                  onClick={() => tasksHandler(project)}
+                  onClick={ () => tasksHandler(project) }
                 >
                   <IconText
                     icon={ BarsOutlined }
@@ -213,25 +213,25 @@ export const ProjectsView = () : JSX.Element => {
                 </Button>
               ]}
             >
-              {`${ project.name }`}
+              { `${ project.name }` }
             </List.Item>
           )}
         />
         <ProjectModal
           form={form}
-          handleCancel={handleCancel}
-          isEditMode={isEditMode}
-          isModalVisible={isModalVisible}
-          onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
+          handleCancel={ handleCancel }
+          isEditMode={ isEditMode }
+          isModalVisible={ isModalVisible }
+          onFinish={ onFinish }
+          onFinishFailed={ onFinishFailed }
         />
 
         <ArchiveModal
-          isModalVisible={isArchiveModalVisible}
-          handleCancel={hideArchiveModal}
-          handleOk={() => handleArchive(projectToBeArchived)}
-          title={`Archiwizuj ${ projectToBeArchived?.name }`}
-          modalText={`Czy na pewno chcesz archiwizować projekt ${ projectToBeArchived?.name }?`}
+          isModalVisible={ isArchiveModalVisible }
+          handleCancel={ hideArchiveModal }
+          handleOk={ () => handleArchive(projectToBeArchived) }
+          title={ `Archiwizuj ${ projectToBeArchived?.name }` }
+          modalText={ `Czy na pewno chcesz archiwizować projekt ${ projectToBeArchived?.name }?` }
         />
       </Space>
     </>

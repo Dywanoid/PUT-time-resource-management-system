@@ -1,7 +1,7 @@
 from flask_login import current_user
 from ariadne import QueryType, MutationType, convert_kwargs_to_snake_case, ScalarType, ObjectType
 from sqlalchemy import desc
-from database import Client, Project, Task, User, db
+from database import Client, Project, Team, Task, User, TeamMember, db
 from datetime import datetime
 from error import NotFound
 from auth import roles_required
@@ -18,7 +18,7 @@ def find_item(item_type, id):
     if item:
         return item
     else:
-        raise NotFound(item_type.__name__, id)
+        raise NotFound.item(item_type.__name__, id)
 
 
 def mutate_item(item_type, id_property):
@@ -212,3 +212,122 @@ def resolve_archive_task(task, input):
 def resolve_unarchive_task(task, input):
     task.archived = False
     return task
+
+
+@query.field("teams")
+@convert_kwargs_to_snake_case
+def resolve_teams(obj, info, include_archived, offset, limit):
+    filters = []
+    if not include_archived:
+        filters.append(Client.archived == False)
+    return Team.query.order_by(desc(Team.name)).filter(db.and_(*filters)).offset(offset).limit(limit).all()
+
+
+@query.field("team")
+def resolve_team(obj, info, id):
+    return find_item(Team, id)
+
+
+@mutation.field("createTeam")
+@convert_kwargs_to_snake_case
+def resolve_create_team(obj, info, input):
+    team = Team(
+        name=input.get('name'),
+        description=input.get('description'),
+        created_at=datetime.now()
+    )
+    db.session.add(team)
+    db.session.commit()
+    return team
+
+
+@mutation.field("updateTeam")
+@mutate_item(Team, 'team_id')
+def resolve_update_client(team, input):
+    team.name = input.get('name')
+    team.description = input.get('description'),
+    return team
+
+@mutation.field("archiveTeam")
+@mutate_item(Team, 'team_id')
+def resolve_archive_project(team, input):
+    team.archived = True
+    return team
+
+
+@mutation.field("unarchiveTeam")
+@mutate_item(Team, 'team_id')
+def resolve_archive_project(team, input):
+    team.archived = False
+    return team
+
+
+@mutation.field("createTeamMember")
+@convert_kwargs_to_snake_case
+def resolve_create_team_member(obj, info, input):
+    team_member = TeamMember(
+        user_id=input.get('user_id'),
+        team_id=input.get('team_id'),
+        created_at=datetime.now()
+    )
+    db.session.add(team_member)
+    db.session.commit()
+    return team_member
+
+
+@mutation.field("createTeamMemberBatch")
+@convert_kwargs_to_snake_case
+def resolve_create_team_member(obj, info, input):
+    user_id_list = input.get('user_id_list')
+    team_id = input.get('team_id')
+    team_members = []
+    for user_id in user_id_list:
+        team_member = TeamMember(
+            user_id=user_id,
+            team_id=team_id,
+            created_at=datetime.now()
+        )
+        team_members.append(team_member)
+    db.session.bulk_save_objects(team_members)
+    db.session.commit()
+    return team_members
+
+
+@mutation.field("deleteTeamMember")
+@convert_kwargs_to_snake_case
+def resolve_delete_team_member(obj, info, input):
+    user_id = input.get('user_id')
+    team_id = input.get('team_id')
+    team_member = find_item(TeamMember, {"team_id": team_id, "user_id": user_id})
+    db.session.delete(team_member)
+    db.session.commit()
+    return team_member
+
+
+@mutation.field("deleteTeamMemberBatch")
+@convert_kwargs_to_snake_case
+def resolve_delete_team_member_batch(obj, info, input):
+    user_id_list = set(input.get('user_id_list'))
+    team_id = input.get('team_id')
+    team_members = db.session.query(TeamMember).filter(TeamMember.user_id.in_(user_id_list), TeamMember.team_id == team_id).with_for_update().all()
+    if(len(user_id_list) != len(team_members)):
+        result_user_id = {str(x.user_id) for x in team_members}
+        not_found = user_id_list - result_user_id
+        db.session.close()
+        raise NotFound(f"Can't find user {not_found} in team {team_id}")
+    for team_member in team_members:
+        db.session.delete(team_member)
+    db.session.commit()
+    return team_members
+
+
+@query.field("teamMembers")
+@convert_kwargs_to_snake_case
+def resolve_team_members(obj, info, team_id):
+    return TeamMember.query.filter(TeamMember.team_id == team_id).all()
+
+
+@query.field("userTeams")
+@convert_kwargs_to_snake_case
+def resolve_user_teams(obj, info, user_id):
+    return TeamMember.query.filter(TeamMember.user_id == user_id).all()

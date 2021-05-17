@@ -1,4 +1,4 @@
-import {ApolloClient, InMemoryCache, createHttpLink} from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
@@ -8,8 +8,20 @@ const link = createHttpLink({
 });
 
 const client = new ApolloClient({
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          teamMembers: {
+            merge(existing, incoming) {
+              return incoming;
+            }
+          }
+        }
+      }
+    }
+  }),
   link
 });
 
-export {client};
+export { client };

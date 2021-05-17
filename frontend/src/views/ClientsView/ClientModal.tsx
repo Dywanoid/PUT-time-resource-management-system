@@ -1,5 +1,5 @@
 import React from 'react';
-import {Modal, Form, Input, Button, FormInstance } from 'antd';
+import { Modal, Form, Input, Button, FormInstance } from 'antd';
 
 interface ClientModalInput {
   isEditMode: boolean,
@@ -19,16 +19,16 @@ export const ClientModal = ({
   onFinishFailed
 }: ClientModalInput) : JSX.Element => ( <Modal
   title="Dodaj klienta"
-  onCancel={handleCancel}
-  visible={isModalVisible}
-  footer={null}>
+  onCancel={ handleCancel }
+  visible={ isModalVisible }
+  footer={ null }>
   <Form
-    labelCol= {{span: 4}}
-    wrapperCol= {{span: 20}}
-    form={form}
+    labelCol= {{ span: 4 }}
+    wrapperCol= {{ span: 20 }}
+    form={ form }
     name="basic"
-    onFinish={onFinish}
-    onFinishFailed={onFinishFailed}
+    onFinish={ onFinish }
+    onFinishFailed={ onFinishFailed }
   >
     <Form.Item
       label="ID"
@@ -76,7 +76,7 @@ export const ClientModal = ({
         type="primary"
         htmlType="submit"
       >
-        {isEditMode ? 'Edytuj' : 'Dodaj'}
+        { isEditMode ? 'Edytuj' : 'Dodaj' }
       </Button>
     </Form.Item>
   </Form>
