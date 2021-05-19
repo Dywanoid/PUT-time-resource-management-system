@@ -19,16 +19,16 @@ export const TaskModal = ({
   onFinishFailed
 }: TaskModalInput) : JSX.Element => ( <Modal
   title="Dodaj projekt"
-  onCancel={handleCancel}
-  visible={isModalVisible}
-  footer={null}>
+  onCancel={ handleCancel }
+  visible={ isModalVisible }
+  footer={ null }>
   <Form
     labelCol={{ span: 4 }}
     wrapperCol={{ span: 20 }}
-    form={form}
+    form={ form }
     name="basic"
-    onFinish={onFinish}
-    onFinishFailed={onFinishFailed}
+    onFinish={ onFinish }
+    onFinishFailed={ onFinishFailed }
   >
     <Form.Item
       label="ID"
@@ -54,7 +54,7 @@ export const TaskModal = ({
     <Form.Item
       label="Nazwa"
       name="name"
-      rules={[{ message: 'Wpisz nazwę!', required: true }]}
+      rules={ [{ message: 'Wpisz nazwę!', required: true }] }
     >
       <Input/>
     </Form.Item>
@@ -65,7 +65,7 @@ export const TaskModal = ({
         type="primary"
         htmlType="submit"
       >
-        {isEditMode ? 'Edytuj' : 'Dodaj'}
+        { isEditMode ? 'Edytuj' : 'Dodaj' }
       </Button>
     </Form.Item>
   </Form>

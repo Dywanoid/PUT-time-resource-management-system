@@ -19,16 +19,16 @@ export const ProjectModal = ({
   onFinishFailed
 }: ProjectModalInput) : JSX.Element => ( <Modal
   title="Dodaj projekt"
-  onCancel={handleCancel}
-  visible={isModalVisible}
-  footer={null}>
+  onCancel={ handleCancel }
+  visible={ isModalVisible }
+  footer={ null }>
   <Form
     labelCol={{ span: 4 }}
     wrapperCol={{ span: 20 }}
     form={form}
     name="basic"
-    onFinish={onFinish}
-    onFinishFailed={onFinishFailed}
+    onFinish={ onFinish }
+    onFinishFailed={ onFinishFailed }
   >
     <Form.Item
       label="ID"
@@ -47,7 +47,7 @@ export const ProjectModal = ({
     <Form.Item
       label="Nazwa"
       name="name"
-      rules={[{ message: 'Wpisz nazwę!', required: true }]}
+      rules={ [{ message: 'Wpisz nazwę!', required: true }] }
     >
       <Input/>
     </Form.Item>
@@ -55,7 +55,7 @@ export const ProjectModal = ({
       wrapperCol= {{ offset: 4 }}
     >
       <Button type="primary" htmlType="submit">
-        {isEditMode ? 'Edytuj' : 'Dodaj'}
+        { isEditMode ? 'Edytuj' : 'Dodaj' }
       </Button>
     </Form.Item>
   </Form>

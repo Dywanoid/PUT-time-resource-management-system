@@ -1,0 +1,49 @@
+mutation CreateTeam($name: String!, $description: String) {
+    createTeam(input: {
+        name: $name,
+        description: $description
+    }) {
+        id,
+        name
+    }
+}
+
+mutation UpdateTeam($teamId: ID!, $name: String!, $description: String) {
+    updateTeam(input: {
+        teamId: $teamId,
+        name: $name,
+        description: $description
+    }) {
+        id,
+        name
+    } 
+}
+
+mutation ArchiveTeam($teamId: ID!) {
+    archiveTeam(input: {
+        teamId: $teamId
+    }) {
+        id 
+    }
+}
+
+
+mutation CreateTeamMembers($teamId: ID!, $userIdList: [ID!]) {
+    createTeamMemberBatch(input:{
+        teamId: $teamId,
+        userIdList: $userIdList
+    }) {
+        userId,
+        teamId
+    }
+}
+
+mutation DeleteTeamMembers($teamId: ID!, $userIdList: [ID!]) {
+    deleteTeamMemberBatch(input:{
+        teamId: $teamId,
+        userIdList: $userIdList
+    }) {
+        teamId,
+        userId
+    } 
+}

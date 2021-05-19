@@ -42,7 +42,7 @@ export const LoginPage: React.FC = ()  => {
         <Form
           name="basic"
           initialValues={{ remember: true }}
-          onFinish={handleSubmit}
+          onFinish={ handleSubmit }
         >
           <Form.Item
             label="Username"

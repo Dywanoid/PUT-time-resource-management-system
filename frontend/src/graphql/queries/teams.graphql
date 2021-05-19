@@ -1,0 +1,14 @@
+query GetAllTeams { 
+    teams { 
+        id, 
+        name, 
+        description, 
+        archived 
+        } 
+    }
+
+query GetAllUsersInTeam($teamId: ID!) {
+    teamMembers(teamId: $teamId) {
+        userId 
+    }
+}

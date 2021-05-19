@@ -35,11 +35,23 @@ class Task(db.Model):
     archived = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False)
 
+class Team(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    description = db.Column(db.String)
+    archived = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, nullable=False)
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     roles = db.Column(db.JSON, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False)
+
+
+class TeamMember(db.Model):
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True)
+    team_id = db.Column(db.Integer, db.ForeignKey(Team.id), primary_key=True)
     created_at = db.Column(db.DateTime, nullable=False)
 
 

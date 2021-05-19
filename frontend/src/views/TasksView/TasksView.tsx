@@ -134,8 +134,8 @@ export const TaskView = () : JSX.Element => {
 
   const onFinish = isEditMode ? onFinishEdit : onFinishAdd;
 
-  if (loading) {return <p>Loading...</p>;}
-  if (error) {return <p>Error :(</p>;}
+  if (loading) { return <p>Loading...</p>; }
+  if (error) { return <p>Error :(</p>; }
 
   return (
     <>
@@ -153,48 +153,48 @@ export const TaskView = () : JSX.Element => {
                 state: location.state
               }}
             >
-              {`Projekty klienta "${ clientName }"`}
+              { `Projekty klienta "${ clientName }"` }
             </Link>
           </Breadcrumb.Item>
-          <Breadcrumb.Item>{`Zadania projektu: "${ projectName }"`}</Breadcrumb.Item>
+          <Breadcrumb.Item>{ `Zadania projektu: "${ projectName }"` }</Breadcrumb.Item>
         </Breadcrumb>
         <Button onClick={ newProjectHandler }><Text strong>Dodaj zadanie ➕</Text></Button>
         <List
-          header={<h1>{`Zadania projektu: "${ projectName }"`}</h1>}
+          header={ <h1>{ `Zadania projektu: "${ projectName }"` }</h1> }
           bordered
           itemLayout="vertical"
-          dataSource={tasks}
-          renderItem={(task) => (
+          dataSource={ tasks }
+          renderItem={ (task) => (
             <List.Item
               actions={[
-                <Button key="1" size='small' onClick={() => editTaskHandler(task)}>
+                <Button key="1" size='small' onClick={ () => editTaskHandler(task) }>
                   <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
                 </Button>,
-                <Button key="2" size='small' onClick={() => showArchiveModal(task)}>
+                <Button key="2" size='small' onClick={ () => showArchiveModal(task) }>
                   <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
                 </Button>
               ]}
             >
-              {`${ task.name }`}
+              { `${ task.name }` }
             </List.Item>
           )}
         />
 
         <TaskModal
-          form={form}
-          handleCancel={handleCancel}
-          isEditMode={isEditMode}
-          isModalVisible={isTaskModalVisible}
-          onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
+          form={ form }
+          handleCancel={ handleCancel }
+          isEditMode={ isEditMode }
+          isModalVisible={ isTaskModalVisible }
+          onFinish={ onFinish }
+          onFinishFailed={ onFinishFailed }
         />
 
         <ArchiveModal
-          isModalVisible={isArchiveModalVisible}
-          handleCancel={hideArchiveModal}
-          handleOk={() => handleArchive(taskToBeArchived)}
-          title={`Archiwizuj ${ taskToBeArchived?.name }`}
-          modalText={`Czy na pewno chcesz archiwizować projekt ${ taskToBeArchived?.name }?`}
+          isModalVisible={ isArchiveModalVisible }
+          handleCancel={ hideArchiveModal }
+          handleOk={ () => handleArchive(taskToBeArchived) }
+          title={ `Archiwizuj ${  taskToBeArchived?.name }` }
+          modalText={ `Czy na pewno chcesz archiwizować projekt ${ taskToBeArchived?.name }?` }
         />
       </Space>
     </>

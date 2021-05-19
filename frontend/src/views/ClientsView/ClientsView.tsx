@@ -22,7 +22,7 @@ const { Text } = Typography;
 const IconText = ({ icon: Icon, text }: any) : JSX.Element => (
   <Space>
     <Icon/>
-    {text}
+    { text }
   </Space>
 );
 
@@ -119,8 +119,8 @@ export const ClientsView = () : JSX.Element => {
     setClientStateForRedirect(client);
   };
 
-  if (loading) {return <p>Loading...</p>;}
-  if (error) {return <p>Error :(</p>;}
+  if (loading) { return <p>Loading...</p>; }
+  if (error) { return <p>Error :(</p>; }
 
   if(clientStateForRedirect) {
     return (
@@ -142,17 +142,17 @@ export const ClientsView = () : JSX.Element => {
         </Breadcrumb>
         <Button onClick={ newClientHandler }><Text strong>Dodaj klienta ➕</Text></Button>
         <List
-          header={<h1>Klienci</h1>}
+          header={ <h1>Klienci</h1> }
           bordered
           itemLayout="vertical"
-          dataSource={clients}
-          renderItem={(client) => (
+          dataSource={ clients }
+          renderItem={ (client) => (
             <List.Item
               actions={[
                 <Button
                   key="1"
                   size='small'
-                  onClick={() => editClientHandler(client)}
+                  onClick={ () => editClientHandler(client) }
                 >
                   <IconText
                     icon={ EditFilled }
@@ -163,7 +163,7 @@ export const ClientsView = () : JSX.Element => {
                 <Button
                   key="2"
                   size='small'
-                  onClick={() => showArchiveModal(client)}
+                  onClick={ () => showArchiveModal(client) }
                 >
                   <IconText
                     icon={ InboxOutlined }
@@ -174,7 +174,7 @@ export const ClientsView = () : JSX.Element => {
                 <Button
                   key="2"
                   size='small'
-                  onClick={() => projectsHandler(client)}
+                  onClick={ () => projectsHandler(client) }
                 >
                   <IconText
                     icon={ BarsOutlined }
@@ -184,26 +184,26 @@ export const ClientsView = () : JSX.Element => {
                 </Button>
               ]}
             >
-              {`${ client.name }`}
+              { `${ client.name }` }
             </List.Item>
           )}
         />
 
         <ClientModal
-          form={form}
-          handleCancel={handleClientModalCancel}
-          isEditMode={isEditMode}
-          isModalVisible={isClientModalVisible}
-          onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
+          form={ form }
+          handleCancel={ handleClientModalCancel }
+          isEditMode={ isEditMode }
+          isModalVisible={ isClientModalVisible }
+          onFinish={ onFinish }
+          onFinishFailed={ onFinishFailed }
         />
 
         <ArchiveModal
-          isModalVisible={isArchiveModalVisible}
-          handleCancel={hideArchiveModal}
-          handleOk={() => handleArchive(clientToBeArchived)}
-          title={`Archiwizuj ${ clientToBeArchived?.name }`}
-          modalText={`Czy na pewno chcesz archiwizować klienta ${ clientToBeArchived?.name }?`}
+          isModalVisible={ isArchiveModalVisible }
+          handleCancel={ hideArchiveModal }
+          handleOk={ () => handleArchive(clientToBeArchived) }
+          title={ `Archiwizuj ${ clientToBeArchived?.name }` }
+          modalText={ `Czy na pewno chcesz archiwizować klienta ${ clientToBeArchived?.name }?` }
         />
       </Space>
     </>

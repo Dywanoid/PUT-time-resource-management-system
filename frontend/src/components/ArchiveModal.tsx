@@ -20,10 +20,10 @@ export const ArchiveModal = ({
     cancelText="Anuluj"
     okText="Archiwizuj"
     okButtonProps={{ danger: true }}
-    onCancel={handleCancel}
-    onOk={handleOk}
-    title={title}
-    visible={isModalVisible}
+    onCancel={ handleCancel }
+    onOk={ handleOk }
+    title={ title }
+    visible={ isModalVisible }
   >
-    {modalText}
+    { modalText }
   </Modal>);

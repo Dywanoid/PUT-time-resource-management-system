@@ -1,0 +1,28 @@
+.showArchivedLink {
+    float:right;
+    margin-top: -35px;
+}
+
+.searchInput {
+    max-width: 50%;
+}
+
+.addTeam {
+    float: right;
+}
+
+.teamsList {
+    margin-top: 10px;
+}
+
+.archivedItem {
+    background-color:#F0F0F0;
+}
+
+.teamManagementModal {
+    width: 700px !important;
+}
+
+.teamManagementTransfer {
+    min-width: 600px !important;
+}

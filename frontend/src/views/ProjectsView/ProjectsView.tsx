@@ -22,8 +22,8 @@ const { Text } = Typography;
 
 const IconText = ({ icon, text }: any) : JSX.Element => (
   <Space>
-    {React.createElement(icon)}
-    {text}
+    { React.createElement(icon) }
+    { text }
   </Space>
 );
 
@@ -158,8 +158,8 @@ export const ProjectsView = () : JSX.Element => {
     });
   };
 
-  if (loading) {return <p>Loading...</p>;}
-  if (error) {return <p>Error :(</p>;}
+  if (loading) { return <p>Loading...</p>; }
+  if (error) { return <p>Error :(</p>; }
 
   if(projectState) {
     return (<Redirect
@@ -184,17 +184,17 @@ export const ProjectsView = () : JSX.Element => {
         </Breadcrumb>
         <Button onClick={ newProjectHandler }><Text strong>Dodaj projekt ➕</Text></Button>
         <List
-          header={<h1>{`Projekty klienta: "${ location.state.client.name }"`}</h1>}
+          header={ <h1>{`Projekty klienta: "${ location.state.client.name }"`}</h1> }
           bordered
           itemLayout="vertical"
-          dataSource={projects}
-          renderItem={(project) => (
+          dataSource={ projects }
+          renderItem={ (project) => (
             <List.Item
               actions={[
                 <Button
                   key="1"
                   size='small'
-                  onClick={() => editProjectHandler(project)}
+                  onClick={ () => editProjectHandler(project) }
                 >
                   <IconText
                     icon={ EditFilled }
@@ -205,7 +205,7 @@ export const ProjectsView = () : JSX.Element => {
                 <Button
                   key="2"
                   size='small'
-                  onClick={() => showArchiveModal(project)}
+                  onClick={ () => showArchiveModal(project) }
                 >
                   <IconText
                     icon={ InboxOutlined }
@@ -227,7 +227,7 @@ export const ProjectsView = () : JSX.Element => {
                 <Button
                   key="4"
                   size='small'
-                  onClick={() => tasksHandler(project)}
+                  onClick={ () => tasksHandler(project) }
                 >
                   <IconText
                     icon={ BarsOutlined }
@@ -237,25 +237,25 @@ export const ProjectsView = () : JSX.Element => {
                 </Button>
               ]}
             >
-              {`${ project.name }`}
+              { `${ project.name }` }
             </List.Item>
           )}
         />
         <ProjectModal
           form={form}
-          handleCancel={handleCancel}
-          isEditMode={isEditMode}
-          isModalVisible={isModalVisible}
-          onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
+          handleCancel={ handleCancel }
+          isEditMode={ isEditMode }
+          isModalVisible={ isModalVisible }
+          onFinish={ onFinish }
+          onFinishFailed={ onFinishFailed }
         />
 
         <ArchiveModal
-          isModalVisible={isArchiveModalVisible}
-          handleCancel={hideArchiveModal}
-          handleOk={() => handleArchive(projectToBeArchived)}
-          title={`Archiwizuj ${ projectToBeArchived?.name }`}
-          modalText={`Czy na pewno chcesz archiwizować projekt ${ projectToBeArchived?.name }?`}
+          isModalVisible={ isArchiveModalVisible }
+          handleCancel={ hideArchiveModal }
+          handleOk={ () => handleArchive(projectToBeArchived) }
+          title={ `Archiwizuj ${ projectToBeArchived?.name }` }
+          modalText={ `Czy na pewno chcesz archiwizować projekt ${ projectToBeArchived?.name }?` }
         />
       </Space>
     </>

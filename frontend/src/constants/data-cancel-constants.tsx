@@ -1,1 +1,0 @@
-export const GET_DATA_CANCEL = 'GET_DATA_CANCEL';
