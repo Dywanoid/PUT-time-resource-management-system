@@ -1,5 +1,5 @@
 import React from 'react';
-import {Modal} from 'antd';
+import { Modal } from 'antd';
 
 interface ArchiveModalInput {
   isModalVisible: boolean,
@@ -19,7 +19,7 @@ export const ArchiveModal = ({
   <Modal
     cancelText="Anuluj"
     okText="Archiwizuj"
-    okButtonProps={{danger: true}}
+    okButtonProps={{ danger: true }}
     onCancel={handleCancel}
     onOk={handleOk}
     title={title}

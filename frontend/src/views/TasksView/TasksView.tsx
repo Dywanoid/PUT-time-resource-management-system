@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
-import {Breadcrumb, List, Form, Button, Typography, Space } from 'antd';
-import {InboxOutlined, EditFilled } from '@ant-design/icons';
+import { Breadcrumb, List, Form, Button, Typography, Space } from 'antd';
+import { InboxOutlined, EditFilled } from '@ant-design/icons';
 
 import {
   AddTaskMutationVariables,
@@ -18,7 +18,7 @@ import '../../css/TasksView.css';
 import { TaskModal } from './TaskModal';
 import { ArchiveModal } from '../../components';
 
-const {Text} = Typography;
+const { Text } = Typography;
 
 const IconText = ({ icon: Icon, text }: any) : JSX.Element => (
   <Space>
@@ -45,13 +45,13 @@ export const TaskView = () : JSX.Element => {
   const [isEditMode, setIsEditMode] = useState(false);
   const location = useLocation<TaskLocation>();
   const {
-    client: { name: clientName},
-    project: {id: projectId, name: projectName}
+    client: { name: clientName },
+    project: { id: projectId, name: projectName }
   } = location.state;
 
-  const {error, data, loading} = useGetTasksQuery({
+  const { error, data, loading } = useGetTasksQuery({
     fetchPolicy: 'no-cache',
-    variables: {projectId}
+    variables: { projectId }
   });
   const [addTask] = useAddTaskMutation();
   const [updateTask] = useUpdateTaskMutation();
@@ -81,7 +81,7 @@ export const TaskView = () : JSX.Element => {
   const handleArchive = (task) => {
     archiveTask({
       refetchQueries:[namedOperations.Query.GetTasks],
-      variables: {taskId: task.id}
+      variables: { taskId: task.id }
     });
 
     hideArchiveModal();
@@ -95,14 +95,14 @@ export const TaskView = () : JSX.Element => {
     setIsTaskModalVisible(false);
     await addTask({
       refetchQueries:[namedOperations.Query.GetTasks],
-      variables: {...variables, projectId}
+      variables: { ...variables, projectId }
     });
 
     form.resetFields();
   };
 
   const onFinishEdit = (formVars) => {
-    const vars = {...formVars, taskId: formVars.id};
+    const vars = { ...formVars, taskId: formVars.id };
     const realFn = async (variables: UpdateTaskMutationVariables) => {
       setIsTaskModalVisible(false);
 
@@ -128,7 +128,7 @@ export const TaskView = () : JSX.Element => {
   };
 
   const editTaskHandler = (task) => {
-    form.setFieldsValue({...task, projectId, taskId: task.id});
+    form.setFieldsValue({ ...task, projectId, taskId: task.id });
     showModal(true);
   };
 
@@ -142,7 +142,7 @@ export const TaskView = () : JSX.Element => {
       <Space direction="vertical" size="middle">
         <Breadcrumb>
           <Breadcrumb.Item>
-            <Link to={{pathname: '/clients'}}>
+            <Link to={{ pathname: '/clients' }}>
             Klienci
             </Link>
           </Breadcrumb.Item>

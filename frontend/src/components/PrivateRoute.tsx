@@ -13,7 +13,7 @@ interface PrivateRouteProps {
   exact?: boolean;
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({component: Component, path, exact}: PrivateRouteProps) => {
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ component: Component, path, exact }: PrivateRouteProps) => {
   const auth = useContext(AuthenticationContext);
 
   const renderRoute = ({ location }) =>
@@ -49,4 +49,4 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({component: Component, path, 
   );
 };
 
-export {PrivateRoute};
+export { PrivateRoute };

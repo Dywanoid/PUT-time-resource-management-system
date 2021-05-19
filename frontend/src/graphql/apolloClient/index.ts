@@ -1,4 +1,4 @@
-import {ApolloClient, InMemoryCache, createHttpLink} from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
@@ -12,4 +12,4 @@ const client = new ApolloClient({
   link
 });
 
-export {client};
+export { client };

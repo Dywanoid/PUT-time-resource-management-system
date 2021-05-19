@@ -1,5 +1,5 @@
 import React from 'react';
-import {Modal, Form, Input, Button, FormInstance } from 'antd';
+import { Modal, Form, Input, Button, FormInstance } from 'antd';
 
 interface ProjectModalInput {
   isEditMode: boolean,
@@ -23,8 +23,8 @@ export const ProjectModal = ({
   visible={isModalVisible}
   footer={null}>
   <Form
-    labelCol={{span: 4}}
-    wrapperCol={{span: 20}}
+    labelCol={{ span: 4 }}
+    wrapperCol={{ span: 20 }}
     form={form}
     name="basic"
     onFinish={onFinish}

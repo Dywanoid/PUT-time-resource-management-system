@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {List, Form, Button, Typography, Space, Breadcrumb } from 'antd';
+import { List, Form, Button, Typography, Space, Breadcrumb } from 'antd';
 import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 import {
   CreateClientMutationVariables,
@@ -17,7 +17,7 @@ import '../../css/ClientsView.css';
 import { Redirect } from 'react-router-dom';
 import { ArchiveModal } from '../../components';
 
-const {Text} = Typography;
+const { Text } = Typography;
 
 const IconText = ({ icon: Icon, text }: any) : JSX.Element => (
   <Space>
@@ -33,7 +33,7 @@ export const ClientsView = () : JSX.Element => {
   const [isArchiveModalVisible, setIsArchiveModalVisible] = useState(false);
   const [clientToBeArchived, setClientToBeArchived] = useState<Client | null>(null);
 
-  const {error, data, loading} = useGetAllClientsQuery({fetchPolicy: 'no-cache'});
+  const { error, data, loading } = useGetAllClientsQuery({ fetchPolicy: 'no-cache' });
   const [addClient] = useCreateClientMutation();
   const [updateClient] = useUpdateClientMutation();
   const [archiveClient] = useArchiveClientMutation();
@@ -61,7 +61,7 @@ export const ClientsView = () : JSX.Element => {
   const handleArchive = (client) => {
     archiveClient({
       refetchQueries:[namedOperations.Query.GetAllClients],
-      variables: {clientId: client.id}
+      variables: { clientId: client.id }
     });
 
     hideArchiveModal();
@@ -95,7 +95,7 @@ export const ClientsView = () : JSX.Element => {
   };
 
   const onFinishEditHandler = (formVariables) => {
-    const variables = {...formVariables, clientId: formVariables.id};
+    const variables = { ...formVariables, clientId: formVariables.id };
 
     onFinishEdit(variables);
   };

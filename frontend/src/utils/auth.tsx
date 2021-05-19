@@ -1,4 +1,4 @@
-import React, {createContext, useState} from 'react';
+import React, { createContext, useState } from 'react';
 export interface Auth {
   signin: (cb: () => void) => void;
   signout: (cb: () =>void) => void;
@@ -29,7 +29,7 @@ const fakeAuth = {
   }
 };
 
-const ProvideAuth = ({children} : ProvideAuthProps) : JSX.Element => {
+const ProvideAuth = ({ children } : ProvideAuthProps) : JSX.Element => {
   const auth = useProvideAuth();
 
   return (

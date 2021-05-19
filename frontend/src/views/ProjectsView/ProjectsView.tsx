@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {Breadcrumb, List, Form, Button, Typography, Space } from 'antd';
+import { Breadcrumb, List, Form, Button, Typography, Space } from 'antd';
 import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 import {
   AddProjectMutationVariables,
@@ -18,7 +18,7 @@ import { ProjectModal } from './ProjectModal';
 import { ArchiveModal } from '../../components';
 import { Link } from 'react-router-dom';
 
-const {Text} = Typography;
+const { Text } = Typography;
 
 const IconText = ({ icon, text }: any) : JSX.Element => (
   <Space>
@@ -39,6 +39,7 @@ interface ProjectState {
     id: string,
     name: string
   },
+  pathname: string,
   project: {
     id,
     name
@@ -53,12 +54,12 @@ export const ProjectsView = () : JSX.Element => {
   const [projectToBeArchived, setProjectToBeArchived] = useState<Project | null>(null);
   const [archiveProject] = useArchiveProjectMutation();
   const location = useLocation<ProjectLocation>();
-  const {client} = location.state;
-  const {id: clientId, name: clientName} = client;
+  const { client } = location.state;
+  const { id: clientId, name: clientName } = client;
 
-  const {error, data, loading} = useGetProjectsQuery({
+  const { error, data, loading } = useGetProjectsQuery({
     fetchPolicy: 'no-cache',
-    variables: {clientId}
+    variables: { clientId }
   });
 
   const [addProject] = useAddProjectMutation();
@@ -80,7 +81,7 @@ export const ProjectsView = () : JSX.Element => {
   const handleArchive = (project) => {
     archiveProject({
       refetchQueries:[namedOperations.Query.GetProjects],
-      variables: {projectId: project.id}
+      variables: { projectId: project.id }
     });
 
     hideArchiveModal();
@@ -102,14 +103,14 @@ export const ProjectsView = () : JSX.Element => {
     setIsModalVisible(false);
     await addProject({
       refetchQueries:[namedOperations.Query.GetProjects],
-      variables: {...variables, clientId}
+      variables: { ...variables, clientId }
     });
 
     form.resetFields();
   };
 
   const onFinishEditHandler = (formVars) => {
-    const vars = {...formVars, projectId: formVars.id};
+    const vars = { ...formVars, projectId: formVars.id };
     const onFinishEdit = async (variables: UpdateProjectMutationVariables) => {
       setIsModalVisible(false);
 
@@ -135,14 +136,26 @@ export const ProjectsView = () : JSX.Element => {
   };
 
   const editProjectHandler = (project) => {
-    form.setFieldsValue({...project, clientId});
+    form.setFieldsValue({ ...project, clientId });
     showModal(true);
   };
 
   const onFinish = isEditMode ? onFinishEditHandler : onFinishAdd;
 
   const tasksHandler = (project) => {
-    setProjectState({client, project});
+    setProjectState({
+      client,
+      pathname:'/tasks',
+      project
+    });
+  };
+
+  const projectAssignmentsHandler = (project) => {
+    setProjectState({
+      client,
+      pathname:'/projectAssignments',
+      project
+    });
   };
 
   if (loading) {return <p>Loading...</p>;}
@@ -152,7 +165,7 @@ export const ProjectsView = () : JSX.Element => {
     return (<Redirect
       push
       to={{
-        pathname: '/tasks',
+        pathname: projectState.pathname,
         state: projectState
       }}
     />);
@@ -163,7 +176,7 @@ export const ProjectsView = () : JSX.Element => {
       <Space direction="vertical" size="middle">
         <Breadcrumb>
           <Breadcrumb.Item>
-            <Link to={{pathname: '/clients'}}>
+            <Link to={{ pathname: '/clients' }}>
             Klienci
             </Link>
           </Breadcrumb.Item>
@@ -201,7 +214,18 @@ export const ProjectsView = () : JSX.Element => {
                   />
                 </Button>,
                 <Button
-                  key="2"
+                  key="3"
+                  size='small'
+                  onClick={() => projectAssignmentsHandler(project)}
+                >
+                  <IconText
+                    icon={ BarsOutlined }
+                    text="Przypisz pracowników"
+                    key="list-vertical-message-2"
+                  />
+                </Button>,
+                <Button
+                  key="4"
                   size='small'
                   onClick={() => tasksHandler(project)}
                 >

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Modal, Form, Input, Button, FormInstance } from 'antd';
+import { Modal, Form, Input, Button, FormInstance } from 'antd';
 
 interface TaskModalInput {
   isEditMode: boolean,
@@ -59,7 +59,7 @@ export const TaskModal = ({
       <Input/>
     </Form.Item>
     <Form.Item
-      wrapperCol={{offset: 4}}
+      wrapperCol={{ offset: 4 }}
     >
       <Button
         type="primary"
