@@ -1,7 +1,20 @@
 import React, { useState } from 'react';
-import { Transfer, Switch, Table, Tag } from 'antd';
+import { Transfer, Switch, Table, Tag, Breadcrumb } from 'antd';
+import { useLocation } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import '../css/ProjectAssignmentsView.css';
+import { useGetAllUsersQuery } from '../generated/graphql';
+interface AssignmentLocation {
+  client: {
+    id: string,
+    name: string
+  },
+  project: {
+    id: string,
+    name: string
+  }
+}
 
 const difference = (a, b) => {
   const setA = new Set(a);
@@ -73,8 +86,6 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: any) => (
   </Transfer>
 );
 
-const mockTags = ['cat', 'dog', 'bird'];
-
 const mockData: any[] = [];
 
 for (let i = 0; i < 20; i++) {
@@ -82,7 +93,6 @@ for (let i = 0; i < 20; i++) {
     description: `description of content${ i + 1 }`,
     disabled: i % 4 === 0,
     key: i.toString(),
-    tag: mockTags[i % 3],
     title: `content${ i + 1 }`
   });
 }
@@ -93,11 +103,6 @@ const leftTableColumns = [
   {
     dataIndex: 'title',
     title: 'Name'
-  },
-  {
-    dataIndex: 'tag',
-    render: function TagComponent(tag: any) {return (<Tag>{tag}</Tag>);},
-    title: 'Tag'
   },
   {
     dataIndex: 'description',
@@ -115,6 +120,17 @@ export const ProjectAssignmentsView = () : JSX.Element => {
   const [targetKeys, setTargetKeys] = useState(originTargetKeys);
   const [disabled, setDisabled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const { loading, error, data }  = useGetAllUsersQuery();
+  const location = useLocation<AssignmentLocation>();
+  const {
+    client: { name: clientName },
+    project: { id: projectId, name: projectName }
+  } = location.state;
+
+  if (loading) { return <p>Loading...</p>; }
+  if (error) { return <p>Error :(</p>; }
+
+  console.log(data);
 
   const onChange = (nextTargetKeys) => {
     setTargetKeys(nextTargetKeys);
@@ -130,6 +146,27 @@ export const ProjectAssignmentsView = () : JSX.Element => {
 
   return (
     <>
+      <Breadcrumb>
+        <Breadcrumb.Item>
+          <Link to={{ pathname: '/clients' }}>
+            Klienci
+          </Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Link
+            to={{
+              pathname: '/projects',
+              state: location.state
+            }}
+          >
+            { `Projekty klienta "${ clientName }"` }
+          </Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          { `Przypisz pracowników do projektu: "${ projectName }"` }
+        </Breadcrumb.Item>
+      </Breadcrumb>
+
       <TableTransfer
         dataSource={mockData}
         targetKeys={targetKeys}
@@ -142,6 +179,7 @@ export const ProjectAssignmentsView = () : JSX.Element => {
         leftColumns={leftTableColumns}
         rightColumns={rightTableColumns}
       />
+
       <Switch
         unCheckedChildren="disabled"
         checkedChildren="disabled"
@@ -149,6 +187,7 @@ export const ProjectAssignmentsView = () : JSX.Element => {
         onChange={triggerDisable}
         style={{ marginTop: 16 }}
       />
+
       <Switch
         unCheckedChildren="showSearch"
         checkedChildren="showSearch"
