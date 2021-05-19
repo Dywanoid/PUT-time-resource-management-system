@@ -38,7 +38,7 @@ export const LoginPage: React.FC = ()  => {
 
   return (
     <Row justify="center" align="middle" className="login-background">
-      <Col span={4} >
+      <Col span={ 4 } >
         <Form
           name="basic"
           initialValues={{ remember: true }}
