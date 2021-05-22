@@ -87,6 +87,7 @@ type Query {
     teamMembers(teamId: ID!): [TeamMember!]
     userTeams(userId: ID!): [TeamMember!]
     HolidayRequestTypes: [HolidayRequestType!]
+    HolidayRequestStatuses: [HolidayRequestStatus!]
     userHolidayRequests(userId: ID!, onlyPending: Boolean = false): [HolidayRequest!]
 }
 

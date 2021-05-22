@@ -380,3 +380,9 @@ def resolve_user_holiday_requests(obj, info, user_id, only_pending):
 @convert_kwargs_to_snake_case
 def resolve_holiday_request_types(obj, info):
     return HolidayRequestType.query.all()
+
+
+@query.field("HolidayRequestStatuses")
+@convert_kwargs_to_snake_case
+def resolve_holiday_request_statuses(obj, info):
+    return HolidayRequestStatus.query.all()
