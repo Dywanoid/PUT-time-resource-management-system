@@ -59,3 +59,26 @@ class OAuth(OAuthConsumerMixin, db.Model):
     provider_user_id = db.Column(db.String, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     user = db.relationship(User)
+
+
+class HolidayRequestType(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+
+
+class HolidayRequestStatus(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False, unique=True)
+
+
+class HolidayRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    type_id = db.Column(db.Integer, db.ForeignKey(HolidayRequestType.id))
+    status_id = db.Column(db.Integer, db.ForeignKey(HolidayRequestStatus.id))
+    start_date = db.Column(db.DateTime, nullable=False)
+    end_date = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False)
+
+    status = db.relationship("HolidayRequestStatus", lazy='joined', foreign_keys="HolidayRequest.status_id")
+    type = db.relationship("HolidayRequestType", lazy='joined', foreign_keys="HolidayRequest.type_id")

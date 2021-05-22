@@ -52,6 +52,28 @@ type TeamMember {
     createdAt: DateTime!
 }
 
+type HolidayRequestType {
+    id: ID!
+    name: String!
+}
+
+type HolidayRequestStatus {
+    id: ID!
+    name: String!
+}
+
+type HolidayRequest {
+    id: ID!
+    userId: ID!
+    typeId: ID!
+    statusId: ID!
+    startDate: DateTime!
+    endDate: DateTime!
+    createdAt: DateTime!
+    status: HolidayRequestStatus!
+    type: HolidayRequestType!
+}
+
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client!
@@ -64,6 +86,8 @@ type Query {
     me: User!
     teamMembers(teamId: ID!): [TeamMember!]
     userTeams(userId: ID!): [TeamMember!]
+    HolidayRequestTypes: [HolidayRequestType!]
+    userHolidayRequests(userId: ID!, onlyPending: Boolean = false): [HolidayRequest!]
 }
 
 input CreateClientInput {
@@ -166,6 +190,18 @@ input CreateTeamMemberBatchInput {
     teamId: ID!
 }
 
+input CreateHolidayRequestInput {
+    userId: ID!
+    typeId: ID!
+    startDate: DateTime!
+    endDate: DateTime!
+}
+
+input ChangeHolidayRequestStatusInput {
+    requestId: ID!
+    statusId: ID!
+}
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     archiveClient(input: ArchiveClientInput!): Client!
@@ -187,4 +223,6 @@ type Mutation {
     deleteTeamMember(input: DeleteTeamMemberInput!): TeamMember!
     deleteTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
     createTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
+    createHolidayRequest(input: CreateHolidayRequestInput!): HolidayRequest!
+    changeHolidayRequestStatus(input: ChangeHolidayRequestStatusInput!): HolidayRequest!
 }

@@ -1,9 +1,9 @@
 from flask_login import current_user
 from ariadne import QueryType, MutationType, convert_kwargs_to_snake_case, ScalarType, ObjectType
 from sqlalchemy import desc
-from database import Client, Project, Team, Task, User, TeamMember, db
+from database import Client, Project, Team, Task, User, TeamMember, HolidayRequest, HolidayRequestStatus, HolidayRequestType, db
 from datetime import datetime
-from error import NotFound
+from error import NotFound, ActiveRequestError, WrongTimespanError
 from auth import roles_required
 
 query = QueryType()
@@ -331,3 +331,52 @@ def resolve_team_members(obj, info, team_id):
 @convert_kwargs_to_snake_case
 def resolve_user_teams(obj, info, user_id):
     return TeamMember.query.filter(TeamMember.user_id == user_id).all()
+
+
+@mutation.field("createHolidayRequest")
+@convert_kwargs_to_snake_case
+def resolve_create_holiday_request(obj, info, input):
+    start_date = input.get('start_date')
+    end_date = input.get('end_date')
+    if(end_date < start_date):
+        raise WrongTimespanError(start_date, end_date)
+    if(HolidayRequest.query.join(HolidayRequestStatus).filter(
+        (HolidayRequest.start_date.between(start_date, end_date) | HolidayRequest.end_date.between(start_date, end_date)),
+        HolidayRequestStatus.name.notin_(("cancelled", "rejected"))
+        ).count()):
+            raise ActiveRequestError(start_date, end_date)
+    status = HolidayRequestStatus.query.filter(HolidayRequestStatus.name == "pending").one()
+    holiday_request = HolidayRequest(
+        user_id=input.get('user_id'),
+        type_id=input.get('type_id'),
+        status_id=status.id,
+        start_date=input.get('start_date'),
+        end_date=input.get('end_date'),
+        created_at=datetime.now()
+    )
+    db.session.add(holiday_request)
+    db.session.commit()
+    return holiday_request
+
+
+@mutation.field("changeHolidayRequestStatus")
+@mutate_item(HolidayRequest, 'request_id')
+def resolve_change_holiday_request_status(holiday_request, input):
+    holiday_request.status_id = input.get('status_id')
+    return holiday_request
+
+
+@query.field("userHolidayRequests")
+@convert_kwargs_to_snake_case
+def resolve_user_holiday_requests(obj, info, user_id, only_pending):
+    if(only_pending):
+        result = HolidayRequest.query.join(HolidayRequestStatus).filter(HolidayRequest.user_id == user_id, HolidayRequestStatus.name == "pending").all()
+    else:
+        result = HolidayRequest.query.filter(HolidayRequest.user_id == user_id).all()
+    return result
+
+
+@query.field("HolidayRequestTypes")
+@convert_kwargs_to_snake_case
+def resolve_holiday_request_types(obj, info):
+    return HolidayRequestType.query.all()
