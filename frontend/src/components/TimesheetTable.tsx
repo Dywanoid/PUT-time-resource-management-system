@@ -200,8 +200,7 @@ const TimeComponent = ({ dispatch, rowsData, rowIndex, columnKey, value }: TimeC
 
   return (
     <input
-      className="timeInput"
-      style={{ color: value==='00:00' ? '#c2c2c2' : 'black' }}
+      className={`timeInput ${ value === '00:00' ? 'notFilled': '' }`}
       value={value}
       onBlur={onBlur}
       onChange={onChange}
