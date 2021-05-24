@@ -25,7 +25,7 @@ export const ProjectModal = ({
   <Form
     labelCol={{ span: 4 }}
     wrapperCol={{ span: 20 }}
-    form={ form }
+    form={form}
     name="basic"
     onFinish={ onFinish }
     onFinishFailed={ onFinishFailed }

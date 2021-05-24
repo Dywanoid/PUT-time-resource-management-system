@@ -6,6 +6,7 @@ import {
   CalendarView,
   ClientsView,
   HomeView,
+  ProjectAssignmentsView,
   ResourcesView,
   TeamsView,
   ProjectsView,
@@ -31,6 +32,7 @@ ReactDOM.render(
           <PrivateRoute component={ TeamsView } path='/teams'/>
           <PrivateRoute component={ ProjectsView } path='/projects'/>
           <PrivateRoute component={ TaskView } path='/tasks'/>
+          <PrivateRoute component={ProjectAssignmentsView} path='/projectAssignments'/>
         </Switch>
       </Router>
     </ProvideAuth>
