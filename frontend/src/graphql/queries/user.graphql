@@ -1,5 +1,5 @@
-query GetAllUsers { 
-    users { 
+query GetUserInfo { 
+    me { 
         id, 
         name,
         roles

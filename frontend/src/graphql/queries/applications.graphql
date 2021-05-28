@@ -1,0 +1,27 @@
+query GetUserApplications($holidayUserId: ID!) {
+    userHolidayRequests(userId: $holidayUserId) {
+        id,
+        userId,
+        typeId,
+        statusId,
+        createdAt,
+        status { id, name },
+        startDate,
+        endDate,
+        type { id, name }
+    }
+}
+
+query GetUserApplicationsTypes { 
+    HolidayRequestTypes { 
+        id, 
+        name
+    } 
+}
+
+query GetHolidayRequestStatuses { 
+  HolidayRequestStatuses {
+    id,
+    name
+  }
+}

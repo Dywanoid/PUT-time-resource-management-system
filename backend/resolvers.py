@@ -79,7 +79,6 @@ def resolve_task(obj, info, id):
 
 
 @query.field("users")
-@roles_required('manager')
 def resolve_users(obj, info, offset, limit):
     return User.query.order_by(desc(User.created_at)).offset(offset).limit(limit).all()
 

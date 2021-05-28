@@ -1,37 +1,157 @@
-import React, { useRef } from 'react';
-import { Layout, Form, Input, Button, Select, FormInstance, DatePicker } from 'antd';
-import 'antd/dist/antd.css';
+import React, { useRef, useState } from 'react';
+import {
+  Layout, Form, Input, Button, Menu, Dropdown,
+  List, Select, FormInstance, DatePicker, notification,
+  Avatar
+} from 'antd';
+import { UserOutlined } from '@ant-design/icons';
+import {
+  useChangeHolidayRequestStatusMutation,
+  useGetHolidayRequestStatusesQuery,
+  useGetUserApplicationsLazyQuery,
+  useGetAllUsersQuery,
+  namedOperations,
+  useCreateHolidayRequestMutation,
+  useGetUserInfoQuery,
+  useGetUserApplicationsTypesQuery
+} from '../generated/graphql';
+import '../css/ApplicationView.css';
 
 const { Content } = Layout;
-const { Option } = Select;
-const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 
+const openNotificationWithIcon = (type, action) => {
+  notification[type]({
+    description: type === 'success'
+      ? `Pomyślnie wykonano akcję ${ action }.`
+      : `Akcja ${ action } nie została wykonana.`,
+    message: 'Powiadomienie'
+  });
+};
+
 export const ApplicationsView = (): JSX.Element => {
+  const { data: userInfo } = useGetUserInfoQuery();
+  const { data: usersData } = useGetAllUsersQuery();
+  const { data: requestStatuses } = useGetHolidayRequestStatusesQuery();
+  const [supervisorId, setSupervisorId] = useState('');
+  const [requestType, setRequestType] = useState('');
+  const [applicationId, setApplicationId] = useState('');
+  const [startDate, setStartDate] = useState(Date);
+  const [endDate, setEndDate] = useState(Date);
+  const [userId, setUserId] = useState('');
+  const [userRole, setUserRole] = useState<string[]>([]);
+  const [getUserApplications, { data: applicationData }] = useGetUserApplicationsLazyQuery();
+  // const holidayUserId = userInfo?.me.id || '1';
+  const { data: applicationsTypes } = useGetUserApplicationsTypesQuery();
+  const [createApplication] = useCreateHolidayRequestMutation({
+    onCompleted(){ openNotificationWithIcon('success', 'tworzenia wniosku'); },
+    onError() { openNotificationWithIcon('error', 'tworzenia wniosku'); }
+  });
+  const [changeApplicationRequest] = useChangeHolidayRequestStatusMutation({
+    onCompleted(){ openNotificationWithIcon('success', 'zmieniono status'); },
+    onError() { openNotificationWithIcon('error', 'zmieniono status'); }
+  });
+  const sendApplicationRequest = (supervisor, request, start, end) => {
+    createApplication({
+      refetchQueries: [namedOperations.Query.GetUserApplications],
+      variables: { endDate: end, startDate: start, typeId: request, userId: supervisor }
+    });
+  };
+  const changeApplicationRequestStatus = (appId, reqId) => {
+    changeApplicationRequest({
+      refetchQueries: [namedOperations.Query.GetUserApplications],
+      variables: { requestId: appId, statusId: reqId }
+    });
+  };
+
+  if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0) {
+    setUserId(userInfo.me.id);
+    setUserRole(userInfo.me.roles as any);
+    getUserApplications({ variables: { holidayUserId: userInfo.me.id } });
+  }
+  console.log(userRole);
+
+  // console.log(applicationData?.userHolidayRequests);
+
+  const users = usersData?.users || [];
+  const types = applicationsTypes?.HolidayRequestTypes || [];
+  const applicationsData = applicationData?.userHolidayRequests || [];
+  const requestStatusesData = requestStatuses?.HolidayRequestStatuses || [];
+
+  console.log(userId);
+
+  const superVisors = [] as any;
+  const requestTypes = [] as any;
+  const requestStatus = [] as any;
+
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].roles!.includes('manager')) {
+      superVisors.push(
+        <Select.Option
+          key={ users[i].id }
+          value={ users[i].id }
+        >
+          { users[i].name }
+        </Select.Option>
+      );
+    }
+  }
+
+  for (let i = 0; i < types.length; i++) {
+    requestTypes.push(
+      <Select.Option
+        key={ types[i].id }
+        value={ types[i].id }
+      >
+        { types[i].name }
+      </Select.Option>
+    );
+  }
+
+  for (let i = 0; i < requestStatusesData.length; i++) {
+    requestStatus.push(
+      <Menu.Item
+        key={ requestStatusesData[i].id }
+        onClick	={ () => changeStatus(requestStatusesData[i].id) }
+      >
+        { requestStatusesData[i].name }
+      </Menu.Item>
+    );
+  }
+
   const formRef = useRef<FormInstance>(null);
 
-  const onGenderChange = (value: string) => {
-    switch (value) {
-      case 'male':
-        formRef.current?.setFieldsValue({ note: 'Hi, man!' });
+  const onSupervisorChange = (value: string) => {
+    setSupervisorId(value);
+    console.log(value, 'onSupervisorChange');
+  };
 
-        return;
-      case 'female':
-        formRef.current?.setFieldsValue({ note: 'Hi, lady!' });
-
-        return;
-      case 'other':
-        formRef.current?.setFieldsValue({ note: 'Hi there!' });
-    }
+  const onRequestTypeChange = (value: string) => {
+    setRequestType(value);
+    console.log(value, 'onRequestTypeChange');
   };
 
   const onFinish = () => {
     // values are passed here
+    console.log(supervisorId, requestType, startDate, endDate);
+
+    sendApplicationRequest(supervisorId, requestType, startDate, endDate);
+    setSupervisorId('');
+    setRequestType('');
+    setStartDate('');
+    setEndDate('');
     console.log('done!');
+    formRef.current?.resetFields();
   };
 
   const onReset = () => {
     formRef.current?.resetFields();
+  };
+
+  const onRangePickerChange = (dates, dateStrings) => {
+    console.log(dates[0].format('DD-MM-YYYY'));
+    setStartDate(dates[0]._d);
+    setEndDate(dates[1]._d);
   };
 
   const onFill = () => {
@@ -41,6 +161,16 @@ export const ApplicationsView = (): JSX.Element => {
     });
   };
 
+  const changeStatus = (requestId) => {
+    changeApplicationRequestStatus(applicationId, requestId);
+  };
+
+  const menu = () => (
+    <Menu>
+      { requestStatus }
+    </Menu>
+  );
+
   return (
     <Layout>
       <Content>
@@ -48,45 +178,21 @@ export const ApplicationsView = (): JSX.Element => {
           ref={ formRef } name="control-ref" onFinish={ onFinish }>
           <Form.Item name="Wybierz przełożonego" label="Wybierz przełożonego" rules={[{ required: true }]}>
             <Select
-              onChange={ onGenderChange }
-              allowClear
+              onSelect={ onSupervisorChange }
             >
-              <Option value="Jan Nowak">Jan Nowak</Option>
-              <Option value="Piotr Krawczyk">Piotr Krawczyk</Option>
-              <Option value="Tomasz Węgiel">Tomasz Węgiel</Option>
+              { superVisors }
             </Select>
           </Form.Item>
           <Form.Item name="Typ wniosku" label="Typ wniosku" rules={[{ required: true }]}>
             <Select
-              onChange={ onGenderChange }
+              onChange={ onRequestTypeChange }
               allowClear
             >
-              <Option value="Urlop wypoczynkowy">Urlop wypoczynkowy</Option>
-              <Option value="Chorobowe - L4">Chorobowe - L4</Option>
-              <Option value="Chorobowe - opieka nad chorym dzieckiem">
-                Chorobowe - opieka nad chorym dzieckiem
-              </Option>
-              <Option value="Chorobowe- opieka nad chorym członkiem rodziny">
-                Chorobowe- opieka nad chorym członkiem rodziny
-              </Option>
-              <Option value="Urlop na żądanie">Urlop na żądanie</Option>
-              <Option value="Urlop zaległy">Urlop zaległy</Option>
-              <Option value="Wniosek o urlop bezpłatny">Wniosek o urlop bezpłatny</Option>
-              <Option value="Urlop macierzyński">Urlop macierzyński</Option>
-              <Option value="Urlop rodzicielski">Urlop rodzicielski</Option>
-              <Option value="Urlop wychowawczy">Urlop wychowawczy</Option>
-              <Option value="Urlop ojcowski">Urlop ojcowski</Option>
-              <Option value="Urlop dodatkowy">Urlop dodatkowy</Option>
-              <Option value="Urlop szkoleniowy">Urlop szkoleniowy</Option>
-              <Option value="Wyjście prywatne">Wyjście prywatne</Option>
-              <Option value="Nieobecność usprawiedliwiona płatna">Nieobecność usprawiedliwiona płatna</Option>
+              { requestTypes }
             </Select>
           </Form.Item>
           <Form.Item name="Dates" label="Dates" rules={[{ required: true }]}>
-            <RangePicker/>
-          </Form.Item>
-          <Form.Item name="Opis" label="Opis" rules={[{ required: true }]}>
-            <TextArea rows={ 4 }/>
+            <RangePicker onChange={ onRangePickerChange }/>
           </Form.Item>
           <Form.Item
             noStyle
@@ -116,6 +222,41 @@ export const ApplicationsView = (): JSX.Element => {
           </Form.Item>
         </Form>
       </Content>
+      <List
+        header={ <h1>Wnioski</h1> }
+        bordered
+        className="teamsList"
+        itemLayout="vertical"
+        dataSource={ [...applicationsData] }
+        renderItem={ (item: any) => {
+          return (
+            <List.Item
+              actions={
+                (userRole.includes('manager'))
+                  ? ([
+                    <Dropdown
+                      key="1"
+                      overlay={ menu }
+                      className="actionButton"
+                      trigger={ ['click'] }
+                    >
+                      <Button onClick={ () => setApplicationId(item.id) }>Akcja</Button>
+                    </Dropdown>
+                  ])
+                  : undefined
+              }
+            >
+              <List.Item.Meta
+                title={ <div>{ item.type.name }</div> }
+                description={ <div>{ item.status.name }</div> }
+                avatar={ <Avatar size={ 64 } icon={ <UserOutlined/> }/> }
+              />
+            </List.Item>
+          );
+
+          return (null);
+        }}
+      />
     </Layout>
   );
 };
