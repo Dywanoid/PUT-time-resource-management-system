@@ -18,6 +18,13 @@ project_assignment_object = ObjectType("ProjectAssignment")
 currency_enum = EnumType("Currency", Currency)
 
 
+@dataclass
+class TimeLogInfo:
+    earliest_date: date = None
+    latest_date: date = None
+    total_count: int = 0
+
+
 def find_item(item_type, id):
     item = item_type.query.get(id)
     if item:
@@ -131,13 +138,6 @@ def resolve_time_logs(project_assignment, info, from_date=None, to_date=None):
         filters.append(TimeLog.date <= to_date)
 
     return TimeLog.query.filter(db.and_(*filters)).order_by(TimeLog.date).all()
-
-
-@dataclass
-class TimeLogInfo:
-    earliest_date: date = None
-    latest_date: date = None
-    total_count: int = 0
 
 
 def get_time_log_info(project_assignment):
