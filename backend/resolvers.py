@@ -1,16 +1,28 @@
 from flask_login import current_user
-from ariadne import QueryType, MutationType, convert_kwargs_to_snake_case, ScalarType, ObjectType
-from sqlalchemy import desc
-from database import Client, Project, Team, Task, User, TeamMember, db
-from datetime import datetime
-from error import NotFound
-from auth import roles_required
+from ariadne import EnumType, QueryType, MutationType, convert_kwargs_to_snake_case, ObjectType
+from graphql import default_field_resolver
+from sqlalchemy import desc, func
+from sqlalchemy.orm import contains_eager
+from database import Client, Currency, Project, Task, Team, TimeLog, TeamMember, User, ProjectAssignment, db
+from dataclasses import dataclass
+from datetime import datetime, date, timedelta
+from error import NotFound, ValidationError
+from auth import roles_required, roles_check
 
 query = QueryType()
 mutation = MutationType()
-datetime_scalar = ScalarType("DateTime")
+
 client_object = ObjectType("Client")
 project_object = ObjectType("Project")
+project_assignment_object = ObjectType("ProjectAssignment")
+currency_enum = EnumType("Currency", Currency)
+
+
+@dataclass
+class TimeLogInfo:
+    earliest_date: date = None
+    latest_date: date = None
+    total_count: int = 0
 
 
 def find_item(item_type, id):
@@ -35,11 +47,6 @@ def mutate_item(item_type, id_property):
             return result
         return wrapper
     return inner
-
-
-@datetime_scalar.serializer
-def serialize_datetime(value):
-    return value.isoformat()
 
 
 @query.field("clients")
@@ -85,14 +92,189 @@ def resolve_users(obj, info, offset, limit):
 
 
 @query.field("user")
+def resolve_user(obj, info, id=None):
+    if not id or id == current_user.id:
+        return current_user
+    else:
+        roles_check('manager')
+        return find_item(User, id)
+
+
+def find_project_assignments(offset, limit, from_date, to_date, user_id, project_id=None, exclude_project_assignment_id=None):
+    filters = [
+        ProjectAssignment.end_date >= from_date,
+        ProjectAssignment.begin_date <= to_date,
+        ProjectAssignment.user_id == user_id
+    ]  
+    if project_id:
+        filters.append(ProjectAssignment.project_id == project_id)
+
+    if exclude_project_assignment_id:
+        filters.append(ProjectAssignment.id != exclude_project_assignment_id)
+
+    return (ProjectAssignment.query
+            .filter(db.and_(*filters))
+            .order_by(desc(ProjectAssignment.created_at))
+            .offset(offset).limit(limit)
+            .all())
+
+
+@query.field("projectAssignments")
+@convert_kwargs_to_snake_case
+def resolve_project_assignments(obj, info, offset, limit, from_date, to_date, user_id=None, project_id=None):
+    user_id = user_id or current_user.id
+    if user_id != current_user.id:
+        roles_check('manager')
+    return find_project_assignments(offset, limit, from_date, to_date, user_id, project_id)
+
+
+@project_assignment_object.field("timeLogs")
+@convert_kwargs_to_snake_case
+def resolve_time_logs(project_assignment, info, from_date=None, to_date=None):
+    filters = [TimeLog.project_assignment_id == project_assignment.id]
+    if from_date:
+        filters.append(TimeLog.date >= from_date)
+    if to_date:
+        filters.append(TimeLog.date <= to_date)
+
+    return TimeLog.query.filter(db.and_(*filters)).order_by(TimeLog.date).all()
+
+
+def get_time_log_info(project_assignment):
+    (earliest_date, latest_date, total_count) = (db.session
+        .query(func.min(TimeLog.date), func.max(TimeLog.date), func.count(TimeLog.date))
+        .filter(TimeLog.project_assignment_id == project_assignment.id)
+        .first()
+    )
+    return TimeLogInfo(earliest_date=earliest_date, latest_date=latest_date, total_count=total_count)
+
+
+@project_assignment_object.field("timeLogInfo")
+@convert_kwargs_to_snake_case
+def resolve_time_log_info(project_assignment, info):
+    return get_time_log_info(project_assignment)
+
+
+def get_overlap_range(lhs, rhs):
+    return (max(lhs[0], rhs[0]), min(lhs[1], rhs[1]))
+
+
+def format_range(range):
+    return f"{str(range[0])} to {str(range[1])}"
+
+
+def validate_project_assignment(project_assignment):
+    errors = []
+    if project_assignment.begin_date > project_assignment.end_date:
+        errors.append("Begin date cannot be after the end date")
+    if not project_assignment.hourly_rate > 0:
+        errors.append("Hourly rate must be greater than 0")
+    existing_project_assignment = find_project_assignments(0, 1, project_assignment.begin_date, project_assignment.end_date, project_assignment.user_id, project_assignment.project_id, project_assignment.id)
+    if existing_project_assignment:
+        overlap = get_overlap_range(existing_project_assignment[0].date_range(), project_assignment.date_range())
+        errors.append(f"Date range partially overlaps with existing project assignment with id {existing_project_assignment[0].id} in range {format_range(overlap)}")
+    return errors
+
+@mutation.field("createProjectAssignment")
 @roles_required('manager')
-def resolve_user(obj, info, id):
-    return find_item(User, id)
+@convert_kwargs_to_snake_case
+def resolve_add_project_assignment(obj, info, input):
+    project = find_item(Project, input['project_id'])
+    user = find_item(User, input['user_id'])
+    project_assignment = ProjectAssignment(
+        user_id=user.id,
+        project_id=project.id,
+        begin_date=input.get('begin_date'),
+        end_date=input.get('end_date'),
+        hourly_rate=input['hourly_rate'],
+        created_at=datetime.now()
+    )
+    errors = validate_project_assignment(project_assignment)
+    if errors:
+        raise ValidationError.errors(errors)
+    db.session.add(project_assignment)
+    db.session.commit()
+    return project_assignment
 
 
-@query.field("me")
-def resolve_me(obj, info):
-    return current_user
+@mutation.field("updateProjectAssignment")
+@roles_required('manager')
+@mutate_item(ProjectAssignment, 'project_assignment_id')
+def resolve_update_project_assignment(project_assignment, input):
+    project_assignment.begin_date = input.get('begin_date')
+    project_assignment.end_date = input.get('end_date')
+    project_assignment.hourly_rate = input['hourly_rate']
+    errors = validate_project_assignment(project_assignment)
+
+    time_log_info = get_time_log_info(project_assignment)
+    if time_log_info.total_count > 0:
+        if project_assignment.begin_date > time_log_info.earliest_date:
+            errors.append(f"Begin date cannot be after the earliest time log date {time_log_info.earliest_date}")
+        if project_assignment.end_date < time_log_info.latest_date:
+            errors.append(f"End date cannot be before the latest time log date {time_log_info.latest_date}")
+
+    if errors:
+        raise ValidationError.errors(errors)
+
+    return project_assignment
+
+
+@mutation.field("deleteProjectAssignment")
+@roles_required('manager')
+@mutate_item(ProjectAssignment, 'project_assignment_id')
+def resolve_delete_project_assignment(project_assignment, input):
+    time_log_info = get_time_log_info(project_assignment)
+    if time_log_info.total_count > 0:
+        raise ValidationError(f"There are {time_log_info.total_count} time logs for this project assingment")
+    db.session.delete(project_assignment)
+    db.session.commit()
+    return project_assignment
+
+
+@mutation.field("createOrUpdateTimeLog")
+@convert_kwargs_to_snake_case
+def resolve_create_or_update_time_log(obj, info, input):
+    project_assignment = find_item(ProjectAssignment, input['project_assignment_id'])
+    task = find_item(Task, input['task_id'])
+    date = input['date']
+    duration = input['duration']
+
+    if project_assignment.user_id != current_user.id:
+        roles_check('manager')
+    errors = []
+    if not (task.project_id == project_assignment.project_id):
+        errors.append(f"Task {task.id} not assigned to project {project_assignment.project_id}")
+    if not (project_assignment.begin_date <= date <= project_assignment.end_date):
+        errors.append(f"Date is out of the project assignment range {format_range(project_assignment.date_range())}")
+    if not (timedelta(seconds=1) <= duration <= timedelta(hours=24)):
+        errors.append(f"Duration must be at least 1 second and not more than 24 hours")
+
+    if errors:
+        raise ValidationError.errors(errors)
+
+    existing_time_log = TimeLog.query.get(TimeLog.pk(project_assignment.id, task.id, date))
+    if existing_time_log:
+        db.session.delete(existing_time_log)
+
+    time_log = TimeLog(
+        project_assignment_id=project_assignment.id,
+        task_id=task.id,
+        date=date,
+        duration=duration,
+        created_at=datetime.now()
+    )
+    db.session.add(time_log)
+    db.session.commit()
+    return time_log
+
+
+@mutation.field("deleteTimeLog")
+@convert_kwargs_to_snake_case
+def resolve_delete_time_log(obj, info, input):
+    time_log = find_item(TimeLog, TimeLog.pk(input['project_assignment_id'], input['task_id'], input['date']))
+    db.session.delete(time_log)
+    db.session.commit()
+    return time_log
 
 
 @mutation.field("createClient")
@@ -105,6 +287,7 @@ def resolve_create_client(obj, info, input):
         street_with_number=input.get('street_with_number'),
         zip_code=input.get('zip_code'),
         city=input.get('city'),
+        currency=input.get('currency') or Currency.EUR,
         created_at=datetime.now()
     )
     db.session.add(client)
@@ -121,6 +304,7 @@ def resolve_update_client(client, input):
     client.street_with_number = input.get('street_with_number'),
     client.zip_code = input.get('zip_code'),
     client.city = input.get('city')
+    client.currency = input.get('currency') or Currency.EUR
     return client
 
 
@@ -298,7 +482,7 @@ def resolve_create_team_member(obj, info, input):
 def resolve_delete_team_member(obj, info, input):
     user_id = input.get('user_id')
     team_id = input.get('team_id')
-    team_member = find_item(TeamMember, {"team_id": team_id, "user_id": user_id})
+    team_member = find_item(TeamMember, TeamMember.pk(user_id, team_id))
     db.session.delete(team_member)
     db.session.commit()
     return team_member

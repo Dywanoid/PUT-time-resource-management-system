@@ -14,6 +14,12 @@ from error import Unauthorized
 from werkzeug.exceptions import ServiceUnavailable
 
 
+def roles_check(*roles):
+    for role in roles:
+        if role not in current_user.roles:
+            raise Unauthorized(current_user.name)
+
+
 def roles_required(*roles):
     """
     Decorator that checks if current user has all specified roles assigned.
@@ -21,9 +27,7 @@ def roles_required(*roles):
     """
     def inner(func):
         def wrapper(*args, **kwargs):
-            for role in roles:
-                if role not in current_user.roles:
-                    raise Unauthorized(current_user.name)
+            roles_check(*roles)
             return func(*args, **kwargs)
         return wrapper
     return inner

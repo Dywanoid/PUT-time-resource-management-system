@@ -11,6 +11,7 @@ services:
       PORT: 80
       DATABASE_URL: postgres://postgres:password@db/pracujta
       FLASK_DEBUG: 1
+      SECRET_KEY: secret
       SQLALCHEMY_ECHO: 1
       OAUTHLIB_INSECURE_TRANSPORT: 1
       OIDC_CLIENT_ID: pracujta

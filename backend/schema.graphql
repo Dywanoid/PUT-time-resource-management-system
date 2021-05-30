@@ -1,4 +1,16 @@
 scalar DateTime
+scalar Date
+scalar Interval # minutes
+
+enum Currency {
+    EUR
+    USD
+    PLN
+}
+
+# Indicates that if value is not specified, it's treated as min or max
+directive @defaultmax on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+directive @defaultmin on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 schema {
     query: Query
@@ -13,6 +25,7 @@ type Client {
     zipCode: String
     city: String
     archived: Boolean!
+    currency: Currency!
     createdAt: DateTime!
     projects(includeArchived: Boolean = false): [Project!]
 }
@@ -23,11 +36,14 @@ type Project {
     createdAt: DateTime!
     tasks(includeArchived: Boolean = false): [Task!]
     archived: Boolean!
+    client: Client!
+    assignments: [ProjectAssignment!]
 }
 
 type Task {
     id: ID!,
-    name: String!,
+    project: Project!
+    name: String,
     createdAt: DateTime!
     archived: Boolean!
 }
@@ -52,6 +68,32 @@ type TeamMember {
     createdAt: DateTime!
 }
 
+type ProjectAssignment {
+    id: ID!
+    project: Project!
+    user: User!
+    beginDate: Date @defaultmin
+    endDate: Date @defaultmax
+    hourlyRate: Float!
+    createdAt: DateTime!
+    timeLogs(fromDate: Date @defaultmin, toDate: Date @defaultmax): [TimeLog!]
+    timeLogInfo: TimeLogInfo
+}
+
+type TimeLog {
+    projectAssignment: ProjectAssignment!
+    task: Task!
+    date: Date!
+    duration: Interval!
+    createdAt: DateTime!
+}
+
+type TimeLogInfo {
+    earliestDate: Date
+    latestDate: Date
+    totalCount: Int
+}
+
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client!
@@ -60,10 +102,17 @@ type Query {
     teams(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 25): [Team!]
     team(id: ID!): Team!
     users(offset: Int = 0, limit: Int = 10): [User!]
-    user(id: ID!): User!
-    me: User!
+    user(id: ID): User!
     teamMembers(teamId: ID!): [TeamMember!]
     userTeams(userId: ID!): [TeamMember!]
+    projectAssignments(
+        userId: ID, 
+        projectId: ID, 
+        fromDate: Date @defaultmin,
+        toDate: Date @defaultmax,
+        offset: Int = 0, 
+        limit: Int = 10
+        ): [ProjectAssignment!]
 }
 
 input CreateClientInput {
@@ -72,6 +121,7 @@ input CreateClientInput {
     streetWithNumber: String
     zipCode: String
     city: String
+    currency: Currency! = EUR
 }
 
 input UpdateClientInput {
@@ -81,6 +131,7 @@ input UpdateClientInput {
     streetWithNumber: String
     zipCode: String
     city: String
+    currency: Currency! = EUR
 }
 
 input ArchiveClientInput {
@@ -166,6 +217,38 @@ input CreateTeamMemberBatchInput {
     teamId: ID!
 }
 
+input CreateProjectAssignmentInput {
+    userId: ID!
+    projectId: ID!
+    beginDate: Date @defaultmin
+    endDate: Date @defaultmax
+    hourlyRate: Float!
+}
+
+input UpdateProjectAssignmentInput {
+    projectAssignmentId: ID!
+    beginDate: Date @defaultmin
+    endDate: Date @defaultmax
+    hourlyRate: Float!
+}
+
+input DeleteProjectAssignmentInput {
+    projectAssignmentId: ID!
+}
+
+input CreateOrUpdateTimeLogInput {
+    projectAssignmentId: ID!
+    taskId: ID!
+    date: Date!
+    duration: Interval!
+}
+
+input DeleteTimeLogInput {
+    projectAssignmentId: ID!
+    taskId: ID!
+    date: Date!
+}
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     archiveClient(input: ArchiveClientInput!): Client!
@@ -187,4 +270,10 @@ type Mutation {
     deleteTeamMember(input: DeleteTeamMemberInput!): TeamMember!
     deleteTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
     createTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
+    createProjectAssignment(input: CreateProjectAssignmentInput!): ProjectAssignment!
+    updateProjectAssignment(input: UpdateProjectAssignmentInput!): ProjectAssignment!
+    deleteProjectAssignment(input: DeleteProjectAssignmentInput!): ProjectAssignment!
+    createOrUpdateTimeLog(input: CreateOrUpdateTimeLogInput!): TimeLog!
+    deleteTimeLog(input: DeleteTimeLogInput!): TimeLog!
+    # TODO split this file into multiple files
 }
