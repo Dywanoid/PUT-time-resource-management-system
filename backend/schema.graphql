@@ -86,9 +86,10 @@ type Query {
     me: User!
     teamMembers(teamId: ID!): [TeamMember!]
     userTeams(userId: ID!): [TeamMember!]
-    HolidayRequestTypes: [HolidayRequestType!]
-    HolidayRequestStatuses: [HolidayRequestStatus!]
+    holidayRequestTypes: [HolidayRequestType!]
+    holidayRequestStatuses: [HolidayRequestStatus!]
     userHolidayRequests(userId: ID!, onlyPending: Boolean = false): [HolidayRequest!]
+    holidayRequests(onlyPending: Boolean = false): [HolidayRequest!]
 }
 
 input CreateClientInput {

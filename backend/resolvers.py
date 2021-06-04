@@ -79,6 +79,7 @@ def resolve_task(obj, info, id):
 
 
 @query.field("users")
+@roles_required('manager')
 def resolve_users(obj, info, offset, limit):
     return User.query.order_by(desc(User.created_at)).offset(offset).limit(limit).all()
 
@@ -375,13 +376,23 @@ def resolve_user_holiday_requests(obj, info, user_id, only_pending):
     return result
 
 
-@query.field("HolidayRequestTypes")
+@query.field("holidayRequestTypes")
 @convert_kwargs_to_snake_case
 def resolve_holiday_request_types(obj, info):
     return HolidayRequestType.query.all()
 
 
-@query.field("HolidayRequestStatuses")
+@query.field("holidayRequestStatuses")
 @convert_kwargs_to_snake_case
 def resolve_holiday_request_statuses(obj, info):
     return HolidayRequestStatus.query.all()
+
+
+@query.field("holidayRequests")
+@convert_kwargs_to_snake_case
+def resolve_holiday_requests(obj, info, only_pending):
+    if(only_pending):
+        result = HolidayRequest.query.join(HolidayRequestStatus).filter(HolidayRequestStatus.name == "pending").all()
+    else:
+        result = HolidayRequest.query.all()
+    return result
