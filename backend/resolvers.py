@@ -2,7 +2,7 @@ from flask_login import current_user
 from ariadne import QueryType, MutationType, convert_kwargs_to_snake_case, ScalarType, ObjectType
 from sqlalchemy import desc
 from database import Client, Project, Team, Task, User, TeamMember, HolidayRequest, HolidayRequestStatus, HolidayRequestType, db
-from datetime import datetime
+from datetime import date, datetime
 from error import NotFound, ActiveRequestError, WrongTimespanError
 from auth import roles_required
 
@@ -390,9 +390,9 @@ def resolve_holiday_request_statuses(obj, info):
 
 @query.field("holidayRequests")
 @convert_kwargs_to_snake_case
-def resolve_holiday_requests(obj, info, only_pending):
-    if(only_pending):
-        result = HolidayRequest.query.join(HolidayRequestStatus).filter(HolidayRequestStatus.name == "pending").all()
-    else:
-        result = HolidayRequest.query.all()
+def resolve_holiday_requests(obj, info, request_types, start_date = date.min, end_date = date.max):
+    if(end_date < start_date):
+        raise WrongTimespanError(start_date, end_date)
+    result = HolidayRequest.query.join(HolidayRequestStatus)\
+        .filter(HolidayRequestStatus.id.in_(request_types), HolidayRequest.end_date >= start_date, HolidayRequest.start_date <= end_date).all()
     return result
