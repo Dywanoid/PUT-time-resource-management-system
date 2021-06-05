@@ -390,9 +390,9 @@ def resolve_holiday_request_statuses(obj, info):
 
 @query.field("holidayRequests")
 @convert_kwargs_to_snake_case
-def resolve_holiday_requests(obj, info, request_types, start_date = date.min, end_date = date.max):
+def resolve_holiday_requests(obj, info, request_statuses, start_date = date.min, end_date = date.max):
     if(end_date < start_date):
         raise WrongTimespanError(start_date, end_date)
     result = HolidayRequest.query.join(HolidayRequestStatus)\
-        .filter(HolidayRequestStatus.id.in_(request_types), HolidayRequest.end_date >= start_date, HolidayRequest.start_date <= end_date).all()
+        .filter(HolidayRequestStatus.id.in_(request_statuses), HolidayRequest.end_date >= start_date, HolidayRequest.start_date <= end_date).all()
     return result

@@ -89,7 +89,7 @@ type Query {
     holidayRequestTypes: [HolidayRequestType!]
     holidayRequestStatuses: [HolidayRequestStatus!]
     userHolidayRequests(userId: ID!, onlyPending: Boolean = false): [HolidayRequest!]
-    holidayRequests(requestStatus: [ID]!, startDate: DateTime, endDate: DateTime): [HolidayRequest!]
+    holidayRequests(requestStatuses: [ID]!, startDate: DateTime, endDate: DateTime): [HolidayRequest!]
 }
 
 input CreateClientInput {
