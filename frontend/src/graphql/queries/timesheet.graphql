@@ -1,0 +1,14 @@
+query GetTaskTree {
+  clients {
+    id,
+    name,
+    projects {
+      id,
+      name,
+      tasks {
+        id,
+        name
+      }
+    }
+  }
+}

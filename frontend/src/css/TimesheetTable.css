@@ -1,0 +1,12 @@
+.timeInput {
+    width: 45px;
+    text-align: center;
+}
+
+.summaryRow {
+    background-color: whitesmoke;
+}
+
+.notFilled {
+    color: #c2c2c2;
+}

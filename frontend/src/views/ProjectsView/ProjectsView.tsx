@@ -39,6 +39,7 @@ interface ProjectState {
     id: string,
     name: string
   },
+  pathname: string,
   project: {
     id,
     name
@@ -142,7 +143,19 @@ export const ProjectsView = () : JSX.Element => {
   const onFinish = isEditMode ? onFinishEditHandler : onFinishAdd;
 
   const tasksHandler = (project) => {
-    setProjectState({ client, project });
+    setProjectState({
+      client,
+      pathname:'/tasks',
+      project
+    });
+  };
+
+  const projectAssignmentsHandler = (project) => {
+    setProjectState({
+      client,
+      pathname:'/projectAssignments',
+      project
+    });
   };
 
   if (loading) { return <p>Loading...</p>; }
@@ -152,7 +165,7 @@ export const ProjectsView = () : JSX.Element => {
     return (<Redirect
       push
       to={{
-        pathname: '/tasks',
+        pathname: projectState.pathname,
         state: projectState
       }}
     />);
@@ -201,7 +214,18 @@ export const ProjectsView = () : JSX.Element => {
                   />
                 </Button>,
                 <Button
-                  key="2"
+                  key="3"
+                  size='small'
+                  onClick={() => projectAssignmentsHandler(project)}
+                >
+                  <IconText
+                    icon={ BarsOutlined }
+                    text="Przypisz pracowników"
+                    key="list-vertical-message-2"
+                  />
+                </Button>,
+                <Button
+                  key="4"
                   size='small'
                   onClick={ () => tasksHandler(project) }
                 >
