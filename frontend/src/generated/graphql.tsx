@@ -13,8 +13,12 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  Date: any;
   DateTime: any;
+  Interval: any;
 };
+
+
 
 export type AddProjectInput = {
   clientId: Scalars['ID'];
@@ -51,6 +55,7 @@ export type Client = {
   zipCode?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
   archived: Scalars['Boolean'];
+  currency: Currency;
   createdAt: Scalars['DateTime'];
   projects?: Maybe<Array<Project>>;
 };
@@ -66,6 +71,22 @@ export type CreateClientInput = {
   streetWithNumber?: Maybe<Scalars['String']>;
   zipCode?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
+  currency: Currency;
+};
+
+export type CreateOrUpdateTimeLogInput = {
+  projectAssignmentId: Scalars['ID'];
+  taskId: Scalars['ID'];
+  date: Scalars['Date'];
+  duration: Scalars['Interval'];
+};
+
+export type CreateProjectAssignmentInput = {
+  userId: Scalars['ID'];
+  projectId: Scalars['ID'];
+  beginDate?: Maybe<Scalars['Date']>;
+  endDate?: Maybe<Scalars['Date']>;
+  hourlyRate: Scalars['Float'];
 };
 
 export type CreateTeamInput = {
@@ -83,6 +104,15 @@ export type CreateTeamMemberInput = {
   teamId: Scalars['ID'];
 };
 
+export enum Currency {
+  Eur = 'EUR',
+  Usd = 'USD',
+  Pln = 'PLN'
+}
+
+export type DeleteProjectAssignmentInput = {
+  projectAssignmentId: Scalars['ID'];
+};
 
 export type DeleteTeamMemberBatchInput = {
   userIdList?: Maybe<Array<Scalars['ID']>>;
@@ -93,6 +123,13 @@ export type DeleteTeamMemberInput = {
   userId: Scalars['ID'];
   teamId: Scalars['ID'];
 };
+
+export type DeleteTimeLogInput = {
+  projectAssignmentId: Scalars['ID'];
+  taskId: Scalars['ID'];
+  date: Scalars['Date'];
+};
+
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -116,6 +153,11 @@ export type Mutation = {
   deleteTeamMember: TeamMember;
   deleteTeamMemberBatch?: Maybe<Array<TeamMember>>;
   createTeamMemberBatch?: Maybe<Array<TeamMember>>;
+  createProjectAssignment: ProjectAssignment;
+  updateProjectAssignment: ProjectAssignment;
+  deleteProjectAssignment: ProjectAssignment;
+  createOrUpdateTimeLog: TimeLog;
+  deleteTimeLog: TimeLog;
 };
 
 
@@ -218,6 +260,31 @@ export type MutationCreateTeamMemberBatchArgs = {
   input: DeleteTeamMemberBatchInput;
 };
 
+
+export type MutationCreateProjectAssignmentArgs = {
+  input: CreateProjectAssignmentInput;
+};
+
+
+export type MutationUpdateProjectAssignmentArgs = {
+  input: UpdateProjectAssignmentInput;
+};
+
+
+export type MutationDeleteProjectAssignmentArgs = {
+  input: DeleteProjectAssignmentInput;
+};
+
+
+export type MutationCreateOrUpdateTimeLogArgs = {
+  input: CreateOrUpdateTimeLogInput;
+};
+
+
+export type MutationDeleteTimeLogArgs = {
+  input: DeleteTimeLogInput;
+};
+
 export type Project = {
   __typename?: 'Project';
   id: Scalars['ID'];
@@ -225,11 +292,32 @@ export type Project = {
   createdAt: Scalars['DateTime'];
   tasks?: Maybe<Array<Task>>;
   archived: Scalars['Boolean'];
+  client: Client;
+  assignments?: Maybe<Array<ProjectAssignment>>;
 };
 
 
 export type ProjectTasksArgs = {
   includeArchived?: Maybe<Scalars['Boolean']>;
+};
+
+export type ProjectAssignment = {
+  __typename?: 'ProjectAssignment';
+  id: Scalars['ID'];
+  project: Project;
+  user: User;
+  beginDate?: Maybe<Scalars['Date']>;
+  endDate?: Maybe<Scalars['Date']>;
+  hourlyRate: Scalars['Float'];
+  createdAt: Scalars['DateTime'];
+  timeLogs?: Maybe<Array<TimeLog>>;
+  timeLogInfo?: Maybe<TimeLogInfo>;
+};
+
+
+export type ProjectAssignmentTimeLogsArgs = {
+  fromDate?: Maybe<Scalars['Date']>;
+  toDate?: Maybe<Scalars['Date']>;
 };
 
 export type Query = {
@@ -242,9 +330,9 @@ export type Query = {
   team: Team;
   users?: Maybe<Array<User>>;
   user: User;
-  me: User;
   teamMembers?: Maybe<Array<TeamMember>>;
   userTeams?: Maybe<Array<TeamMember>>;
+  projectAssignments?: Maybe<Array<ProjectAssignment>>;
 };
 
 
@@ -289,7 +377,7 @@ export type QueryUsersArgs = {
 
 
 export type QueryUserArgs = {
-  id: Scalars['ID'];
+  id?: Maybe<Scalars['ID']>;
 };
 
 
@@ -302,10 +390,21 @@ export type QueryUserTeamsArgs = {
   userId: Scalars['ID'];
 };
 
+
+export type QueryProjectAssignmentsArgs = {
+  userId?: Maybe<Scalars['ID']>;
+  projectId?: Maybe<Scalars['ID']>;
+  fromDate?: Maybe<Scalars['Date']>;
+  toDate?: Maybe<Scalars['Date']>;
+  offset?: Maybe<Scalars['Int']>;
+  limit?: Maybe<Scalars['Int']>;
+};
+
 export type Task = {
   __typename?: 'Task';
   id: Scalars['ID'];
-  name: Scalars['String'];
+  project: Project;
+  name?: Maybe<Scalars['String']>;
   createdAt: Scalars['DateTime'];
   archived: Scalars['Boolean'];
 };
@@ -324,6 +423,22 @@ export type TeamMember = {
   userId: Scalars['ID'];
   teamId: Scalars['ID'];
   createdAt: Scalars['DateTime'];
+};
+
+export type TimeLog = {
+  __typename?: 'TimeLog';
+  projectAssignment: ProjectAssignment;
+  task: Task;
+  date: Scalars['Date'];
+  duration: Scalars['Interval'];
+  createdAt: Scalars['DateTime'];
+};
+
+export type TimeLogInfo = {
+  __typename?: 'TimeLogInfo';
+  earliestDate?: Maybe<Scalars['Date']>;
+  latestDate?: Maybe<Scalars['Date']>;
+  totalCount?: Maybe<Scalars['Int']>;
 };
 
 export type UnarchiveClientInput = {
@@ -349,6 +464,14 @@ export type UpdateClientInput = {
   streetWithNumber?: Maybe<Scalars['String']>;
   zipCode?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
+  currency: Currency;
+};
+
+export type UpdateProjectAssignmentInput = {
+  projectAssignmentId: Scalars['ID'];
+  beginDate?: Maybe<Scalars['Date']>;
+  endDate?: Maybe<Scalars['Date']>;
+  hourlyRate: Scalars['Float'];
 };
 
 export type UpdateProjectInput = {
@@ -380,6 +503,7 @@ export type CreateClientMutationVariables = Exact<{
   streetWithNumber?: Maybe<Scalars['String']>;
   zipCode?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
+  currency: Currency;
 }>;
 
 
@@ -398,6 +522,7 @@ export type UpdateClientMutationVariables = Exact<{
   streetWithNumber?: Maybe<Scalars['String']>;
   zipCode?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
+  currency: Currency;
 }>;
 
 
@@ -581,7 +706,7 @@ export type GetAllClientsQuery = (
   { __typename?: 'Query' }
   & { clients?: Maybe<Array<(
     { __typename?: 'Client' }
-    & Pick<Client, 'id' | 'name' | 'taxId' | 'streetWithNumber' | 'zipCode' | 'city'>
+    & Pick<Client, 'id' | 'name' | 'taxId' | 'currency' | 'streetWithNumber' | 'zipCode' | 'city'>
   )>> }
 );
 
@@ -674,9 +799,9 @@ export type GetAllUsersQuery = (
 
 
 export const CreateClientDocument = gql`
-    mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+    mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String, $currency: Currency!) {
   createClient(
-    input: {name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, zipCode: $zipCode, city: $city}
+    input: {name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, currency: $currency, zipCode: $zipCode, city: $city}
   ) {
     id
     name
@@ -707,6 +832,7 @@ export type CreateClientMutationFn = Apollo.MutationFunction<CreateClientMutatio
  *      streetWithNumber: // value for 'streetWithNumber'
  *      zipCode: // value for 'zipCode'
  *      city: // value for 'city'
+ *      currency: // value for 'currency'
  *   },
  * });
  */
@@ -718,9 +844,9 @@ export type CreateClientMutationHookResult = ReturnType<typeof useCreateClientMu
 export type CreateClientMutationResult = Apollo.MutationResult<CreateClientMutation>;
 export type CreateClientMutationOptions = Apollo.BaseMutationOptions<CreateClientMutation, CreateClientMutationVariables>;
 export const UpdateClientDocument = gql`
-    mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+    mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String, $currency: Currency!) {
   updateClient(
-    input: {clientId: $clientId, name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, zipCode: $zipCode, city: $city}
+    input: {clientId: $clientId, name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, currency: $currency, zipCode: $zipCode, city: $city}
   ) {
     id
     name
@@ -752,6 +878,7 @@ export type UpdateClientMutationFn = Apollo.MutationFunction<UpdateClientMutatio
  *      streetWithNumber: // value for 'streetWithNumber'
  *      zipCode: // value for 'zipCode'
  *      city: // value for 'city'
+ *      currency: // value for 'currency'
  *   },
  * });
  */
@@ -1181,6 +1308,7 @@ export const GetAllClientsDocument = gql`
     id
     name
     taxId
+    currency
     streetWithNumber
     zipCode
     city

@@ -3,6 +3,7 @@ query GetAllClients {
             id,
             name,
             taxId,
+            currency,
             streetWithNumber,
             zipCode,
             city
