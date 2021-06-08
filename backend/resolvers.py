@@ -1,3 +1,4 @@
+import re
 from flask_login import current_user
 from ariadne import EnumType, QueryType, MutationType, convert_kwargs_to_snake_case, ObjectType
 from graphql import default_field_resolver
@@ -7,7 +8,7 @@ from database import Client, Currency, Project, Task, Team, TimeLog, TeamMember,
 from datetime import datetime, date, timedelta
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
-from error import NotFound, ValidationError
+from error import NotFound, ValidationError, ActiveRequestError, WrongTimespanError
 from auth import roles_required, roles_check
 
 query = QueryType()
@@ -521,20 +522,22 @@ def resolve_user_teams(obj, info, user_id):
 @mutation.field("createHolidayRequest")
 @convert_kwargs_to_snake_case
 def resolve_create_holiday_request(obj, info, input):
+    user_id = input.get('user_id')
+    if(user_id != current_user.id):
+        roles_check('manager')
     start_date = input.get('start_date')
     end_date = input.get('end_date')
     if(end_date < start_date):
         raise WrongTimespanError(start_date, end_date)
-    if(HolidayRequest.query.join(HolidayRequestStatus).filter(
+    if(HolidayRequest.query.filter(
         (HolidayRequest.start_date.between(start_date, end_date) | HolidayRequest.end_date.between(start_date, end_date)),
-        HolidayRequestStatus.name.notin_(("cancelled", "rejected"))
+        HolidayRequest.status_id.in_((HolidayRequestStatus.PENDING, HolidayRequestStatus.ACCEPTED))
         ).count()):
             raise ActiveRequestError(start_date, end_date)
-    status = HolidayRequestStatus.query.filter(HolidayRequestStatus.name == "pending").one()
     holiday_request = HolidayRequest(
-        user_id=input.get('user_id'),
+        user_id=user_id,
         type_id=input.get('type_id'),
-        status_id=status.id,
+        status_id=HolidayRequestStatus.PENDING,
         start_date=input.get('start_date'),
         end_date=input.get('end_date'),
         created_at=datetime.now()
@@ -547,13 +550,18 @@ def resolve_create_holiday_request(obj, info, input):
 @mutation.field("changeHolidayRequestStatus")
 @mutate_item(HolidayRequest, 'request_id')
 def resolve_change_holiday_request_status(holiday_request, input):
-    holiday_request.status_id = input.get('status_id')
+    status_id = input.get('status_id')
+    if(holiday_request.user_id != current_user.id or status_id != HolidayRequestStatus.CANCELLED):
+        roles_check('manager')
+    holiday_request.status_id = status_id
     return holiday_request
 
 
 @query.field("userHolidayRequests")
 @convert_kwargs_to_snake_case
 def resolve_user_holiday_requests(obj, info, user_id, only_pending):
+    if(user_id != current_user.id):
+        roles_check('manager')
     if(only_pending):
         result = HolidayRequest.query.join(HolidayRequestStatus).filter(HolidayRequest.user_id == user_id, HolidayRequestStatus.name == "pending").all()
     else:
@@ -576,8 +584,10 @@ def resolve_holiday_request_statuses(obj, info):
 @query.field("holidayRequests")
 @convert_kwargs_to_snake_case
 def resolve_holiday_requests(obj, info, request_statuses, start_date = date.min, end_date = date.max):
+    if({int(x) for x in request_statuses} != {HolidayRequestStatus.ACCEPTED}):
+        roles_check('manager')
     if(end_date < start_date):
         raise WrongTimespanError(start_date, end_date)
-    result = HolidayRequest.query.join(HolidayRequestStatus)\
-        .filter(HolidayRequestStatus.id.in_(request_statuses), HolidayRequest.end_date >= start_date, HolidayRequest.start_date <= end_date).all()
+    result = (HolidayRequest.query
+        .filter(HolidayRequest.status_id.in_(request_statuses), HolidayRequest.end_date >= start_date, HolidayRequest.start_date <= end_date).all())
     return result

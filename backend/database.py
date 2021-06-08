@@ -84,9 +84,15 @@ class OAuth(OAuthConsumerMixin, db.Model):
 class HolidayRequestType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
+    short_code = db.Column(db.String, nullable=False)
 
 
 class HolidayRequestStatus(db.Model):
+    PENDING = 1
+    ACCEPTED = 2
+    REJECTED = 3
+    CANCELLED = 4
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
 

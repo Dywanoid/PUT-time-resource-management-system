@@ -28,6 +28,7 @@ def upgrade():
     holiday_request_type = op.create_table('holiday_request_type',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
+    sa.Column('short_code', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('holiday_request',
@@ -46,17 +47,22 @@ def upgrade():
 
 
     op.bulk_insert(holiday_request_status, [
-        {'name': 'pending'},
-        {'name': 'accepted'},
-        {'name': 'cancelled'},
-        {'name': 'rejected'}
+        {'id': 1, 'name': 'Pending'},
+        {'id': 2, 'name': 'Accepted'},
+        {'id': 3, 'name': 'Rejected'},
+        {'id': 4, 'name': 'Cancelled'}
+        
     ])
 
     op.bulk_insert(holiday_request_type, [
-        {'name': 'holiday'},
-        {'name': 'child care'},
-        {'name': 'compassionate leave'}
+        {'name': 'Holiday', 'short_code': "HR"},
+        {'name': 'On demand', 'short_code': "OD"},
+        {'name': 'Unpaid', 'short_code': "UP"},
+        {'name': 'Child care', 'short_code': "CC"},
+        {'name': 'Compassionate leave', 'short_code': "CL"},
+        {'name': 'Sick leave', 'short_code': "L4"},
     ])
+
     # ### end Alembic commands ###
 
 

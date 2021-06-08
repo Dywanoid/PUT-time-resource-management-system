@@ -71,6 +71,7 @@ type TeamMember {
 type HolidayRequestType {
     id: ID!
     name: String!
+    shortCode: String!
 }
 
 type HolidayRequestStatus {
