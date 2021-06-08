@@ -110,6 +110,8 @@ export enum Currency {
   Pln = 'PLN'
 }
 
+
+
 export type DeleteProjectAssignmentInput = {
   projectAssignmentId: Scalars['ID'];
 };
@@ -404,7 +406,7 @@ export type Task = {
   __typename?: 'Task';
   id: Scalars['ID'];
   project: Project;
-  name?: Maybe<Scalars['String']>;
+  name: Scalars['String'];
   createdAt: Scalars['DateTime'];
   archived: Scalars['Boolean'];
 };
@@ -699,6 +701,26 @@ export type DeleteTeamMembersMutation = (
   )>> }
 );
 
+export type TimeLogMutationVariables = Exact<{
+  projectAssignmentId: Scalars['ID'];
+  taskId: Scalars['ID'];
+  date: Scalars['Date'];
+  duration: Scalars['Interval'];
+}>;
+
+
+export type TimeLogMutation = (
+  { __typename?: 'Mutation' }
+  & { createOrUpdateTimeLog: (
+    { __typename?: 'TimeLog' }
+    & Pick<TimeLog, 'date' | 'duration'>
+    & { task: (
+      { __typename?: 'Task' }
+      & Pick<Task, 'id'>
+    ) }
+  ) }
+);
+
 export type GetAllClientsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -767,22 +789,39 @@ export type GetAllUsersInTeamQuery = (
   )>> }
 );
 
-export type GetTaskTreeQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetUserProjectsQueryVariables = Exact<{
+  userId: Scalars['ID'];
+  fromDate?: Maybe<Scalars['Date']>;
+  toDate?: Maybe<Scalars['Date']>;
+}>;
 
 
-export type GetTaskTreeQuery = (
+export type GetUserProjectsQuery = (
   { __typename?: 'Query' }
-  & { clients?: Maybe<Array<(
-    { __typename?: 'Client' }
-    & Pick<Client, 'id' | 'name'>
-    & { projects?: Maybe<Array<(
+  & { projectAssignments?: Maybe<Array<(
+    { __typename?: 'ProjectAssignment' }
+    & Pick<ProjectAssignment, 'id'>
+    & { project: (
       { __typename?: 'Project' }
       & Pick<Project, 'id' | 'name'>
       & { tasks?: Maybe<Array<(
         { __typename?: 'Task' }
         & Pick<Task, 'id' | 'name'>
-      )>> }
-    )>> }
+      )>>, client: (
+        { __typename?: 'Client' }
+        & Pick<Client, 'id' | 'name'>
+      ) }
+    ), timeLogs?: Maybe<Array<(
+      { __typename?: 'TimeLog' }
+      & Pick<TimeLog, 'date' | 'duration'>
+      & { task: (
+        { __typename?: 'Task' }
+        & Pick<Task, 'id'>
+      ) }
+    )>>, timeLogInfo?: Maybe<(
+      { __typename?: 'TimeLogInfo' }
+      & Pick<TimeLogInfo, 'earliestDate' | 'latestDate' | 'totalCount'>
+    )> }
   )>> }
 );
 
@@ -795,6 +834,17 @@ export type GetAllUsersQuery = (
     { __typename?: 'User' }
     & Pick<User, 'id' | 'name'>
   )>> }
+);
+
+export type GetCurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCurrentUserQuery = (
+  { __typename?: 'Query' }
+  & { user: (
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'name'>
+  ) }
 );
 
 
@@ -1302,6 +1352,48 @@ export function useDeleteTeamMembersMutation(baseOptions?: Apollo.MutationHookOp
 export type DeleteTeamMembersMutationHookResult = ReturnType<typeof useDeleteTeamMembersMutation>;
 export type DeleteTeamMembersMutationResult = Apollo.MutationResult<DeleteTeamMembersMutation>;
 export type DeleteTeamMembersMutationOptions = Apollo.BaseMutationOptions<DeleteTeamMembersMutation, DeleteTeamMembersMutationVariables>;
+export const TimeLogDocument = gql`
+    mutation TimeLog($projectAssignmentId: ID!, $taskId: ID!, $date: Date!, $duration: Interval!) {
+  createOrUpdateTimeLog(
+    input: {projectAssignmentId: $projectAssignmentId, taskId: $taskId, date: $date, duration: $duration}
+  ) {
+    task {
+      id
+    }
+    date
+    duration
+  }
+}
+    `;
+export type TimeLogMutationFn = Apollo.MutationFunction<TimeLogMutation, TimeLogMutationVariables>;
+
+/**
+ * __useTimeLogMutation__
+ *
+ * To run a mutation, you first call `useTimeLogMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTimeLogMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [timeLogMutation, { data, loading, error }] = useTimeLogMutation({
+ *   variables: {
+ *      projectAssignmentId: // value for 'projectAssignmentId'
+ *      taskId: // value for 'taskId'
+ *      date: // value for 'date'
+ *      duration: // value for 'duration'
+ *   },
+ * });
+ */
+export function useTimeLogMutation(baseOptions?: Apollo.MutationHookOptions<TimeLogMutation, TimeLogMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<TimeLogMutation, TimeLogMutationVariables>(TimeLogDocument, options);
+      }
+export type TimeLogMutationHookResult = ReturnType<typeof useTimeLogMutation>;
+export type TimeLogMutationResult = Apollo.MutationResult<TimeLogMutation>;
+export type TimeLogMutationOptions = Apollo.BaseMutationOptions<TimeLogMutation, TimeLogMutationVariables>;
 export const GetAllClientsDocument = gql`
     query GetAllClients {
   clients(limit: 100) {
@@ -1492,49 +1584,67 @@ export function useGetAllUsersInTeamLazyQuery(baseOptions?: Apollo.LazyQueryHook
 export type GetAllUsersInTeamQueryHookResult = ReturnType<typeof useGetAllUsersInTeamQuery>;
 export type GetAllUsersInTeamLazyQueryHookResult = ReturnType<typeof useGetAllUsersInTeamLazyQuery>;
 export type GetAllUsersInTeamQueryResult = Apollo.QueryResult<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>;
-export const GetTaskTreeDocument = gql`
-    query GetTaskTree {
-  clients {
+export const GetUserProjectsDocument = gql`
+    query GetUserProjects($userId: ID!, $fromDate: Date, $toDate: Date) {
+  projectAssignments(userId: $userId, fromDate: $fromDate, toDate: $toDate) {
     id
-    name
-    projects {
+    project {
       id
       name
       tasks {
         id
         name
       }
+      client {
+        id
+        name
+      }
+    }
+    timeLogs {
+      task {
+        id
+      }
+      date
+      duration
+    }
+    timeLogInfo {
+      earliestDate
+      latestDate
+      totalCount
     }
   }
 }
     `;
 
 /**
- * __useGetTaskTreeQuery__
+ * __useGetUserProjectsQuery__
  *
- * To run a query within a React component, call `useGetTaskTreeQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetTaskTreeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetUserProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetTaskTreeQuery({
+ * const { data, loading, error } = useGetUserProjectsQuery({
  *   variables: {
+ *      userId: // value for 'userId'
+ *      fromDate: // value for 'fromDate'
+ *      toDate: // value for 'toDate'
  *   },
  * });
  */
-export function useGetTaskTreeQuery(baseOptions?: Apollo.QueryHookOptions<GetTaskTreeQuery, GetTaskTreeQueryVariables>) {
+export function useGetUserProjectsQuery(baseOptions: Apollo.QueryHookOptions<GetUserProjectsQuery, GetUserProjectsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetTaskTreeQuery, GetTaskTreeQueryVariables>(GetTaskTreeDocument, options);
+        return Apollo.useQuery<GetUserProjectsQuery, GetUserProjectsQueryVariables>(GetUserProjectsDocument, options);
       }
-export function useGetTaskTreeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTaskTreeQuery, GetTaskTreeQueryVariables>) {
+export function useGetUserProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserProjectsQuery, GetUserProjectsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetTaskTreeQuery, GetTaskTreeQueryVariables>(GetTaskTreeDocument, options);
+          return Apollo.useLazyQuery<GetUserProjectsQuery, GetUserProjectsQueryVariables>(GetUserProjectsDocument, options);
         }
-export type GetTaskTreeQueryHookResult = ReturnType<typeof useGetTaskTreeQuery>;
-export type GetTaskTreeLazyQueryHookResult = ReturnType<typeof useGetTaskTreeLazyQuery>;
-export type GetTaskTreeQueryResult = Apollo.QueryResult<GetTaskTreeQuery, GetTaskTreeQueryVariables>;
+export type GetUserProjectsQueryHookResult = ReturnType<typeof useGetUserProjectsQuery>;
+export type GetUserProjectsLazyQueryHookResult = ReturnType<typeof useGetUserProjectsLazyQuery>;
+export type GetUserProjectsQueryResult = Apollo.QueryResult<GetUserProjectsQuery, GetUserProjectsQueryVariables>;
 export const GetAllUsersDocument = gql`
     query GetAllUsers {
   users {
@@ -1570,6 +1680,41 @@ export function useGetAllUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetAllUsersQueryHookResult = ReturnType<typeof useGetAllUsersQuery>;
 export type GetAllUsersLazyQueryHookResult = ReturnType<typeof useGetAllUsersLazyQuery>;
 export type GetAllUsersQueryResult = Apollo.QueryResult<GetAllUsersQuery, GetAllUsersQueryVariables>;
+export const GetCurrentUserDocument = gql`
+    query getCurrentUser {
+  user {
+    id
+    name
+  }
+}
+    `;
+
+/**
+ * __useGetCurrentUserQuery__
+ *
+ * To run a query within a React component, call `useGetCurrentUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCurrentUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCurrentUserQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCurrentUserQuery(baseOptions?: Apollo.QueryHookOptions<GetCurrentUserQuery, GetCurrentUserQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCurrentUserQuery, GetCurrentUserQueryVariables>(GetCurrentUserDocument, options);
+      }
+export function useGetCurrentUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCurrentUserQuery, GetCurrentUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCurrentUserQuery, GetCurrentUserQueryVariables>(GetCurrentUserDocument, options);
+        }
+export type GetCurrentUserQueryHookResult = ReturnType<typeof useGetCurrentUserQuery>;
+export type GetCurrentUserLazyQueryHookResult = ReturnType<typeof useGetCurrentUserLazyQuery>;
+export type GetCurrentUserQueryResult = Apollo.QueryResult<GetCurrentUserQuery, GetCurrentUserQueryVariables>;
 export const namedOperations = {
   Query: {
     GetAllClients: 'GetAllClients',
@@ -1577,8 +1722,9 @@ export const namedOperations = {
     GetTasks: 'GetTasks',
     GetAllTeams: 'GetAllTeams',
     GetAllUsersInTeam: 'GetAllUsersInTeam',
-    GetTaskTree: 'GetTaskTree',
-    GetAllUsers: 'GetAllUsers'
+    GetUserProjects: 'GetUserProjects',
+    GetAllUsers: 'GetAllUsers',
+    getCurrentUser: 'getCurrentUser'
   },
   Mutation: {
     CreateClient: 'CreateClient',
@@ -1594,6 +1740,7 @@ export const namedOperations = {
     UpdateTeam: 'UpdateTeam',
     ArchiveTeam: 'ArchiveTeam',
     CreateTeamMembers: 'CreateTeamMembers',
-    DeleteTeamMembers: 'DeleteTeamMembers'
+    DeleteTeamMembers: 'DeleteTeamMembers',
+    TimeLog: 'TimeLog'
   }
 }

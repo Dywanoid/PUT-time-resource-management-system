@@ -1,0 +1,14 @@
+mutation TimeLog($projectAssignmentId: ID!, $taskId: ID!, $date: Date!, $duration: Interval!) {
+    createOrUpdateTimeLog(input: {
+        projectAssignmentId: $projectAssignmentId,
+        taskId: $taskId,
+        date: $date,
+        duration: $duration
+    }) {
+        task {
+            id
+        },
+        date,
+        duration
+    }
+}

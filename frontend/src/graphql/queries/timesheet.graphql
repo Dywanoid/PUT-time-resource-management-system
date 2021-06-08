@@ -1,14 +1,29 @@
-query GetTaskTree {
-  clients {
+query GetUserProjects($userId: ID!, $fromDate: Date, $toDate: Date) {
+  projectAssignments(userId: $userId, fromDate: $fromDate, toDate: $toDate) {
     id,
-    name,
-    projects {
+    project {
       id,
       name,
       tasks {
+        id, 
+        name
+      },
+      client {
         id,
         name
       }
+    },
+    timeLogs {
+      task {
+        id
+      },
+      date,
+      duration
+    },
+    timeLogInfo {
+      earliestDate,
+      latestDate,
+      totalCount
     }
   }
 }

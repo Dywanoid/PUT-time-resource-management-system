@@ -4,3 +4,10 @@ query GetAllUsers {
         name 
     } 
 }
+
+query getCurrentUser {
+    user {
+        id,
+        name
+    }
+}

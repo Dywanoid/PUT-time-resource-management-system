@@ -1,12 +1,18 @@
 import { DatePicker, Table, Typography, Space, notification } from 'antd';
 
-import React, { useEffect, useMemo, useReducer, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useReducer, useState } from 'react';
 import moment, { Moment } from 'moment';
 import 'moment/locale/pl';
 import locale from 'antd/es/date-picker/locale/pl_PL';
 
 import '../css/TimesheetTable.css';
-import { useGetTaskTreeQuery } from '../generated/graphql';
+import {
+  useGetUserProjectsQuery,
+  useTimeLogMutation,
+  namedOperations,
+  TimeLogMutationFn
+} from '../generated/graphql';
+import { UserContext } from '../utils/auth';
 const { Text } = Typography;
 
 const NUMBER_OF_MINUTES_IN_A_DAY = 24 * 60;
@@ -29,7 +35,16 @@ function dates(current) {
 }
 
 const getWeekDates = (givenDate) =>
-  dates(givenDate).map((date) => `${ date.getDate() }/${ date.getMonth()+1 }`);
+  dates(givenDate).map((date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth()+1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return {
+      label: `${ day }/${ month }`,
+      value: `${ year }-${ month }-${ day }`
+    };
+  });
 
 // END OF UTILS
 type Breakpoint = 'sm' | 'md' | 'lg';
@@ -39,6 +54,15 @@ interface TableColumn {
   render?: React.FC;
   title: string;
   responsive?: Breakpoint[]
+}
+
+interface Data {
+  loggedTime: {
+    [date: string]: {
+      [id: string]: number
+    }
+  };
+  transformedData: RowData[]
 }
 
 interface RowData {
@@ -52,7 +76,9 @@ interface RowData {
 interface TimeComponentProps {
   columnKey: string;
   dispatch: React.Dispatch<Action>;
+  sendTimeLog: TimeLogMutationFn;
   rowIndex: number;
+  record: RowData;
   value: string;
   rowsData: RowData[]
 }
@@ -100,6 +126,36 @@ const sumColumn: TableColumn = {
   title: 'Suma'
 };
 
+const getWeekEnds = (week: Moment) => {
+
+  return {
+    end: week.clone().endOf('week'),
+    start: week.clone().startOf('week')
+  };
+};
+
+const customDateFormat = (value) => {
+  const { start, end } = getWeekEnds(value);
+
+  const firstDayOfWeek = start.format('D/M/Y');
+  const lastDayOfWeek = end.format('D/M/Y');
+
+  return `${ firstDayOfWeek } - ${ lastDayOfWeek }`;
+};
+
+const formatDateForBackend = (date: Moment): string => date.format('YYYY-MM-DD');
+
+const getIdsFromKey = (key:string): {[id: string] : string} => {
+  const [clientId, projectId, taskId, projectAssignmentId] = key.split('+');
+
+  return {
+    clientId,
+    projectAssignmentId,
+    projectId,
+    taskId
+  };
+};
+
 const fromMinutesToTime = (givenMinutes: number): string => {
   const hours = `${ Math.floor(givenMinutes/60) }`;
   const minutes = `${ givenMinutes % 60 }`;
@@ -113,17 +169,21 @@ const fromTimeToMinutes = (time) => {
   return parseInt(hours || 0) * 60 + parseInt(minutes || 0);
 };
 
-const attachFakeWeeks = (data, weekDates) =>
-  data.map((d) => {
-    const values = weekDates.reduce((acc, weekDate) => {
-      const rand =  Math.floor(Math.random() * 17) * 15;
+const attachTime = (data, weekDates) =>
+  data.transformedData.map((row) => {
+    const { taskId } = getIdsFromKey(row.key);
 
-      acc[weekDate] = fromMinutesToTime(0);
+    const values = weekDates.reduce((acc, weekDate) => {
+      if(data.loggedTime?.[weekDate.value]?.[taskId]) {
+        acc[weekDate.value] = fromMinutesToTime(data.loggedTime[weekDate.value][taskId]);
+      } else {
+        acc[weekDate.value] = fromMinutesToTime(0);
+      }
 
       return acc;
     }, {});
 
-    return { ...d, ...values };
+    return { ...row, ...values };
   });
 
 const calculateSums = (currentState, timeColumns) => {
@@ -151,10 +211,20 @@ const checkIfTimeFormat = (input: string): boolean => {
   return !!foundInput && input.length === foundInput[0].length;
 };
 
+const checkIfQuarterHourMultiples = (input: number) => input % 15 === 0;
+
 const getColumnsMinuteSum = (rowsData, columnKey, { rowIndex, time } = { rowIndex: -1, time: -1 }) =>
   rowsData.reduce((sum, curr, i) => sum + (i === rowIndex ? time : fromTimeToMinutes(curr[columnKey])), 0);
 
-const TimeComponent = ({ dispatch, rowsData, rowIndex, columnKey, value }: TimeComponentProps): JSX.Element => {
+const TimeComponent = ({
+  columnKey,
+  dispatch,
+  record,
+  rowIndex,
+  rowsData,
+  sendTimeLog,
+  value
+}: TimeComponentProps): JSX.Element => {
   const onChange = (event) => {
     const isPayloadTimeFormat = checkIfTimeFormat(`${ event.target.value }`);
 
@@ -173,9 +243,17 @@ const TimeComponent = ({ dispatch, rowsData, rowIndex, columnKey, value }: TimeC
 
     if(!isPayloadTimeFormat) {return;}
     const time = fromTimeToMinutes(event.target.value);
-
+    const isMultipleOf15 = checkIfQuarterHourMultiples(time);
     const sum = getColumnsMinuteSum(rowsData, columnKey, { rowIndex, time });
     const isTooMuch = sum > NUMBER_OF_MINUTES_IN_A_DAY;
+
+    if(!isMultipleOf15) {
+      notification.warning({
+        description: 'Zły format!',
+        duration: 5,
+        message: 'Wpisuj tylko wielokrotności 15 min!'
+      });
+    }
 
     if(isTooMuch) {
       notification.error({
@@ -184,10 +262,23 @@ const TimeComponent = ({ dispatch, rowsData, rowIndex, columnKey, value }: TimeC
         message: 'Za dużo godzin!'
       });
     }
+    const correctedTime = isTooMuch  || !isMultipleOf15 ? 0 : time;
+
+    const  { taskId, projectAssignmentId } = getIdsFromKey(record.key);
+
+    sendTimeLog({
+      variables: {
+        date: columnKey,
+        duration: correctedTime,
+        projectAssignmentId,
+        taskId: taskId
+      }
+    });
+
     dispatch({
       index: rowIndex,
       key: columnKey,
-      payload: fromMinutesToTime(isTooMuch ? 0 : time),
+      payload: fromMinutesToTime(correctedTime),
       type: 'timeChange'
     });
   };
@@ -209,7 +300,7 @@ const TimeComponent = ({ dispatch, rowsData, rowIndex, columnKey, value }: TimeC
   );
 };
 
-const getRenderAdder = (dispatch, state) => (column: TableColumn) => {
+const getRenderAdder = ({ dispatch, sendTimeLog }, state) => (column: TableColumn) => {
   return {
     ...column,
     render: function TimeInput(value, record, rowIndex) {
@@ -221,73 +312,126 @@ const getRenderAdder = (dispatch, state) => (column: TableColumn) => {
             rowsData={state}
             dispatch={dispatch}
             columnKey={`${ column.dataIndex }`}
+            sendTimeLog={sendTimeLog}
             rowIndex={rowIndex}
             value={value}
+            record={record}
           />
         );
     }
   };
 };
 
-const setTransformedData = (data, dispatch, weekDates) => {
+const useUserTimeLogData = (userId, date, { setData, setError }) => {
+  const { start: fromDate, end: toDate } = getWeekEnds(date);
 
-  const transformedData: RowData[] = [];
-
-  data?.clients?.forEach((client) => {
-    client?.projects?.forEach((project) => {
-      project?.tasks?.forEach((task) => {
-        transformedData.push(
-          {
-            client: client.name,
-            key: `${ client.id }+${ project.id }+${ task.id }`,
-            project: project.name,
-            task: task.name
-          }
-        );
-
-      });
-    });
-  });
-
-  dispatch({ payload: attachFakeWeeks(transformedData, weekDates), type: 'setState' });
-};
-
-export const TimesheetTable: React.FC = () => {
-  const [state, dispatch] = useReducer(reducer, []);
-  const [fetched, setFetched] = useState(false);
-
-  const renderAdder = getRenderAdder(dispatch, state);
-  const { data, loading, error } = useGetTaskTreeQuery({ fetchPolicy: 'no-cache' });
-  const [date, setDate] = useState<Moment>(() => moment());
-  const weekDates = useMemo(() => getWeekDates(date), [date]);
+  const { data, loading, error } = useGetUserProjectsQuery(
+    {
+      variables: {
+        fromDate: formatDateForBackend(fromDate),
+        toDate: formatDateForBackend(toDate),
+        userId
+      }
+    }
+  );
 
   useEffect(
     () => {
-      if(!fetched && !loading && !error) {
-        setTransformedData(data, dispatch, weekDates);
-        setFetched(true);
+      if(error) {
+        setError('There was a problem with API!');
+      }
+
+      if(
+        !loading
+      ) {
+        const emptyResult: Data = { loggedTime: {}, transformedData: [] };
+
+        const result = data?.projectAssignments?.reduce(
+          (acc, assignment) => {
+
+            assignment.timeLogs?.forEach((timeLog) => {
+              if(!acc.loggedTime[timeLog.date]) {
+                acc.loggedTime[timeLog.date] = {};
+              }
+
+              acc.loggedTime[timeLog.date][timeLog.task.id] = timeLog.duration;
+            });
+
+            const { id: clientId, name: clientName } = assignment.project.client;
+            const { id: projectId, name: projectName } = assignment.project;
+
+            assignment.project.tasks?.forEach((task) => {
+              acc.transformedData.push(
+                {
+                  client: clientName,
+                  key: `${ clientId }+${ projectId }+${ task.id }+${ assignment.id }`,
+                  project: projectName,
+                  task: task.name
+                }
+              );
+            });
+
+            return acc;
+          },
+          emptyResult
+        ) || emptyResult;
+
+        setData(result);
       }
     },
     [
       data,
-      date,
-      fetched,
-      loading
+      loading,
+      error
     ]
   );
+};
 
-  if (loading || !fetched) {return <p>Loading...</p>;}
-  if (error) {return <p>Error :(</p>;}
+const useDataTransform = (data, weekDates, date, dispatch) => {
+  useEffect(
+    () => {
+      if(data) {
+        dispatch({ payload: attachTime(data, weekDates), type: 'setState' });
+      }
+    },
+    [
+      data,
+      date
+    ]
+  );
+};
 
-  const timeColumns: TableColumn[] = weekDates.map((weekDate) => {
-
+const getTimeColumns = (weekDates): TableColumn[] =>
+  weekDates.map((weekDate) => {
     return {
       align: 'center',
-      dataIndex: weekDate,
+      dataIndex: weekDate.value,
       responsive: ['sm'],
-      title: weekDate
+      title: weekDate.label
     };
   });
+
+export const TimesheetTable: React.FC = () => {
+  const user = useContext(UserContext);
+  const userId = user?.id as string;
+
+  const [sendTimeLog] = useTimeLogMutation({ refetchQueries: [namedOperations.Query.GetUserProjects] });
+
+  const [state, dispatch] = useReducer(reducer, []);
+  const [data, setData] = useState<Data | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [date, setDate] = useState<Moment>(() => moment());
+
+  const weekDates = useMemo(() => getWeekDates(date), [date]);
+  const timeColumns = useMemo(() => getTimeColumns(weekDates), [date]);
+
+  const renderAdder = getRenderAdder({ dispatch, sendTimeLog }, state);
+
+  useUserTimeLogData(userId, date, { setData, setError });
+  useDataTransform(data, weekDates, date, dispatch);
+
+  if (error) {return <p>{error}</p>;}
+  if (!state.length) {return <p>Loading...</p>;}
 
   const columns = [
     ...dataColumns,
@@ -298,14 +442,7 @@ export const TimesheetTable: React.FC = () => {
   const dataSource = calculateSums(state, timeColumns);
   const onChangeForDataPicker = (d) => {
     setDate(d);
-    setFetched(false);
-  };
-
-  const customFormat = (value) => {
-    const firstDayOfWeek = value.clone().startOf('week').format('D/M/Y');
-    const lastDayOfWeek = value.clone().endOf('week').format('D/M/Y');
-
-    return `${ firstDayOfWeek }  -  ${ lastDayOfWeek }`;
+    dispatch({ payload: [], type: 'setState' });
   };
 
   return (
@@ -316,7 +453,7 @@ export const TimesheetTable: React.FC = () => {
           locale={locale}
           onChange={onChangeForDataPicker}
           picker="week"
-          format={customFormat}
+          format={customDateFormat}
           value={date}
         />
         <Table
