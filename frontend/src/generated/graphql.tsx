@@ -794,7 +794,7 @@ export type GetUserProjectsQuery = (
   { __typename?: 'Query' }
   & { projectAssignments?: Maybe<Array<(
     { __typename?: 'ProjectAssignment' }
-    & Pick<ProjectAssignment, 'id'>
+    & Pick<ProjectAssignment, 'id' | 'beginDate' | 'endDate'>
     & { project: (
       { __typename?: 'Project' }
       & Pick<Project, 'id' | 'name'>
@@ -1582,6 +1582,8 @@ export const GetUserProjectsDocument = gql`
     query GetUserProjects($userId: ID!, $fromDate: Date, $toDate: Date) {
   projectAssignments(userId: $userId, fromDate: $fromDate, toDate: $toDate) {
     id
+    beginDate
+    endDate
     project {
       id
       name

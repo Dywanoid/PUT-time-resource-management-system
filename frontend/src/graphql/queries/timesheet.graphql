@@ -1,6 +1,8 @@
 query GetUserProjects($userId: ID!, $fromDate: Date, $toDate: Date) {
   projectAssignments(userId: $userId, fromDate: $fromDate, toDate: $toDate) {
     id,
+    beginDate,
+    endDate,
     project {
       id,
       name,

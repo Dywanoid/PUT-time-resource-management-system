@@ -57,12 +57,13 @@ interface TableColumn {
   responsive?: Breakpoint[]
 }
 
-interface Data {
+interface FetchedData {
   loggedTime: {
     [date: string]: {
       [id: string]: number
     }
   };
+
   transformedData: RowData[]
 }
 
@@ -71,7 +72,9 @@ interface RowData {
   key: string;
   project: string;
   task: string;
-  [dates: string]: string;
+  beginDate: string;
+  endDate: string;
+  [date: string]: string;
 }
 
 interface TimeComponentProps {
@@ -290,8 +293,11 @@ const TimeComponent = ({
     }
   };
 
+  const isDisabled = !moment(columnKey).isBetween(record.beginDate, record.endDate, 'day', '[]');
+
   return (
     <input
+      disabled={isDisabled}
       className={`timeInput ${ value === '00:00' ? 'notFilled': '' }`}
       value={value}
       onBlur={onBlur}
@@ -345,12 +351,13 @@ const useUserTimeLogData = (userId, date, { setData, setError, setIsLoading }) =
       if(
         !loading
       ) {
-        const emptyResult: Data = { loggedTime: {}, transformedData: [] };
+        const emptyResult: FetchedData = { loggedTime: {}, transformedData: [] };
 
         const result = data?.projectAssignments?.reduce(
           (acc, assignment) => {
+            const { id, beginDate, endDate, timeLogs, project } = assignment;
 
-            assignment.timeLogs?.forEach((timeLog) => {
+            timeLogs?.forEach((timeLog) => {
               if(!acc.loggedTime[timeLog.date]) {
                 acc.loggedTime[timeLog.date] = {};
               }
@@ -358,14 +365,16 @@ const useUserTimeLogData = (userId, date, { setData, setError, setIsLoading }) =
               acc.loggedTime[timeLog.date][timeLog.task.id] = timeLog.duration;
             });
 
-            const { id: clientId, name: clientName } = assignment.project.client;
-            const { id: projectId, name: projectName } = assignment.project;
+            const { id: clientId, name: clientName } = project.client;
+            const { id: projectId, name: projectName } = project;
 
-            assignment.project.tasks?.forEach((task) => {
+            project.tasks?.forEach((task) => {
               acc.transformedData.push(
                 {
+                  beginDate: beginDate || '0001-01-01',
                   client: clientName,
-                  key: `${ clientId }+${ projectId }+${ task.id }+${ assignment.id }`,
+                  endDate: endDate || '9999-12-31',
+                  key: `${ clientId }+${ projectId }+${ task.id }+${ id }`,
                   project: projectName,
                   task: task.name
                 }
@@ -420,7 +429,7 @@ export const TimesheetTable: React.FC = () => {
   const [sendTimeLog] = useTimeLogMutation({ refetchQueries: [namedOperations.Query.GetUserProjects] });
 
   const [state, dispatch] = useReducer(reducer, []);
-  const [data, setData] = useState<Data | null>(null);
+  const [data, setData] = useState<FetchedData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [error, setError] = useState<string | null>(null);
