@@ -231,9 +231,9 @@ def resolve_delete_project_assignment(project_assignment, input):
     return project_assignment
 
 
-@mutation.field("createOrUpdateTimeLog")
+@mutation.field("createUpdateOrDeleteTimeLog")
 @convert_kwargs_to_snake_case
-def resolve_create_or_update_time_log(obj, info, input):
+def resolve_create_update_or_delete_time_log(obj, info, input):
     project_assignment = find_item(ProjectAssignment, input['project_assignment_id'])
     task = find_item(Task, input['task_id'])
     date = input['date']
@@ -246,8 +246,8 @@ def resolve_create_or_update_time_log(obj, info, input):
         errors.append(f"Task {task.id} not assigned to project {project_assignment.project_id}")
     if not (project_assignment.begin_date <= date <= project_assignment.end_date):
         errors.append(f"Date is out of the project assignment range {format_range(project_assignment.date_range())}")
-    if not (timedelta(seconds=1) <= duration <= timedelta(hours=24)):
-        errors.append(f"Duration must be at least 1 second and not more than 24 hours")
+    if not (timedelta(seconds=0) <= duration <= timedelta(hours=24)):
+        errors.append(f"Duration must be not more than 24 hours")
 
     if errors:
         raise ValidationError.errors(errors)
@@ -263,16 +263,8 @@ def resolve_create_or_update_time_log(obj, info, input):
         duration=duration,
         created_at=datetime.now()
     )
-    db.session.add(time_log)
-    db.session.commit()
-    return time_log
-
-
-@mutation.field("deleteTimeLog")
-@convert_kwargs_to_snake_case
-def resolve_delete_time_log(obj, info, input):
-    time_log = find_item(TimeLog, TimeLog.pk(input['project_assignment_id'], input['task_id'], input['date']))
-    db.session.delete(time_log)
+    if duration > timedelta(seconds=0):
+        db.session.add(time_log)
     db.session.commit()
     return time_log
 
