@@ -43,7 +43,7 @@ type Project {
 type Task {
     id: ID!,
     project: Project!
-    name: String,
+    name: String!,
     createdAt: DateTime!
     archived: Boolean!
 }
@@ -236,7 +236,7 @@ input DeleteProjectAssignmentInput {
     projectAssignmentId: ID!
 }
 
-input CreateOrUpdateTimeLogInput {
+input CreateUpdateOrDeleteTimeLogInput {
     projectAssignmentId: ID!
     taskId: ID!
     date: Date!
@@ -273,7 +273,6 @@ type Mutation {
     createProjectAssignment(input: CreateProjectAssignmentInput!): ProjectAssignment!
     updateProjectAssignment(input: UpdateProjectAssignmentInput!): ProjectAssignment!
     deleteProjectAssignment(input: DeleteProjectAssignmentInput!): ProjectAssignment!
-    createOrUpdateTimeLog(input: CreateOrUpdateTimeLogInput!): TimeLog!
-    deleteTimeLog(input: DeleteTimeLogInput!): TimeLog!
+    createUpdateOrDeleteTimeLog(input: CreateUpdateOrDeleteTimeLogInput!): TimeLog!
     # TODO split this file into multiple files
 }
