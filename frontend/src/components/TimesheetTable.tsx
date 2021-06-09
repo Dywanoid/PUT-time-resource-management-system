@@ -1,4 +1,5 @@
-import { DatePicker, Table, Typography, Space, notification } from 'antd';
+import { Button, DatePicker, Table, Typography, Space, notification } from 'antd';
+import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 
 import React, { useContext, useEffect, useMemo, useReducer, useState } from 'react';
 import moment, { Moment } from 'moment';
@@ -322,7 +323,7 @@ const getRenderAdder = ({ dispatch, sendTimeLog }, state) => (column: TableColum
   };
 };
 
-const useUserTimeLogData = (userId, date, { setData, setError }) => {
+const useUserTimeLogData = (userId, date, { setData, setError, setIsLoading }) => {
   const { start: fromDate, end: toDate } = getWeekEnds(date);
 
   const { data, loading, error } = useGetUserProjectsQuery(
@@ -377,6 +378,7 @@ const useUserTimeLogData = (userId, date, { setData, setError }) => {
         ) || emptyResult;
 
         setData(result);
+        setIsLoading(false);
       }
     },
     [
@@ -419,6 +421,8 @@ export const TimesheetTable: React.FC = () => {
 
   const [state, dispatch] = useReducer(reducer, []);
   const [data, setData] = useState<Data | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   const [error, setError] = useState<string | null>(null);
   const [date, setDate] = useState<Moment>(() => moment());
 
@@ -427,11 +431,12 @@ export const TimesheetTable: React.FC = () => {
 
   const renderAdder = getRenderAdder({ dispatch, sendTimeLog }, state);
 
-  useUserTimeLogData(userId, date, { setData, setError });
+  useUserTimeLogData(userId, date, { setData, setError, setIsLoading });
   useDataTransform(data, weekDates, date, dispatch);
 
   if (error) {return <p>{error}</p>;}
-  if (!state.length) {return <p>Loading...</p>;}
+  if (isLoading) {return <p>Loading...</p>;}
+  // if(!state.length) {return <p>Nie ma żadnych przypisanych projektów!</p>;}
 
   const columns = [
     ...dataColumns,
@@ -440,22 +445,50 @@ export const TimesheetTable: React.FC = () => {
   ];
 
   const dataSource = calculateSums(state, timeColumns);
-  const onChangeForDataPicker = (d) => {
-    setDate(d);
-    dispatch({ payload: [], type: 'setState' });
+
+  const onChangeForDataPicker = (newDate): void => {
+    if(newDate) {
+      setDate(newDate);
+      dispatch({ payload: [], type: 'setState' });
+    }
+  };
+
+  const changeWeek = (forwardDirection: boolean): void => {
+    const days = forwardDirection ? 7 : -7;
+
+    const newDate = date.clone().add(days, 'd');
+
+    onChangeForDataPicker(newDate);
   };
 
   return (
     <>
       <Space direction="vertical" size="middle">
         <Text strong>Wybór tygodnia:</Text>
-        <DatePicker
-          locale={locale}
-          onChange={onChangeForDataPicker}
-          picker="week"
-          format={customDateFormat}
-          value={date}
-        />
+        <div>
+          <Button
+            type="ghost"
+            shape="round"
+            icon={<CaretLeftOutlined/>}
+            size='small'
+            onClick={() => changeWeek(false)}
+          />
+          <DatePicker
+            className="timesheet-date-picker"
+            locale={locale}
+            onChange={onChangeForDataPicker}
+            picker="week"
+            format={customDateFormat}
+            value={date}
+          />
+          <Button
+            type="ghost"
+            shape="round"
+            icon={<CaretRightOutlined/>}
+            size='small'
+            onClick={() => changeWeek(true)}
+          />
+        </div>
         <Table
           bordered
           pagination={false}
@@ -481,29 +514,31 @@ export const TimesheetTable: React.FC = () => {
             );
 
             return (
-              <>
-                <Table.Summary.Row className="summaryRow">
-                  <Table.Summary.Cell   colSpan={3} index={0}/>
-                  {
-                    dataIndexes.map(
-                      (dataIndex, i) => (
-                        <Table.Summary.Cell align="center" key={i+dataIndex} index={i+1}>
-                          <Text
-                            type={
-                              NUMBER_OF_MINUTES_IN_A_DAY < summedColumnsRow[dataIndex] && dataIndex !== 'sum'
-                                ? 'danger'
-                                : undefined
-                            }
-                            strong
-                          >
-                            {fromMinutesToTime(summedColumnsRow[dataIndex])}
-                          </Text>
-                        </Table.Summary.Cell>
+              tableData.length
+                ? <>
+                  <Table.Summary.Row className="summaryRow">
+                    <Table.Summary.Cell   colSpan={3} index={0}/>
+                    {
+                      dataIndexes.map(
+                        (dataIndex, i) => (
+                          <Table.Summary.Cell align="center" key={i+dataIndex} index={i+1}>
+                            <Text
+                              type={
+                                NUMBER_OF_MINUTES_IN_A_DAY < summedColumnsRow[dataIndex] && dataIndex !== 'sum'
+                                  ? 'danger'
+                                  : undefined
+                              }
+                              strong
+                            >
+                              {fromMinutesToTime(summedColumnsRow[dataIndex])}
+                            </Text>
+                          </Table.Summary.Cell>
+                        )
                       )
-                    )
-                  }
-                </Table.Summary.Row>
-              </>
+                    }
+                  </Table.Summary.Row>
+                </>
+                : null
             );}}
         />
       </Space>

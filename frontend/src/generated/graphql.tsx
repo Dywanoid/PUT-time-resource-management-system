@@ -74,13 +74,6 @@ export type CreateClientInput = {
   currency: Currency;
 };
 
-export type CreateOrUpdateTimeLogInput = {
-  projectAssignmentId: Scalars['ID'];
-  taskId: Scalars['ID'];
-  date: Scalars['Date'];
-  duration: Scalars['Interval'];
-};
-
 export type CreateProjectAssignmentInput = {
   userId: Scalars['ID'];
   projectId: Scalars['ID'];
@@ -102,6 +95,13 @@ export type CreateTeamMemberBatchInput = {
 export type CreateTeamMemberInput = {
   userId: Scalars['ID'];
   teamId: Scalars['ID'];
+};
+
+export type CreateUpdateOrDeleteTimeLogInput = {
+  projectAssignmentId: Scalars['ID'];
+  taskId: Scalars['ID'];
+  date: Scalars['Date'];
+  duration: Scalars['Interval'];
 };
 
 export enum Currency {
@@ -158,8 +158,7 @@ export type Mutation = {
   createProjectAssignment: ProjectAssignment;
   updateProjectAssignment: ProjectAssignment;
   deleteProjectAssignment: ProjectAssignment;
-  createOrUpdateTimeLog: TimeLog;
-  deleteTimeLog: TimeLog;
+  createUpdateOrDeleteTimeLog: TimeLog;
 };
 
 
@@ -278,13 +277,8 @@ export type MutationDeleteProjectAssignmentArgs = {
 };
 
 
-export type MutationCreateOrUpdateTimeLogArgs = {
-  input: CreateOrUpdateTimeLogInput;
-};
-
-
-export type MutationDeleteTimeLogArgs = {
-  input: DeleteTimeLogInput;
+export type MutationCreateUpdateOrDeleteTimeLogArgs = {
+  input: CreateUpdateOrDeleteTimeLogInput;
 };
 
 export type Project = {
@@ -711,7 +705,7 @@ export type TimeLogMutationVariables = Exact<{
 
 export type TimeLogMutation = (
   { __typename?: 'Mutation' }
-  & { createOrUpdateTimeLog: (
+  & { createUpdateOrDeleteTimeLog: (
     { __typename?: 'TimeLog' }
     & Pick<TimeLog, 'date' | 'duration'>
     & { task: (
@@ -1354,7 +1348,7 @@ export type DeleteTeamMembersMutationResult = Apollo.MutationResult<DeleteTeamMe
 export type DeleteTeamMembersMutationOptions = Apollo.BaseMutationOptions<DeleteTeamMembersMutation, DeleteTeamMembersMutationVariables>;
 export const TimeLogDocument = gql`
     mutation TimeLog($projectAssignmentId: ID!, $taskId: ID!, $date: Date!, $duration: Interval!) {
-  createOrUpdateTimeLog(
+  createUpdateOrDeleteTimeLog(
     input: {projectAssignmentId: $projectAssignmentId, taskId: $taskId, date: $date, duration: $duration}
   ) {
     task {

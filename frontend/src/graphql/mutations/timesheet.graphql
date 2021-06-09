@@ -1,5 +1,5 @@
 mutation TimeLog($projectAssignmentId: ID!, $taskId: ID!, $date: Date!, $duration: Interval!) {
-    createOrUpdateTimeLog(input: {
+    createUpdateOrDeleteTimeLog(input: {
         projectAssignmentId: $projectAssignmentId,
         taskId: $taskId,
         date: $date,
