@@ -10,3 +10,7 @@
 .notFilled {
     color: #c2c2c2;
 }
+
+.timesheet-date-picker .ant-picker-clear {
+    visibility: hidden;
+}

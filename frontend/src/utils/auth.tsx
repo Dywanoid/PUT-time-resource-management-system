@@ -1,65 +1,32 @@
-import React, { createContext, useState } from 'react';
-export interface Auth {
-  signin: (cb: () => void) => void;
-  signout: (cb: () =>void) => void;
-  user: string | null;
+import React, { createContext } from 'react';
+import { useGetCurrentUserQuery } from '../generated/graphql';
+export interface User {
+  id: string | null;
+  name: string | null;
 }
 
 export interface ProvideAuthProps {
   children:  JSX.Element | undefined;
 }
 
-const firstContext: Auth = {
-  signin: () => null,
-  signout: () => null,
-  user: null
-};
-
-const AuthenticationContext = createContext<Auth>(firstContext);
-
-const fakeAuth = {
-  isAuthenticated: false,
-  signin(cb) {
-    fakeAuth.isAuthenticated = true;
-    setTimeout(cb, 100); // fake async
-  },
-  signout(cb) {
-    fakeAuth.isAuthenticated = false;
-    setTimeout(cb, 100);
-  }
-};
+const UserContext = createContext<User | null>(null);
 
 const ProvideAuth = ({ children } : ProvideAuthProps) : JSX.Element => {
-  const auth = useProvideAuth();
+  const { data, error, loading } = useGetCurrentUserQuery();
+
+  if(loading || error) {
+    return (<></>);
+  }
+  const user: User = { id: data?.user.id || null, name: data?.user.name || null };
 
   return (
-    <AuthenticationContext.Provider value={auth}>
+    <UserContext.Provider value={user}>
       {children}
-    </AuthenticationContext.Provider>
+    </UserContext.Provider>
   );
 };
 
-const useProvideAuth = () : Auth => {
-  const [user, setUser] = useState<string | null>('user');
-
-  const  signin = (cb) => fakeAuth.signin(() => {
-    setUser('user');
-    cb();
-  });
-
-  const signout = (cb) => fakeAuth.signout(() => {
-    setUser(null);
-    cb();
-  });
-
-  return {
-    signin,
-    signout,
-    user
-  };
-};
-
 export {
-  AuthenticationContext,
+  UserContext,
   ProvideAuth
 };
