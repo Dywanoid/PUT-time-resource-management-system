@@ -15,6 +15,7 @@ import {
   useGetUserInfoQuery,
   useGetUserApplicationsTypesQuery
 } from '../generated/graphql';
+import moment from 'moment';
 import '../css/ApplicationView.css';
 
 const { Content } = Layout;
@@ -29,6 +30,19 @@ const openNotificationWithIcon = (type, action) => {
   });
 };
 
+const colors = [
+  'red',
+  'orange',
+  'green',
+  'brown',
+  'blue',
+  'purple',
+  'volcano',
+  'gold',
+  'lime',
+  'black'
+];
+
 export const ApplicationsView = (): JSX.Element => {
   const { data: userInfo } = useGetUserInfoQuery();
   const { data: usersData } = useGetAllUsersQuery();
@@ -41,7 +55,6 @@ export const ApplicationsView = (): JSX.Element => {
   const [userId, setUserId] = useState('');
   const [userRole, setUserRole] = useState<string[]>([]);
   const [getUserApplications, { data: applicationData }] = useGetUserApplicationsLazyQuery();
-  // const holidayUserId = userInfo?.me.id || '1';
   const { data: applicationsTypes } = useGetUserApplicationsTypesQuery();
   const [createApplication] = useCreateHolidayRequestMutation({
     onCompleted(){ openNotificationWithIcon('success', 'tworzenia wniosku'); },
@@ -59,26 +72,26 @@ export const ApplicationsView = (): JSX.Element => {
   };
   const changeApplicationRequestStatus = (appId, reqId) => {
     changeApplicationRequest({
-      refetchQueries: [namedOperations.Query.GetUserApplications],
+      refetchQueries: [namedOperations.Query.GetUserApplications, namedOperations.Query.GetUsersApplications],
       variables: { requestId: appId, statusId: reqId }
     });
   };
 
   if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0) {
-    setUserId(userInfo.me.id);
-    setUserRole(userInfo.me.roles as any);
-    getUserApplications({ variables: { holidayUserId: userInfo.me.id } });
+    setUserId(userInfo.user.id);
+    setUserRole(userInfo.user.roles as any);
+    getUserApplications({ variables: { holidayUserId: userInfo.user.id } });
   }
-  console.log(userRole);
+  // console.log(userRole);
 
   // console.log(applicationData?.userHolidayRequests);
 
   const users = usersData?.users || [];
-  const types = applicationsTypes?.HolidayRequestTypes || [];
+  const types = applicationsTypes?.holidayRequestTypes || [];
   const applicationsData = applicationData?.userHolidayRequests || [];
-  const requestStatusesData = requestStatuses?.HolidayRequestStatuses || [];
+  const requestStatusesData = requestStatuses?.holidayRequestStatuses || [];
 
-  console.log(userId);
+  // console.log(userId);
 
   const superVisors = [] as any;
   const requestTypes = [] as any;
@@ -171,12 +184,33 @@ export const ApplicationsView = (): JSX.Element => {
     </Menu>
   );
 
+  // console.log(usersData);
+
+  const handleEventChange = (buttonType, itemId) => {
+    changeApplicationRequestStatus(itemId, buttonType);
+  };
+
+  const getUserName = (id) => {
+    for (const user in users) {
+      if(users[user].id === id) {
+        return users[user].name;
+      }
+    }
+
+    return '';
+  };
+
   return (
     <Layout>
       <Content>
-        <Form labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}
+        <Form labelCol={{ span: 8 }} wrapperCol={{ span: 10 }}
           ref={ formRef } name="control-ref" onFinish={ onFinish }>
-          <Form.Item name="Wybierz przełożonego" label="Wybierz przełożonego" rules={[{ required: true }]}>
+          <Form.Item
+            className="changeSupervisor"
+            name="Wybierz przełożonego"
+            label="Wybierz przełożonego"
+            rules={[{ required: true }]}
+          >
             <Select
               onSelect={ onSupervisorChange }
             >
@@ -191,7 +225,7 @@ export const ApplicationsView = (): JSX.Element => {
               { requestTypes }
             </Select>
           </Form.Item>
-          <Form.Item name="Dates" label="Dates" rules={[{ required: true }]}>
+          <Form.Item name="Data" label="Data" rules={[{ required: true }]}>
             <RangePicker onChange={ onRangePickerChange }/>
           </Form.Item>
           <Form.Item
@@ -213,7 +247,7 @@ export const ApplicationsView = (): JSX.Element => {
             }
           </Form.Item>
           <Form.Item  wrapperCol={{ offset: 8, span: 16 }}>
-            <Button htmlType="button" onClick={onReset}>
+            <Button htmlType="button" onClick={ onReset }>
               Wyczyść
             </Button>
             <Button type="primary" htmlType="submit">
@@ -226,30 +260,56 @@ export const ApplicationsView = (): JSX.Element => {
         header={ <h1>Wnioski</h1> }
         bordered
         className="teamsList"
-        itemLayout="vertical"
+        itemLayout="horizontal"
         dataSource={ [...applicationsData] }
+        pagination={{ pageSize: 10 }}
         renderItem={ (item: any) => {
           return (
             <List.Item
               actions={
-                (userRole.includes('manager'))
+                (userRole.includes('manager') && item.status.name === 'Accepted')
                   ? ([
-                    <Dropdown
-                      key="1"
-                      overlay={ menu }
-                      className="actionButton"
-                      trigger={ ['click'] }
+                    <a key="4"
+                      onClick={() => handleEventChange(requestStatusesData[2].id,item.id)}
                     >
-                      <Button onClick={ () => setApplicationId(item.id) }>Akcja</Button>
-                    </Dropdown>
+                      { requestStatusesData[2].name.substr(0, requestStatusesData[2].name.length - 2) }
+                    </a>
                   ])
-                  : undefined
+                  : ([
+                    <a key="1"
+                      onClick={() => handleEventChange(requestStatusesData[3].id,item.id)}
+                    >
+                      { requestStatusesData[3].name.substr(0, requestStatusesData[3].name.length - 3) }
+                    </a>,
+                    <a key="2"
+                      onClick={() => handleEventChange(requestStatusesData[1].id,item.id)}
+                    >
+                      { requestStatusesData[1].name.substr(0, requestStatusesData[1].name.length - 2) }
+                    </a>
+                  ])
               }
             >
               <List.Item.Meta
-                title={ <div>{ item.type.name }</div> }
-                description={ <div>{ item.status.name }</div> }
-                avatar={ <Avatar size={ 64 } icon={ <UserOutlined/> }/> }
+                title={ <div>
+                  { item.type.name  }
+                  { ' ' }
+                    -
+                  { ' ' }
+                  { getUserName(item.userId) }
+                </div> }
+                description={ <div>
+                  od
+                  { '  ' }
+                  { moment(item.startDate).format('DD-MM') }
+                  { ' ' }
+                  do
+                  { ' ' }
+                  {moment(item.endDate).format('DD-MM-YYYY')}
+                </div> }
+                avatar={ <Avatar style={{ backgroundColor: colors[item.type.id], verticalAlign: 'middle' }}
+                  size={ 64 } gap={ 1 } shape="square">
+                  { item.type.shortCode }
+                </Avatar> }
               />
             </List.Item>
           );

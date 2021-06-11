@@ -267,7 +267,8 @@ export const TeamsView = () : JSX.Element => {
         bordered
         className="teamsList"
         itemLayout="vertical"
-        dataSource={ [...teams] }
+        dataSource={ [...teams.filter((el) => (showArchived ? el : !el.archived) )] }
+        pagination={{ pageSize: 10 }}
         renderItem={ (item: any) => {
           if ((!item.archived || showArchived) && item.name.toLowerCase().startsWith(searchValue)) {
             return (
@@ -361,12 +362,6 @@ export const TeamsView = () : JSX.Element => {
           selectedKeys={ selectedKeys }
           onChange={ onElementChange }
           onSelectChange={ onSelectChange }
-          locale={{
-            itemsUnit: 'użytkownicy',
-            itemUnit: 'użytkownik',
-            notFoundContent: 'lista jest pusta',
-            searchPlaceholder: 'Szukaj tutaj'
-          }}
           render={ (item) => (<List.Item.Meta
             key={ item.key }
             title={ <div>{ item.username }</div> }

@@ -1,117 +1,183 @@
-import React from 'react';
-import { Calendar, Badge, Select } from 'antd';
-import 'antd/dist/antd.css';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Select, Layout, Avatar } from 'antd';
+import { useGetAllUsersQuery, useGetUsersApplicationsLazyQuery } from '../generated/graphql';
+import '../css/CalendarView.css';
+import moment from 'moment';
 
-const getListData = (value) => {
-  let listData;
+const { Content } = Layout;
 
-  switch (value.date()) {
-    case 21:
-      listData = [
-        { content: 'Urlop - Tomek', key: '1', type: 'error'  }
-      ];
-      break;
-    case 4:
-      listData = [
-        { content: 'Opieka - Jan Kowalski', key: '2', type: 'error' }
-      ];
-      break;
-    case 5:
-      listData = [
-        { content: 'Opieka - Jan Kowalski', key: '3', type: 'error' }
-      ];
-      break;
-    case 6:
-      listData = [
-        { content: 'Opieka - Jan Kowalski', key: '4', type: 'error' }
-      ];
-      break;
-    case 7:
-      listData = [
-        { content: 'Opieka - Jan Kowalski', key: '5', type: 'error' }
-      ];
-      break;
-    case 24:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '6', type: 'error' }
-      ];
-      break;
-    case 28:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '7', type: 'error' }
-      ];
-      break;
-    case 25:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '8', type: 'error' }
-      ];
-      break;
-    case 27:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '9', type: 'error' }
-      ];
-      break;
-    case 26:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '10', type: 'error' }
-      ];
-      break;
-    case 10:
-      listData = [
-        { key: '11', pe: 'warning',  tycontent: 'Urlop - Mariusz.' },
-        { key: '12', pe: 'success', tycontent: 'L4 - Piotr Nowak' }
-      ];
-      break;
-    case 11:
-      listData = [
-        { key: '13', pe: 'success', tycontent: 'L4 - Piotr Nowak' }
-      ];
-      break;
-    case 12:
-      listData = [
-        { content: 'L4 - Piotr Nowak.', key: '14', type: 'success' }
-      ];
-      break;
-    case 14:
-      listData = [
-        { content: 'Urlop - Krzysztof', key: '15', type: 'warning' },
-        { content: 'L4 - Jan Kowalski', key: '16', type: 'success' }
-      ];
-      break;
-    case 20:
-      listData = [
-        { content: 'Urlop - Cyryl', key: '17', type: 'warning' },
-        { content: 'L4 - Jan Kowalski', key: '18', type: 'success' }
-      ];
-      break;
-    default:
+const getListData = (value, userApplications, users) => {
+  const listData: Array<{ content: string, type: string, id: string, name: string, userId: string }> = [];
+  const getUserName = (id) => {
+    for (const user in users) {
+      if(users[user].id === id) {
+        return users[user].name;
+      }
+    }
+
+    return '';
+  };
+
+  for (let i = 0; i < userApplications.length; i++) {
+    if (value === moment(userApplications[i].startDate)
+    || value >= moment(userApplications[i].startDate) && value <= moment(userApplications[i].endDate).add(1, 'days')) {
+      listData.push({
+        content: userApplications[i].type.name, id: userApplications[i].id,
+        name: getUserName(userApplications[i].userId)
+        , type: 'black', userId: userApplications[i].userId
+      });
+    }
   }
 
   return listData || [];
 };
 
-const dateCellRender = (value) => {
-  const listData = getListData(value);
+const colors = [
+  'red',
+  'green',
+  'brown',
+  'black',
+  'blue',
+  'purple',
+  'volcano',
+  'gold',
+  'lime'
+];
+
+export const CalendarView = (): JSX.Element => {
+  const [getUsersApplications, { data: applicationData }] = useGetUsersApplicationsLazyQuery();
+  // const [userId, setUserId] = useState('');
+  const { data: usersData } = useGetAllUsersQuery();
+  const [startDate, setStartDate] = useState(undefined);
+  const [endDate, setEndDate] = useState(undefined);
+  const [calendarEvents, setCalendarEvents] = useState();
+
+  let userApplications = applicationData?.holidayRequests || [];
+  const users = usersData?.users || [];
+
+  // let i = 0;
+  // getUsersApplications({ variables: { end: '09.05.2021', requestStatusIds: ['1'], start: '01.05.2021'  } });
+  // if (i === 0) {
+  //   console.log('lol');
+  //   i =
+  //   getUsersApplications({ variables: { end: '09.07.2021', requestStatusIds: ['1'], start: '01.05.2021'  } });
+  // }
+  // console.log(applicationData?.holidayRequests);
+
+  // if (userId === '') {
+  //   setUserId('s');
+  //   getUsersApplications({ variables: { end: '09.05.2021', requestStatusIds: ['1'], start: '01.05.2021'  } });
+  // }
+
+  console.log(userApplications);
+  // console.log(startDate);
+  // console.log(moment());
+
+  useEffect(() => {
+    setStartDate(moment().clone().startOf('month') as any);
+    setEndDate(moment().clone().endOf('month') as any);
+    async function fetchMyAPI() {
+      const response = await getUsersApplications(
+        {
+          variables:
+          {
+            end: moment().clone().endOf('month')
+            , requestStatusIds: ['2'], start: moment().clone().startOf('month')
+          }
+        }
+      );
+
+      userApplications = applicationData?.holidayRequests || [];
+    }
+
+    fetchMyAPI();
+  }, []);
+
+  // if (startDate === undefined) {
+  //   setStartDate(moment().clone().startOf('month') as any);
+  //   setEndDate(moment().clone().endOf('month') as any);
+  //   getUsersApplications(
+  //     {
+  //       variables:
+  //       {
+  //         end: moment().clone().endOf('month')
+  //         , requestStatusIds: ['2'], start: moment().clone().startOf('month')
+  //       }
+  //     }
+  //   );
+  // }
+
+  const dateCellRender = (value) => {
+    const listData = getListData(value, userApplications, users);
+
+    return (
+      <ul className="events">
+        {listData.map((item) => (
+          <li key={ item.id }>
+            {/* <Badge color={ colors[item.id] } text={ item.content }/> */}
+            <Avatar style={{ backgroundColor: colors[item.userId], marginTop: '-3px', verticalAlign: 'middle' }}
+              size={ 21 } gap={ 4 } shape="square">
+              { item.name.match(/\b(\w)/g) }
+            </Avatar>
+            { ' ' }
+            { item.content }
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  const changeDateCellRender = (value) => {
+    console.log(value.clone().startOf('month'));
+    setStartDate(value.clone().startOf('month') as any);
+    setEndDate(value.clone().endOf('month') as any);
+    async function fetchMyAPI() {
+      await getUsersApplications(
+        {
+          variables:
+          {
+            end: value.clone().endOf('month')
+            , requestStatusIds: ['2'], start: value.clone().startOf('month')
+          }
+        }
+      );
+
+    }
+
+    fetchMyAPI();
+    const listData = getListData(value, applicationData?.holidayRequests, users);
+
+    return (
+      <ul className="events">
+        {listData.map((item) => (
+          <li key={ item.id }>
+            {/* <Badge color={ colors[item.id] } text={ item.content }/> */}
+            <Avatar style={{ backgroundColor: colors[item.userId], marginTop: '-3px', verticalAlign: 'middle' }}
+              size={ 21 } gap={ 4 } shape="square">
+              { item.name.match(/\b(\w)/g) }
+            </Avatar>
+            { ' ' }
+            { item.content }
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
-    <ul className="events">
-      {listData.map((item) => (
-        <li key={ item.key }>
-          <Badge status={ item.type } text={ item.content }/>
-        </li>
-      ))}
-    </ul>
+    <Layout>
+      <Content>
+        <Select
+          showSearch
+          style={{ float:'right', marginLeft:'1%', marginTop: '0.8%', width: 200 }}
+          placeholder="Wybierz Kategorię"
+          optionFilterProp="children"
+        />
+        <Calendar
+          dateCellRender={ dateCellRender }
+          onChange={ changeDateCellRender }
+        />
+      </Content>
+    </Layout>
   );
 };
-
-export const CalendarView = (): JSX.Element => (
-  <div>
-    <Select
-      showSearch
-      style={{ float:'right', marginLeft:'1%', marginTop: '0.8%', width: 200 }}
-      placeholder="Wybierz Kategorię"
-      optionFilterProp="children"
-    />
-    <Calendar dateCellRender={ dateCellRender }/>
-  </div>
-);
