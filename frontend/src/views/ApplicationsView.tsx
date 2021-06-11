@@ -1,10 +1,9 @@
 import React, { useRef, useState } from 'react';
 import {
-  Layout, Form, Input, Button, Menu, Dropdown,
+  Layout, Form, Input, Button,
   List, Select, FormInstance, DatePicker, notification,
   Avatar
 } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
 import {
   useChangeHolidayRequestStatusMutation,
   useGetHolidayRequestStatusesQuery,
@@ -30,18 +29,16 @@ const openNotificationWithIcon = (type, action) => {
   });
 };
 
-const colors = [
-  'red',
-  'orange',
-  'green',
-  'brown',
-  'blue',
-  'purple',
-  'volcano',
-  'gold',
-  'lime',
-  'black'
-];
+const colorHash = (str: string) => {
+  let hash = 0;
+
+  for(let i=0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 3) - hash);
+  }
+  const color = Math.abs(hash).toString(16).substring(0, 6);
+
+  return '#' + '000000'.substring(0, 6 - color.length) + color;
+};
 
 export const ApplicationsView = (): JSX.Element => {
   const { data: userInfo } = useGetUserInfoQuery();
@@ -49,7 +46,6 @@ export const ApplicationsView = (): JSX.Element => {
   const { data: requestStatuses } = useGetHolidayRequestStatusesQuery();
   const [supervisorId, setSupervisorId] = useState('');
   const [requestType, setRequestType] = useState('');
-  const [applicationId, setApplicationId] = useState('');
   const [startDate, setStartDate] = useState(Date);
   const [endDate, setEndDate] = useState(Date);
   const [userId, setUserId] = useState('');
@@ -72,7 +68,7 @@ export const ApplicationsView = (): JSX.Element => {
   };
   const changeApplicationRequestStatus = (appId, reqId) => {
     changeApplicationRequest({
-      refetchQueries: [namedOperations.Query.GetUserApplications, namedOperations.Query.GetUsersApplications],
+      refetchQueries: [namedOperations.Query.GetUserApplications],
       variables: { requestId: appId, statusId: reqId }
     });
   };
@@ -82,9 +78,6 @@ export const ApplicationsView = (): JSX.Element => {
     setUserRole(userInfo.user.roles as any);
     getUserApplications({ variables: { holidayUserId: userInfo.user.id } });
   }
-  // console.log(userRole);
-
-  // console.log(applicationData?.userHolidayRequests);
 
   const users = usersData?.users || [];
   const types = applicationsTypes?.holidayRequestTypes || [];
@@ -95,7 +88,6 @@ export const ApplicationsView = (): JSX.Element => {
 
   const superVisors = [] as any;
   const requestTypes = [] as any;
-  const requestStatus = [] as any;
 
   for (let i = 0; i < users.length; i++) {
     if (users[i].roles!.includes('manager')) {
@@ -118,17 +110,6 @@ export const ApplicationsView = (): JSX.Element => {
       >
         { types[i].name }
       </Select.Option>
-    );
-  }
-
-  for (let i = 0; i < requestStatusesData.length; i++) {
-    requestStatus.push(
-      <Menu.Item
-        key={ requestStatusesData[i].id }
-        onClick	={ () => changeStatus(requestStatusesData[i].id) }
-      >
-        { requestStatusesData[i].name }
-      </Menu.Item>
     );
   }
 
@@ -161,30 +142,10 @@ export const ApplicationsView = (): JSX.Element => {
     formRef.current?.resetFields();
   };
 
-  const onRangePickerChange = (dates, dateStrings) => {
-    console.log(dates[0].format('DD-MM-YYYY'));
+  const onRangePickerChange = (dates) => {
     setStartDate(dates[0]._d);
     setEndDate(dates[1]._d);
   };
-
-  const onFill = () => {
-    formRef.current?.setFieldsValue({
-      gender: 'male',
-      note: 'Hello world!'
-    });
-  };
-
-  const changeStatus = (requestId) => {
-    changeApplicationRequestStatus(applicationId, requestId);
-  };
-
-  const menu = () => (
-    <Menu>
-      { requestStatus }
-    </Menu>
-  );
-
-  // console.log(usersData);
 
   const handleEventChange = (buttonType, itemId) => {
     changeApplicationRequestStatus(itemId, buttonType);
@@ -269,44 +230,42 @@ export const ApplicationsView = (): JSX.Element => {
               actions={
                 (userRole.includes('manager') && item.status.name === 'Accepted')
                   ? ([
-                    <a key="4"
+                    <a key="1"
                       onClick={() => handleEventChange(requestStatusesData[2].id,item.id)}
                     >
                       { requestStatusesData[2].name.substr(0, requestStatusesData[2].name.length - 2) }
                     </a>
                   ])
-                  : ([
-                    <a key="1"
-                      onClick={() => handleEventChange(requestStatusesData[3].id,item.id)}
-                    >
-                      { requestStatusesData[3].name.substr(0, requestStatusesData[3].name.length - 3) }
-                    </a>,
-                    <a key="2"
-                      onClick={() => handleEventChange(requestStatusesData[1].id,item.id)}
-                    >
-                      { requestStatusesData[1].name.substr(0, requestStatusesData[1].name.length - 2) }
-                    </a>
-                  ])
+                  : ((userRole.includes('manager') && item.status.name === 'Cancelled')
+                    ? ([
+                      <div key="2">Cancelled</div>
+                    ])
+                    : ([
+                      <a key="3"
+                        onClick={() => handleEventChange(requestStatusesData[3].id,item.id)}
+                      >
+                        { requestStatusesData[3].name.substr(0, requestStatusesData[3].name.length - 3) }
+                      </a>,
+                      <a key="4"
+                        onClick={() => handleEventChange(requestStatusesData[1].id,item.id)}
+                      >
+                        { requestStatusesData[1].name.substr(0, requestStatusesData[1].name.length - 2) }
+                      </a>
+                    ]))
               }
             >
               <List.Item.Meta
                 title={ <div>
-                  { item.type.name  }
-                  { ' ' }
-                    -
-                  { ' ' }
+                  { item.type.name + ' - ' }
                   { getUserName(item.userId) }
                 </div> }
                 description={ <div>
                   od
-                  { '  ' }
-                  { moment(item.startDate).format('DD-MM') }
-                  { ' ' }
+                  { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
                   do
-                  { ' ' }
-                  {moment(item.endDate).format('DD-MM-YYYY')}
+                  {' ' + moment(item.endDate).format('DD-MM-YYYY')}
                 </div> }
-                avatar={ <Avatar style={{ backgroundColor: colors[item.type.id], verticalAlign: 'middle' }}
+                avatar={ <Avatar style={{ backgroundColor: colorHash(item.type.name), verticalAlign: 'middle' }}
                   size={ 64 } gap={ 1 } shape="square">
                   { item.type.shortCode }
                 </Avatar> }

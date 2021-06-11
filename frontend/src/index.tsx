@@ -8,7 +8,7 @@ import {
   ClientsView,
   HomeView,
   ProjectAssignmentsView,
-  ResourcesView,
+  SubordinatesView,
   TeamsView,
   ProjectsView,
   TaskView
@@ -35,6 +35,7 @@ ReactDOM.render(
             <PrivateRoute component={ ProjectsView } path='/projects'/>
             <PrivateRoute component={ TaskView } path='/tasks'/>
             <PrivateRoute component={ ProjectAssignmentsView } path='/projectAssignments'/>
+            <PrivateRoute component={ SubordinatesView } path='/subordinate'/>
           </Switch>
         </Router>
       </ProvideAuth>

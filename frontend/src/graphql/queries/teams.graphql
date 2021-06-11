@@ -12,3 +12,21 @@ query GetAllUsersInTeam($teamId: ID!) {
         userId 
     }
 }
+
+query GetUserTeams($userId: ID!) {
+    userTeams(userId: $userId) {
+        userId,
+        teamId,
+        createdAt
+    }
+}
+
+query GetTeamInfo($id: ID!) {
+    team(id: $id) {
+        name,
+        id,
+        description,
+        archived,
+        createdAt
+    }
+}

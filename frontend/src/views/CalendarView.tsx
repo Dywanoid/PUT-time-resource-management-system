@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
 import { Calendar, Select, Layout, Avatar } from 'antd';
-import { useGetAllUsersQuery, useGetUsersApplicationsLazyQuery } from '../generated/graphql';
+import {
+  useGetAllUsersQuery,
+  useGetUserInfoQuery,
+  useGetTeamInfoQuery,
+  useGetUsersApplicationsQuery
+} from '../generated/graphql';
 import '../css/CalendarView.css';
 import moment from 'moment';
 
@@ -32,80 +36,42 @@ const getListData = (value, userApplications, users) => {
   return listData || [];
 };
 
-const colors = [
-  'red',
-  'green',
-  'brown',
-  'black',
-  'blue',
-  'purple',
-  'volcano',
-  'gold',
-  'lime'
-];
+const colorHash = (str: string) => {
+  let hash = 0;
+
+  for(let i=0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 3) - hash);
+  }
+  const color = Math.abs(hash).toString(16).substring(0, 6);
+
+  return '#' + '000000'.substring(0, 6 - color.length) + color;
+};
 
 export const CalendarView = (): JSX.Element => {
-  const [getUsersApplications, { data: applicationData }] = useGetUsersApplicationsLazyQuery();
-  // const [userId, setUserId] = useState('');
-  const { data: usersData } = useGetAllUsersQuery();
-  const [startDate, setStartDate] = useState(undefined);
-  const [endDate, setEndDate] = useState(undefined);
-  const [calendarEvents, setCalendarEvents] = useState();
-
-  let userApplications = applicationData?.holidayRequests || [];
-  const users = usersData?.users || [];
-
-  // let i = 0;
-  // getUsersApplications({ variables: { end: '09.05.2021', requestStatusIds: ['1'], start: '01.05.2021'  } });
-  // if (i === 0) {
-  //   console.log('lol');
-  //   i =
-  //   getUsersApplications({ variables: { end: '09.07.2021', requestStatusIds: ['1'], start: '01.05.2021'  } });
-  // }
-  // console.log(applicationData?.holidayRequests);
-
-  // if (userId === '') {
-  //   setUserId('s');
-  //   getUsersApplications({ variables: { end: '09.05.2021', requestStatusIds: ['1'], start: '01.05.2021'  } });
-  // }
-
-  console.log(userApplications);
-  // console.log(startDate);
-  // console.log(moment());
-
-  useEffect(() => {
-    setStartDate(moment().clone().startOf('month') as any);
-    setEndDate(moment().clone().endOf('month') as any);
-    async function fetchMyAPI() {
-      const response = await getUsersApplications(
-        {
-          variables:
-          {
-            end: moment().clone().endOf('month')
-            , requestStatusIds: ['2'], start: moment().clone().startOf('month')
-          }
-        }
-      );
-
-      userApplications = applicationData?.holidayRequests || [];
+  const { data: applicationData, refetch:refetchApplicationData } = useGetUsersApplicationsQuery(
+    {
+      fetchPolicy: 'no-cache',
+      variables: {
+        end: moment().clone().endOf('month')
+        , requestStatusIds: ['2'], start: moment().clone().startOf('month')
+      }
     }
+  );
+  const { data: userInfo } = useGetUserInfoQuery();
+  const userId = userInfo?.user?.id as any;
+  const { data: usersData } = useGetAllUsersQuery();
+  const { data: userTeamsData } = useGetTeamInfoQuery(
+    {
+      fetchPolicy: 'no-cache',
+      skip: !userId, variables:{ id: userId }
+    }
+  );
+  const userApplications = applicationData?.holidayRequests || [];
+  const users = usersData?.users || [];
+  const userTeamsInfo = userTeamsData?.team || [];
 
-    fetchMyAPI();
-  }, []);
-
-  // if (startDate === undefined) {
-  //   setStartDate(moment().clone().startOf('month') as any);
-  //   setEndDate(moment().clone().endOf('month') as any);
-  //   getUsersApplications(
-  //     {
-  //       variables:
-  //       {
-  //         end: moment().clone().endOf('month')
-  //         , requestStatusIds: ['2'], start: moment().clone().startOf('month')
-  //       }
-  //     }
-  //   );
-  // }
+  console.log(userTeamsInfo);
+  console.log(userApplications);
 
   const dateCellRender = (value) => {
     const listData = getListData(value, userApplications, users);
@@ -114,13 +80,11 @@ export const CalendarView = (): JSX.Element => {
       <ul className="events">
         {listData.map((item) => (
           <li key={ item.id }>
-            {/* <Badge color={ colors[item.id] } text={ item.content }/> */}
-            <Avatar style={{ backgroundColor: colors[item.userId], marginTop: '-3px', verticalAlign: 'middle' }}
+            <Avatar style={{ backgroundColor: colorHash(item.name), marginTop: '-3px', verticalAlign: 'middle' }}
               size={ 21 } gap={ 4 } shape="square">
               { item.name.match(/\b(\w)/g) }
             </Avatar>
-            { ' ' }
-            { item.content }
+            { ' ' + item.content }
           </li>
         ))}
       </ul>
@@ -128,31 +92,18 @@ export const CalendarView = (): JSX.Element => {
   };
 
   const changeDateCellRender = (value) => {
-    console.log(value.clone().startOf('month'));
-    setStartDate(value.clone().startOf('month') as any);
-    setEndDate(value.clone().endOf('month') as any);
-    async function fetchMyAPI() {
-      await getUsersApplications(
-        {
-          variables:
-          {
-            end: value.clone().endOf('month')
-            , requestStatusIds: ['2'], start: value.clone().startOf('month')
-          }
-        }
-      );
+    refetchApplicationData({
+      end:value.clone().endOf('month'),
+      requestStatusIds: ['2'], start: value.clone().startOf('month')
+    });
 
-    }
-
-    fetchMyAPI();
     const listData = getListData(value, applicationData?.holidayRequests, users);
 
     return (
       <ul className="events">
         {listData.map((item) => (
           <li key={ item.id }>
-            {/* <Badge color={ colors[item.id] } text={ item.content }/> */}
-            <Avatar style={{ backgroundColor: colors[item.userId], marginTop: '-3px', verticalAlign: 'middle' }}
+            <Avatar style={{ backgroundColor: colorHash(item.name), marginTop: '-3px', verticalAlign: 'middle' }}
               size={ 21 } gap={ 4 } shape="square">
               { item.name.match(/\b(\w)/g) }
             </Avatar>

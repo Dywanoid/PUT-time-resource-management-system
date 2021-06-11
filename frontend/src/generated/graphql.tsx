@@ -1,4 +1,4 @@
-/* eslint-disable */ 
+/* eslint-disable */
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
@@ -929,6 +929,32 @@ export type GetAllUsersInTeamQuery = (
     { __typename?: 'TeamMember' }
     & Pick<TeamMember, 'userId'>
   )>> }
+);
+
+export type GetUserTeamsQueryVariables = Exact<{
+  userId: Scalars['ID'];
+}>;
+
+
+export type GetUserTeamsQuery = (
+  { __typename?: 'Query' }
+  & { userTeams?: Maybe<Array<(
+    { __typename?: 'TeamMember' }
+    & Pick<TeamMember, 'userId' | 'teamId' | 'createdAt'>
+  )>> }
+);
+
+export type GetTeamInfoQueryVariables = Exact<{
+  id: Scalars['ID'];
+}>;
+
+
+export type GetTeamInfoQuery = (
+  { __typename?: 'Query' }
+  & { team: (
+    { __typename?: 'Team' }
+    & Pick<Team, 'name' | 'id' | 'description' | 'archived' | 'createdAt'>
+  ) }
 );
 
 export type GetTaskTreeQueryVariables = Exact<{ [key: string]: never; }>;
@@ -1918,6 +1944,82 @@ export function useGetAllUsersInTeamLazyQuery(baseOptions?: Apollo.LazyQueryHook
 export type GetAllUsersInTeamQueryHookResult = ReturnType<typeof useGetAllUsersInTeamQuery>;
 export type GetAllUsersInTeamLazyQueryHookResult = ReturnType<typeof useGetAllUsersInTeamLazyQuery>;
 export type GetAllUsersInTeamQueryResult = Apollo.QueryResult<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>;
+export const GetUserTeamsDocument = gql`
+    query GetUserTeams($userId: ID!) {
+  userTeams(userId: $userId) {
+    userId
+    teamId
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetUserTeamsQuery__
+ *
+ * To run a query within a React component, call `useGetUserTeamsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserTeamsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserTeamsQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetUserTeamsQuery(baseOptions: Apollo.QueryHookOptions<GetUserTeamsQuery, GetUserTeamsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserTeamsQuery, GetUserTeamsQueryVariables>(GetUserTeamsDocument, options);
+      }
+export function useGetUserTeamsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserTeamsQuery, GetUserTeamsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserTeamsQuery, GetUserTeamsQueryVariables>(GetUserTeamsDocument, options);
+        }
+export type GetUserTeamsQueryHookResult = ReturnType<typeof useGetUserTeamsQuery>;
+export type GetUserTeamsLazyQueryHookResult = ReturnType<typeof useGetUserTeamsLazyQuery>;
+export type GetUserTeamsQueryResult = Apollo.QueryResult<GetUserTeamsQuery, GetUserTeamsQueryVariables>;
+export const GetTeamInfoDocument = gql`
+    query GetTeamInfo($id: ID!) {
+  team(id: $id) {
+    name
+    id
+    description
+    archived
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetTeamInfoQuery__
+ *
+ * To run a query within a React component, call `useGetTeamInfoQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTeamInfoQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTeamInfoQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetTeamInfoQuery(baseOptions: Apollo.QueryHookOptions<GetTeamInfoQuery, GetTeamInfoQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTeamInfoQuery, GetTeamInfoQueryVariables>(GetTeamInfoDocument, options);
+      }
+export function useGetTeamInfoLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTeamInfoQuery, GetTeamInfoQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTeamInfoQuery, GetTeamInfoQueryVariables>(GetTeamInfoDocument, options);
+        }
+export type GetTeamInfoQueryHookResult = ReturnType<typeof useGetTeamInfoQuery>;
+export type GetTeamInfoLazyQueryHookResult = ReturnType<typeof useGetTeamInfoLazyQuery>;
+export type GetTeamInfoQueryResult = Apollo.QueryResult<GetTeamInfoQuery, GetTeamInfoQueryVariables>;
 export const GetTaskTreeDocument = gql`
     query GetTaskTree {
   clients {
@@ -2045,6 +2147,8 @@ export const namedOperations = {
     GetTasks: 'GetTasks',
     GetAllTeams: 'GetAllTeams',
     GetAllUsersInTeam: 'GetAllUsersInTeam',
+    GetUserTeams: 'GetUserTeams',
+    GetTeamInfo: 'GetTeamInfo',
     GetTaskTree: 'GetTaskTree',
     GetUserInfo: 'GetUserInfo',
     GetAllUsers: 'GetAllUsers'
