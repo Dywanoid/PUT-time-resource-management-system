@@ -109,8 +109,9 @@ class HolidayRequest(db.Model):
     end_date = db.Column(db.DateTime, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
 
-    status = db.relationship("HolidayRequestStatus", lazy='joined', foreign_keys="HolidayRequest.status_id")
-    type = db.relationship("HolidayRequestType", lazy='joined', foreign_keys="HolidayRequest.type_id")
+    status = db.relationship(HolidayRequestStatus, lazy='joined')
+    type = db.relationship(HolidayRequestType, lazy='joined')
+    user = db.relationship(User, lazy='joined')
 
 
 class ProjectAssignment(db.Model):
