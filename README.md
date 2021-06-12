@@ -34,10 +34,11 @@ docker-compose -p pracujta up
 
 ### Open the app
 
-Login either as `jkowalski` or `pnowak`. Password for both users is `password`.
+Login as `jkowalski` with password `password`. 
 
 http://localhost/
 
+Other available user logins are: `aszymanska`, `awisniewska`, `jkowalczyk`, `kwojcik`, `mkaminska`, `mwozniak`, `mzielinska`, `plewandowski`, `pnowak`. Password for all of them is `password`.
 
 ## Keycloak configuration
 

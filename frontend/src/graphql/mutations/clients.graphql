@@ -1,11 +1,11 @@
-mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String, $currency: Currency!) {
     createClient(input: {
             name: $name,
             taxId: $taxId,
             streetWithNumber: $streetWithNumber,
+            currency: $currency,
             zipCode: $zipCode,
-            city: $city,
-            currency: PLN
+            city: $city
         }) {
             id,
             name,
@@ -16,15 +16,15 @@ mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String,
     }
 }
 
-mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String, $currency: Currency!) {
     updateClient(input: {
             clientId: $clientId,
             name: $name,
             taxId: $taxId,
             streetWithNumber: $streetWithNumber,
+            currency: $currency,
             zipCode: $zipCode,
-            city: $city,
-            currency: PLN
+            city: $city
         }) {
             id,
             name,

@@ -9,7 +9,8 @@ import {
   useGetAllClientsQuery,
   useArchiveClientMutation,
   useUpdateClientMutation,
-  Client
+  Client,
+  Currency
 } from '../../generated/graphql';
 import { ClientModal } from './ClientModal';
 
@@ -26,7 +27,9 @@ const IconText = ({ icon: Icon, text }: any) : JSX.Element => (
   </Space>
 );
 
-export const ClientsView = () : JSX.Element => {
+const currencies = Object.values(Currency);
+
+const ClientsView = () : JSX.Element => {
   const [isClientModalVisible, setIsClientModalVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [clientStateForRedirect, setClientStateForRedirect] = useState(null);
@@ -191,6 +194,7 @@ export const ClientsView = () : JSX.Element => {
 
         <ClientModal
           form={ form }
+          initialValues={{ currency: currencies[2] }}
           handleCancel={ handleClientModalCancel }
           isEditMode={ isEditMode }
           isModalVisible={ isClientModalVisible }
@@ -208,3 +212,8 @@ export const ClientsView = () : JSX.Element => {
       </Space>
     </>
   );};
+
+export {
+  ClientsView,
+  currencies
+};

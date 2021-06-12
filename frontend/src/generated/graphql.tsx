@@ -86,13 +86,6 @@ export type CreateHolidayRequestInput = {
   endDate: Scalars['DateTime'];
 };
 
-export type CreateOrUpdateTimeLogInput = {
-  projectAssignmentId: Scalars['ID'];
-  taskId: Scalars['ID'];
-  date: Scalars['Date'];
-  duration: Scalars['Interval'];
-};
-
 export type CreateProjectAssignmentInput = {
   userId: Scalars['ID'];
   projectId: Scalars['ID'];
@@ -114,6 +107,13 @@ export type CreateTeamMemberBatchInput = {
 export type CreateTeamMemberInput = {
   userId: Scalars['ID'];
   teamId: Scalars['ID'];
+};
+
+export type CreateUpdateOrDeleteTimeLogInput = {
+  projectAssignmentId: Scalars['ID'];
+  taskId: Scalars['ID'];
+  date: Scalars['Date'];
+  duration: Scalars['Interval'];
 };
 
 export enum Currency {
@@ -199,8 +199,7 @@ export type Mutation = {
   createProjectAssignment: ProjectAssignment;
   updateProjectAssignment: ProjectAssignment;
   deleteProjectAssignment: ProjectAssignment;
-  createOrUpdateTimeLog: TimeLog;
-  deleteTimeLog: TimeLog;
+  createUpdateOrDeleteTimeLog: TimeLog;
 };
 
 
@@ -329,13 +328,8 @@ export type MutationDeleteProjectAssignmentArgs = {
 };
 
 
-export type MutationCreateOrUpdateTimeLogArgs = {
-  input: CreateOrUpdateTimeLogInput;
-};
-
-
-export type MutationDeleteTimeLogArgs = {
-  input: DeleteTimeLogInput;
+export type MutationCreateUpdateOrDeleteTimeLogArgs = {
+  input: CreateUpdateOrDeleteTimeLogInput;
 };
 
 export type Project = {
@@ -474,7 +468,7 @@ export type Task = {
   __typename?: 'Task';
   id: Scalars['ID'];
   project: Project;
-  name?: Maybe<Scalars['String']>;
+  name: Scalars['String'];
   createdAt: Scalars['DateTime'];
   archived: Scalars['Boolean'];
 };
@@ -608,6 +602,7 @@ export type CreateClientMutationVariables = Exact<{
   streetWithNumber?: Maybe<Scalars['String']>;
   zipCode?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
+  currency: Currency;
 }>;
 
 
@@ -626,6 +621,7 @@ export type UpdateClientMutationVariables = Exact<{
   streetWithNumber?: Maybe<Scalars['String']>;
   zipCode?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
+  currency: Currency;
 }>;
 
 
@@ -802,6 +798,26 @@ export type DeleteTeamMembersMutation = (
   )>> }
 );
 
+export type TimeLogMutationVariables = Exact<{
+  projectAssignmentId: Scalars['ID'];
+  taskId: Scalars['ID'];
+  date: Scalars['Date'];
+  duration: Scalars['Interval'];
+}>;
+
+
+export type TimeLogMutation = (
+  { __typename?: 'Mutation' }
+  & { createUpdateOrDeleteTimeLog: (
+    { __typename?: 'TimeLog' }
+    & Pick<TimeLog, 'date' | 'duration'>
+    & { task: (
+      { __typename?: 'Task' }
+      & Pick<Task, 'id'>
+    ) }
+  ) }
+);
+
 export type GetUserApplicationsQueryVariables = Exact<{
   holidayUserId: Scalars['ID'];
 }>;
@@ -879,7 +895,7 @@ export type GetAllClientsQuery = (
   { __typename?: 'Query' }
   & { clients?: Maybe<Array<(
     { __typename?: 'Client' }
-    & Pick<Client, 'id' | 'name' | 'taxId' | 'streetWithNumber' | 'zipCode' | 'city'>
+    & Pick<Client, 'id' | 'name' | 'taxId' | 'currency' | 'streetWithNumber' | 'zipCode' | 'city'>
   )>> }
 );
 
@@ -980,22 +996,39 @@ export type GetTeamInfoQuery = (
   ) }
 );
 
-export type GetTaskTreeQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetUserProjectsQueryVariables = Exact<{
+  userId: Scalars['ID'];
+  fromDate?: Maybe<Scalars['Date']>;
+  toDate?: Maybe<Scalars['Date']>;
+}>;
 
 
-export type GetTaskTreeQuery = (
+export type GetUserProjectsQuery = (
   { __typename?: 'Query' }
-  & { clients?: Maybe<Array<(
-    { __typename?: 'Client' }
-    & Pick<Client, 'id' | 'name'>
-    & { projects?: Maybe<Array<(
+  & { projectAssignments?: Maybe<Array<(
+    { __typename?: 'ProjectAssignment' }
+    & Pick<ProjectAssignment, 'id' | 'beginDate' | 'endDate'>
+    & { project: (
       { __typename?: 'Project' }
       & Pick<Project, 'id' | 'name'>
       & { tasks?: Maybe<Array<(
         { __typename?: 'Task' }
         & Pick<Task, 'id' | 'name'>
-      )>> }
-    )>> }
+      )>>, client: (
+        { __typename?: 'Client' }
+        & Pick<Client, 'id' | 'name'>
+      ) }
+    ), timeLogs?: Maybe<Array<(
+      { __typename?: 'TimeLog' }
+      & Pick<TimeLog, 'date' | 'duration'>
+      & { task: (
+        { __typename?: 'Task' }
+        & Pick<Task, 'id'>
+      ) }
+    )>>, timeLogInfo?: Maybe<(
+      { __typename?: 'TimeLogInfo' }
+      & Pick<TimeLogInfo, 'earliestDate' | 'latestDate' | 'totalCount'>
+    )> }
   )>> }
 );
 
@@ -1021,6 +1054,17 @@ export type GetAllUsersQuery = (
     { __typename?: 'User' }
     & Pick<User, 'id' | 'name' | 'roles'>
   )>> }
+);
+
+export type GetCurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCurrentUserQuery = (
+  { __typename?: 'Query' }
+  & { user: (
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'name'>
+  ) }
 );
 
 
@@ -1100,9 +1144,9 @@ export type ChangeHolidayRequestStatusMutationHookResult = ReturnType<typeof use
 export type ChangeHolidayRequestStatusMutationResult = Apollo.MutationResult<ChangeHolidayRequestStatusMutation>;
 export type ChangeHolidayRequestStatusMutationOptions = Apollo.BaseMutationOptions<ChangeHolidayRequestStatusMutation, ChangeHolidayRequestStatusMutationVariables>;
 export const CreateClientDocument = gql`
-    mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+    mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String, $currency: Currency!) {
   createClient(
-    input: {name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, zipCode: $zipCode, city: $city, currency: PLN}
+    input: {name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, currency: $currency, zipCode: $zipCode, city: $city}
   ) {
     id
     name
@@ -1133,6 +1177,7 @@ export type CreateClientMutationFn = Apollo.MutationFunction<CreateClientMutatio
  *      streetWithNumber: // value for 'streetWithNumber'
  *      zipCode: // value for 'zipCode'
  *      city: // value for 'city'
+ *      currency: // value for 'currency'
  *   },
  * });
  */
@@ -1144,9 +1189,9 @@ export type CreateClientMutationHookResult = ReturnType<typeof useCreateClientMu
 export type CreateClientMutationResult = Apollo.MutationResult<CreateClientMutation>;
 export type CreateClientMutationOptions = Apollo.BaseMutationOptions<CreateClientMutation, CreateClientMutationVariables>;
 export const UpdateClientDocument = gql`
-    mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String) {
+    mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWithNumber: String, $zipCode: String, $city: String, $currency: Currency!) {
   updateClient(
-    input: {clientId: $clientId, name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, zipCode: $zipCode, city: $city, currency: PLN}
+    input: {clientId: $clientId, name: $name, taxId: $taxId, streetWithNumber: $streetWithNumber, currency: $currency, zipCode: $zipCode, city: $city}
   ) {
     id
     name
@@ -1178,6 +1223,7 @@ export type UpdateClientMutationFn = Apollo.MutationFunction<UpdateClientMutatio
  *      streetWithNumber: // value for 'streetWithNumber'
  *      zipCode: // value for 'zipCode'
  *      city: // value for 'city'
+ *      currency: // value for 'currency'
  *   },
  * });
  */
@@ -1601,6 +1647,48 @@ export function useDeleteTeamMembersMutation(baseOptions?: Apollo.MutationHookOp
 export type DeleteTeamMembersMutationHookResult = ReturnType<typeof useDeleteTeamMembersMutation>;
 export type DeleteTeamMembersMutationResult = Apollo.MutationResult<DeleteTeamMembersMutation>;
 export type DeleteTeamMembersMutationOptions = Apollo.BaseMutationOptions<DeleteTeamMembersMutation, DeleteTeamMembersMutationVariables>;
+export const TimeLogDocument = gql`
+    mutation TimeLog($projectAssignmentId: ID!, $taskId: ID!, $date: Date!, $duration: Interval!) {
+  createUpdateOrDeleteTimeLog(
+    input: {projectAssignmentId: $projectAssignmentId, taskId: $taskId, date: $date, duration: $duration}
+  ) {
+    task {
+      id
+    }
+    date
+    duration
+  }
+}
+    `;
+export type TimeLogMutationFn = Apollo.MutationFunction<TimeLogMutation, TimeLogMutationVariables>;
+
+/**
+ * __useTimeLogMutation__
+ *
+ * To run a mutation, you first call `useTimeLogMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTimeLogMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [timeLogMutation, { data, loading, error }] = useTimeLogMutation({
+ *   variables: {
+ *      projectAssignmentId: // value for 'projectAssignmentId'
+ *      taskId: // value for 'taskId'
+ *      date: // value for 'date'
+ *      duration: // value for 'duration'
+ *   },
+ * });
+ */
+export function useTimeLogMutation(baseOptions?: Apollo.MutationHookOptions<TimeLogMutation, TimeLogMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<TimeLogMutation, TimeLogMutationVariables>(TimeLogDocument, options);
+      }
+export type TimeLogMutationHookResult = ReturnType<typeof useTimeLogMutation>;
+export type TimeLogMutationResult = Apollo.MutationResult<TimeLogMutation>;
+export type TimeLogMutationOptions = Apollo.BaseMutationOptions<TimeLogMutation, TimeLogMutationVariables>;
 export const GetUserApplicationsDocument = gql`
     query GetUserApplications($holidayUserId: ID!) {
   userHolidayRequests(userId: $holidayUserId) {
@@ -1794,6 +1882,7 @@ export const GetAllClientsDocument = gql`
     id
     name
     taxId
+    currency
     streetWithNumber
     zipCode
     city
@@ -2078,49 +2167,69 @@ export function useGetTeamInfoLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetTeamInfoQueryHookResult = ReturnType<typeof useGetTeamInfoQuery>;
 export type GetTeamInfoLazyQueryHookResult = ReturnType<typeof useGetTeamInfoLazyQuery>;
 export type GetTeamInfoQueryResult = Apollo.QueryResult<GetTeamInfoQuery, GetTeamInfoQueryVariables>;
-export const GetTaskTreeDocument = gql`
-    query GetTaskTree {
-  clients {
+export const GetUserProjectsDocument = gql`
+    query GetUserProjects($userId: ID!, $fromDate: Date, $toDate: Date) {
+  projectAssignments(userId: $userId, fromDate: $fromDate, toDate: $toDate) {
     id
-    name
-    projects {
+    beginDate
+    endDate
+    project {
       id
       name
       tasks {
         id
         name
       }
+      client {
+        id
+        name
+      }
+    }
+    timeLogs {
+      task {
+        id
+      }
+      date
+      duration
+    }
+    timeLogInfo {
+      earliestDate
+      latestDate
+      totalCount
     }
   }
 }
     `;
 
 /**
- * __useGetTaskTreeQuery__
+ * __useGetUserProjectsQuery__
  *
- * To run a query within a React component, call `useGetTaskTreeQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetTaskTreeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetUserProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetTaskTreeQuery({
+ * const { data, loading, error } = useGetUserProjectsQuery({
  *   variables: {
+ *      userId: // value for 'userId'
+ *      fromDate: // value for 'fromDate'
+ *      toDate: // value for 'toDate'
  *   },
  * });
  */
-export function useGetTaskTreeQuery(baseOptions?: Apollo.QueryHookOptions<GetTaskTreeQuery, GetTaskTreeQueryVariables>) {
+export function useGetUserProjectsQuery(baseOptions: Apollo.QueryHookOptions<GetUserProjectsQuery, GetUserProjectsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetTaskTreeQuery, GetTaskTreeQueryVariables>(GetTaskTreeDocument, options);
+        return Apollo.useQuery<GetUserProjectsQuery, GetUserProjectsQueryVariables>(GetUserProjectsDocument, options);
       }
-export function useGetTaskTreeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTaskTreeQuery, GetTaskTreeQueryVariables>) {
+export function useGetUserProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserProjectsQuery, GetUserProjectsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetTaskTreeQuery, GetTaskTreeQueryVariables>(GetTaskTreeDocument, options);
+          return Apollo.useLazyQuery<GetUserProjectsQuery, GetUserProjectsQueryVariables>(GetUserProjectsDocument, options);
         }
-export type GetTaskTreeQueryHookResult = ReturnType<typeof useGetTaskTreeQuery>;
-export type GetTaskTreeLazyQueryHookResult = ReturnType<typeof useGetTaskTreeLazyQuery>;
-export type GetTaskTreeQueryResult = Apollo.QueryResult<GetTaskTreeQuery, GetTaskTreeQueryVariables>;
+export type GetUserProjectsQueryHookResult = ReturnType<typeof useGetUserProjectsQuery>;
+export type GetUserProjectsLazyQueryHookResult = ReturnType<typeof useGetUserProjectsLazyQuery>;
+export type GetUserProjectsQueryResult = Apollo.QueryResult<GetUserProjectsQuery, GetUserProjectsQueryVariables>;
 export const GetUserInfoDocument = gql`
     query GetUserInfo($userId: ID) {
   user(id: $userId) {
@@ -2194,6 +2303,41 @@ export function useGetAllUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetAllUsersQueryHookResult = ReturnType<typeof useGetAllUsersQuery>;
 export type GetAllUsersLazyQueryHookResult = ReturnType<typeof useGetAllUsersLazyQuery>;
 export type GetAllUsersQueryResult = Apollo.QueryResult<GetAllUsersQuery, GetAllUsersQueryVariables>;
+export const GetCurrentUserDocument = gql`
+    query getCurrentUser {
+  user {
+    id
+    name
+  }
+}
+    `;
+
+/**
+ * __useGetCurrentUserQuery__
+ *
+ * To run a query within a React component, call `useGetCurrentUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCurrentUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCurrentUserQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCurrentUserQuery(baseOptions?: Apollo.QueryHookOptions<GetCurrentUserQuery, GetCurrentUserQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCurrentUserQuery, GetCurrentUserQueryVariables>(GetCurrentUserDocument, options);
+      }
+export function useGetCurrentUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCurrentUserQuery, GetCurrentUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCurrentUserQuery, GetCurrentUserQueryVariables>(GetCurrentUserDocument, options);
+        }
+export type GetCurrentUserQueryHookResult = ReturnType<typeof useGetCurrentUserQuery>;
+export type GetCurrentUserLazyQueryHookResult = ReturnType<typeof useGetCurrentUserLazyQuery>;
+export type GetCurrentUserQueryResult = Apollo.QueryResult<GetCurrentUserQuery, GetCurrentUserQueryVariables>;
 export const namedOperations = {
   Query: {
     GetUserApplications: 'GetUserApplications',
@@ -2207,9 +2351,10 @@ export const namedOperations = {
     GetAllUsersInTeam: 'GetAllUsersInTeam',
     GetUserTeams: 'GetUserTeams',
     GetTeamInfo: 'GetTeamInfo',
-    GetTaskTree: 'GetTaskTree',
+    GetUserProjects: 'GetUserProjects',
     GetUserInfo: 'GetUserInfo',
-    GetAllUsers: 'GetAllUsers'
+    GetAllUsers: 'GetAllUsers',
+    getCurrentUser: 'getCurrentUser'
   },
   Mutation: {
     createHolidayRequest: 'createHolidayRequest',
@@ -2227,6 +2372,7 @@ export const namedOperations = {
     UpdateTeam: 'UpdateTeam',
     ArchiveTeam: 'ArchiveTeam',
     CreateTeamMembers: 'CreateTeamMembers',
-    DeleteTeamMembers: 'DeleteTeamMembers'
+    DeleteTeamMembers: 'DeleteTeamMembers',
+    TimeLog: 'TimeLog'
   }
 }

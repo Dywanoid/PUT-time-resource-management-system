@@ -5,3 +5,10 @@ query GetAllUsers {
         roles
     } 
 }
+
+query getCurrentUser {
+    user {
+        id,
+        name
+    }
+}

@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { Layout } from 'antd';
-import { AuthenticationContext } from '../utils/auth';
+import { UserContext } from '../utils/auth';
 import { Navigation } from './Navigation';
 import '../css/PrivateRoute.css';
 
@@ -14,10 +14,10 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ component: Component, path, exact }: PrivateRouteProps) => {
-  const auth = useContext(AuthenticationContext);
+  const user = useContext(UserContext);
 
   const renderRoute = ({ location }) =>
-    auth?.user
+    user?.id
       ? (
         <Layout>
           <div className="site-layout-background">
