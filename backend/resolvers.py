@@ -177,6 +177,7 @@ def validate_project_assignment(project_assignment):
         errors.append(f"Date range partially overlaps with existing project assignment with id {existing_project_assignment[0].id} in range {format_range(overlap)}")
     return errors
 
+
 @mutation.field("createProjectAssignment")
 @roles_required('manager')
 @convert_kwargs_to_snake_case
@@ -257,8 +258,6 @@ def resolve_create_update_or_delete_time_log(obj, info, input):
     existing_time_log = TimeLog.query.get(TimeLog.pk(project_assignment.id, task.id, date))
     if existing_time_log:
         db.session.delete(existing_time_log)
-        db.session.commit()
-        return existing_time_log
 
     time_log = TimeLog(
         project_assignment=project_assignment,
@@ -269,7 +268,8 @@ def resolve_create_update_or_delete_time_log(obj, info, input):
     )
     if duration > timedelta(seconds=0):
         db.session.add(time_log)
-        db.session.commit()
+
+    db.session.commit()
     return time_log
 
 
