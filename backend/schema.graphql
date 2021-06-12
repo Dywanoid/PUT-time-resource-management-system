@@ -54,12 +54,14 @@ type Team {
     description: String
     archived: Boolean!
     createdAt: DateTime!
+    members: [User!]
 }
 
 type User {
     id: ID!
     name: String!
     roles: [String!]
+    teams: [Team!]
 }
 
 type TeamMember {
@@ -103,8 +105,8 @@ type Query {
     team(id: ID!): Team!
     users(offset: Int = 0, limit: Int = 10): [User!]
     user(id: ID): User!
-    teamMembers(teamId: ID!): [TeamMember!]
-    userTeams(userId: ID!): [TeamMember!]
+    teamMembers(teamId: ID!): [TeamMember!] @deprecated(reason: "use team(id) { members { ... } }")
+    userTeams(userId: ID!): [TeamMember!] @deprecated(reason: "use user(id) { teams { ... } }")
     projectAssignments(
         userId: ID, 
         projectId: ID, 
