@@ -38,17 +38,19 @@ const colorHash = (str: string) => {
 };
 
 export const CalendarView = (): JSX.Element => {
+  const { data: userInfo } = useGetUserInfoQuery();
+  const userId = userInfo?.user?.id as any;
+  const userRole = userInfo?.user?.roles || ['user'] as any;
   const { data: applicationData, refetch:refetchApplicationData } = useGetUsersApplicationsQuery(
     {
       fetchPolicy: 'no-cache',
       variables: {
         end: moment().clone().endOf('month')
+        , onlyUserTeams: !userRole.includes('manager')
         , requestStatusIds: ['2'], start: moment().clone().startOf('month')
       }
     }
   );
-  const { data: userInfo } = useGetUserInfoQuery();
-  const userId = userInfo?.user?.id as any;
   const { data: userTeamsData } = useGetTeamInfoQuery(
     {
       fetchPolicy: 'no-cache',
@@ -81,7 +83,8 @@ export const CalendarView = (): JSX.Element => {
 
   const changeDateCellRender = (value) => {
     refetchApplicationData({
-      end:value.clone().endOf('month'),
+      end:value.clone().endOf('month')
+      , onlyUserTeams: !userRole.includes('manager'),
       requestStatusIds: ['2'], start: value.clone().startOf('month')
     });
 

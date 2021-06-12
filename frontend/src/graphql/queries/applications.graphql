@@ -13,8 +13,8 @@ query GetUserApplications($holidayUserId: ID!) {
   }
 }
 
-query GetUsersApplications($requestStatusIds: [ID]!, $start: DateTime, $end: DateTime) {
-  holidayRequests(requestStatuses: $requestStatusIds, startDate: $start, endDate: $end) {
+query GetUsersApplications($requestStatusIds: [ID]!, $start: DateTime, $end: DateTime, $onlyUserTeams: Boolean) {
+  holidayRequests(requestStatuses: $requestStatusIds, startDate: $start, endDate: $end, onlyUserTeams: $onlyUserTeams) {
       id,
       userId,
       typeId,

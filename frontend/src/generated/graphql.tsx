@@ -450,6 +450,7 @@ export type QueryUserHolidayRequestsArgs = {
 
 export type QueryHolidayRequestsArgs = {
   requestStatuses: Array<Maybe<Scalars['ID']>>;
+  onlyUserTeams?: Maybe<Scalars['Boolean']>;
   startDate?: Maybe<Scalars['DateTime']>;
   endDate?: Maybe<Scalars['DateTime']>;
 };
@@ -845,6 +846,7 @@ export type GetUsersApplicationsQueryVariables = Exact<{
   requestStatusIds: Array<Maybe<Scalars['ID']>> | Maybe<Scalars['ID']>;
   start?: Maybe<Scalars['DateTime']>;
   end?: Maybe<Scalars['DateTime']>;
+  onlyUserTeams?: Maybe<Scalars['Boolean']>;
 }>;
 
 
@@ -1745,11 +1747,12 @@ export type GetUserApplicationsQueryHookResult = ReturnType<typeof useGetUserApp
 export type GetUserApplicationsLazyQueryHookResult = ReturnType<typeof useGetUserApplicationsLazyQuery>;
 export type GetUserApplicationsQueryResult = Apollo.QueryResult<GetUserApplicationsQuery, GetUserApplicationsQueryVariables>;
 export const GetUsersApplicationsDocument = gql`
-    query GetUsersApplications($requestStatusIds: [ID]!, $start: DateTime, $end: DateTime) {
+    query GetUsersApplications($requestStatusIds: [ID]!, $start: DateTime, $end: DateTime, $onlyUserTeams: Boolean) {
   holidayRequests(
     requestStatuses: $requestStatusIds
     startDate: $start
     endDate: $end
+    onlyUserTeams: $onlyUserTeams
   ) {
     id
     userId
@@ -1791,6 +1794,7 @@ export const GetUsersApplicationsDocument = gql`
  *      requestStatusIds: // value for 'requestStatusIds'
  *      start: // value for 'start'
  *      end: // value for 'end'
+ *      onlyUserTeams: // value for 'onlyUserTeams'
  *   },
  * });
  */
