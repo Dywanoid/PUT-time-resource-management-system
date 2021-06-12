@@ -1,7 +1,7 @@
 """Adding Holiday requests
 
 Revision ID: 437c113eae36
-Revises: 2be0d9d3ad4f
+Revises: 5d2727a0e7d2
 Create Date: 2021-05-22 09:04:46.364056
 
 """
@@ -12,7 +12,7 @@ from datetime import datetime
 
 # revision identifiers, used by Alembic.
 revision = '437c113eae36'
-down_revision = '2be0d9d3ad4f'
+down_revision = '5d2727a0e7d2'
 branch_labels = None
 depends_on = None
 
