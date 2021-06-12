@@ -1,0 +1,25 @@
+mutation AssignUserToProject($userId: ID!, $projectId: ID!, $hourlyRate: Float! = 1) {
+  createProjectAssignment(input: {
+    userId: $userId,
+    projectId: $projectId,
+    hourlyRate: $hourlyRate
+  }) {
+    id,
+    user {
+        id,
+        name
+    }
+  }
+}
+
+mutation DeleteUserFromProject($projectAssignmentId: ID!) {
+  deleteProjectAssignment(input: {
+    projectAssignmentId: $projectAssignmentId
+  }) {
+    id,
+    user {
+        id,
+        name
+    }
+  }
+}

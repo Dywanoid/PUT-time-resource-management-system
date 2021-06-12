@@ -1,0 +1,9 @@
+query GetProjectAssignments($projectId: ID!) {
+  projectAssignments(projectId: $projectId) {
+    id,
+    user {
+        id,
+        name
+    }
+  }
+}

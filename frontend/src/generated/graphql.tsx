@@ -543,6 +543,42 @@ export type ArchiveClientMutation = (
   ) }
 );
 
+export type AssignUserToProjectMutationVariables = Exact<{
+  userId: Scalars['ID'];
+  projectId: Scalars['ID'];
+  hourlyRate?: Scalars['Float'];
+}>;
+
+
+export type AssignUserToProjectMutation = (
+  { __typename?: 'Mutation' }
+  & { createProjectAssignment: (
+    { __typename?: 'ProjectAssignment' }
+    & Pick<ProjectAssignment, 'id'>
+    & { user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name'>
+    ) }
+  ) }
+);
+
+export type DeleteUserFromProjectMutationVariables = Exact<{
+  projectAssignmentId: Scalars['ID'];
+}>;
+
+
+export type DeleteUserFromProjectMutation = (
+  { __typename?: 'Mutation' }
+  & { deleteProjectAssignment: (
+    { __typename?: 'ProjectAssignment' }
+    & Pick<ProjectAssignment, 'id'>
+    & { user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name'>
+    ) }
+  ) }
+);
+
 export type AddProjectMutationVariables = Exact<{
   clientId: Scalars['ID'];
   name: Scalars['String'];
@@ -723,6 +759,23 @@ export type GetAllClientsQuery = (
   & { clients?: Maybe<Array<(
     { __typename?: 'Client' }
     & Pick<Client, 'id' | 'name' | 'taxId' | 'currency' | 'streetWithNumber' | 'zipCode' | 'city'>
+  )>> }
+);
+
+export type GetProjectAssignmentsQueryVariables = Exact<{
+  projectId: Scalars['ID'];
+}>;
+
+
+export type GetProjectAssignmentsQuery = (
+  { __typename?: 'Query' }
+  & { projectAssignments?: Maybe<Array<(
+    { __typename?: 'ProjectAssignment' }
+    & Pick<ProjectAssignment, 'id'>
+    & { user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name'>
+    ) }
   )>> }
 );
 
@@ -966,6 +1019,84 @@ export function useArchiveClientMutation(baseOptions?: Apollo.MutationHookOption
 export type ArchiveClientMutationHookResult = ReturnType<typeof useArchiveClientMutation>;
 export type ArchiveClientMutationResult = Apollo.MutationResult<ArchiveClientMutation>;
 export type ArchiveClientMutationOptions = Apollo.BaseMutationOptions<ArchiveClientMutation, ArchiveClientMutationVariables>;
+export const AssignUserToProjectDocument = gql`
+    mutation AssignUserToProject($userId: ID!, $projectId: ID!, $hourlyRate: Float! = 1) {
+  createProjectAssignment(
+    input: {userId: $userId, projectId: $projectId, hourlyRate: $hourlyRate}
+  ) {
+    id
+    user {
+      id
+      name
+    }
+  }
+}
+    `;
+export type AssignUserToProjectMutationFn = Apollo.MutationFunction<AssignUserToProjectMutation, AssignUserToProjectMutationVariables>;
+
+/**
+ * __useAssignUserToProjectMutation__
+ *
+ * To run a mutation, you first call `useAssignUserToProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAssignUserToProjectMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [assignUserToProjectMutation, { data, loading, error }] = useAssignUserToProjectMutation({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      projectId: // value for 'projectId'
+ *      hourlyRate: // value for 'hourlyRate'
+ *   },
+ * });
+ */
+export function useAssignUserToProjectMutation(baseOptions?: Apollo.MutationHookOptions<AssignUserToProjectMutation, AssignUserToProjectMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AssignUserToProjectMutation, AssignUserToProjectMutationVariables>(AssignUserToProjectDocument, options);
+      }
+export type AssignUserToProjectMutationHookResult = ReturnType<typeof useAssignUserToProjectMutation>;
+export type AssignUserToProjectMutationResult = Apollo.MutationResult<AssignUserToProjectMutation>;
+export type AssignUserToProjectMutationOptions = Apollo.BaseMutationOptions<AssignUserToProjectMutation, AssignUserToProjectMutationVariables>;
+export const DeleteUserFromProjectDocument = gql`
+    mutation DeleteUserFromProject($projectAssignmentId: ID!) {
+  deleteProjectAssignment(input: {projectAssignmentId: $projectAssignmentId}) {
+    id
+    user {
+      id
+      name
+    }
+  }
+}
+    `;
+export type DeleteUserFromProjectMutationFn = Apollo.MutationFunction<DeleteUserFromProjectMutation, DeleteUserFromProjectMutationVariables>;
+
+/**
+ * __useDeleteUserFromProjectMutation__
+ *
+ * To run a mutation, you first call `useDeleteUserFromProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteUserFromProjectMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteUserFromProjectMutation, { data, loading, error }] = useDeleteUserFromProjectMutation({
+ *   variables: {
+ *      projectAssignmentId: // value for 'projectAssignmentId'
+ *   },
+ * });
+ */
+export function useDeleteUserFromProjectMutation(baseOptions?: Apollo.MutationHookOptions<DeleteUserFromProjectMutation, DeleteUserFromProjectMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteUserFromProjectMutation, DeleteUserFromProjectMutationVariables>(DeleteUserFromProjectDocument, options);
+      }
+export type DeleteUserFromProjectMutationHookResult = ReturnType<typeof useDeleteUserFromProjectMutation>;
+export type DeleteUserFromProjectMutationResult = Apollo.MutationResult<DeleteUserFromProjectMutation>;
+export type DeleteUserFromProjectMutationOptions = Apollo.BaseMutationOptions<DeleteUserFromProjectMutation, DeleteUserFromProjectMutationVariables>;
 export const AddProjectDocument = gql`
     mutation AddProject($clientId: ID!, $name: String!) {
   addProject(input: {clientId: $clientId, name: $name}) {
@@ -1428,6 +1559,45 @@ export function useGetAllClientsLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
 export type GetAllClientsQueryHookResult = ReturnType<typeof useGetAllClientsQuery>;
 export type GetAllClientsLazyQueryHookResult = ReturnType<typeof useGetAllClientsLazyQuery>;
 export type GetAllClientsQueryResult = Apollo.QueryResult<GetAllClientsQuery, GetAllClientsQueryVariables>;
+export const GetProjectAssignmentsDocument = gql`
+    query GetProjectAssignments($projectId: ID!) {
+  projectAssignments(projectId: $projectId) {
+    id
+    user {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetProjectAssignmentsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectAssignmentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectAssignmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectAssignmentsQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useGetProjectAssignmentsQuery(baseOptions: Apollo.QueryHookOptions<GetProjectAssignmentsQuery, GetProjectAssignmentsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectAssignmentsQuery, GetProjectAssignmentsQueryVariables>(GetProjectAssignmentsDocument, options);
+      }
+export function useGetProjectAssignmentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectAssignmentsQuery, GetProjectAssignmentsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectAssignmentsQuery, GetProjectAssignmentsQueryVariables>(GetProjectAssignmentsDocument, options);
+        }
+export type GetProjectAssignmentsQueryHookResult = ReturnType<typeof useGetProjectAssignmentsQuery>;
+export type GetProjectAssignmentsLazyQueryHookResult = ReturnType<typeof useGetProjectAssignmentsLazyQuery>;
+export type GetProjectAssignmentsQueryResult = Apollo.QueryResult<GetProjectAssignmentsQuery, GetProjectAssignmentsQueryVariables>;
 export const GetProjectsDocument = gql`
     query GetProjects($clientId: ID!) {
   client(id: $clientId) {
@@ -1677,7 +1847,7 @@ export type GetAllUsersQueryHookResult = ReturnType<typeof useGetAllUsersQuery>;
 export type GetAllUsersLazyQueryHookResult = ReturnType<typeof useGetAllUsersLazyQuery>;
 export type GetAllUsersQueryResult = Apollo.QueryResult<GetAllUsersQuery, GetAllUsersQueryVariables>;
 export const GetCurrentUserDocument = gql`
-    query getCurrentUser {
+    query GetCurrentUser {
   user {
     id
     name
@@ -1714,18 +1884,21 @@ export type GetCurrentUserQueryResult = Apollo.QueryResult<GetCurrentUserQuery, 
 export const namedOperations = {
   Query: {
     GetAllClients: 'GetAllClients',
+    GetProjectAssignments: 'GetProjectAssignments',
     GetProjects: 'GetProjects',
     GetTasks: 'GetTasks',
     GetAllTeams: 'GetAllTeams',
     GetAllUsersInTeam: 'GetAllUsersInTeam',
     GetUserProjects: 'GetUserProjects',
     GetAllUsers: 'GetAllUsers',
-    getCurrentUser: 'getCurrentUser'
+    GetCurrentUser: 'GetCurrentUser'
   },
   Mutation: {
     CreateClient: 'CreateClient',
     UpdateClient: 'UpdateClient',
     ArchiveClient: 'ArchiveClient',
+    AssignUserToProject: 'AssignUserToProject',
+    DeleteUserFromProject: 'DeleteUserFromProject',
     AddProject: 'AddProject',
     UpdateProject: 'UpdateProject',
     ArchiveProject: 'ArchiveProject',

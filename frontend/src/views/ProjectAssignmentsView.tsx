@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Transfer, Table, Breadcrumb } from 'antd';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import '../css/ProjectAssignmentsView.css';
-import { useGetAllUsersQuery } from '../generated/graphql';
+import {
+  useAssignUserToProjectMutation,
+  useDeleteUserFromProjectMutation,
+  useGetAllUsersQuery,
+  useGetProjectAssignmentsQuery
+} from '../generated/graphql';
 interface AssignmentLocation {
   client: {
     id: string,
@@ -96,8 +101,6 @@ for (let i = 0; i < 25; i++) {
   });
 }
 
-const originTargetKeys = mockData.filter((item) => +item.key % 3 > 1).map((item) => item.key);
-
 const leftTableColumns = [
   {
     dataIndex: 'name',
@@ -112,29 +115,70 @@ const rightTableColumns = [
 ];
 
 export const ProjectAssignmentsView = () : JSX.Element => {
-  const [targetKeys, setTargetKeys] = useState(originTargetKeys);
-  const { loading, error, data }  = useGetAllUsersQuery();
   const location = useLocation<AssignmentLocation>();
   const {
     client: { name: clientName },
     project: { id: projectId, name: projectName }
   } = location.state;
 
-  if (loading) { return <p>Loading...</p>; }
-  if (error) { return <p>Error :(</p>; }
+  const [targetKeys, setTargetKeys] = useState<string[]>([]);
+  const [rawAssignmentsMap, setRawAssignmentsMap] = useState<{[id: string]: string}>({});
 
-  console.log(data);
+  const { loading, error, data } = useGetProjectAssignmentsQuery({ variables: { projectId } });
+  const { loading: usersLoading, error: usersError, data: usersData } = useGetAllUsersQuery();
+  const [deleteUserAssignment] = useDeleteUserFromProjectMutation();
+  const [assignUser] = useAssignUserToProjectMutation();
 
-  const onChange = (nextTargetKeys) => {
+  useEffect(
+    () => {
+      if(!loading && !error) {
+        const alreadyMappedUserMap = {};
+        const assignedUsers = data?.projectAssignments?.reduce((acc: string[], assignment) => {
+          const { user } = assignment;
+
+          if(!alreadyMappedUserMap[user.id]) {
+            acc.push(user.id);
+            alreadyMappedUserMap[user.id] = assignment.id;
+          }
+
+          return acc;
+        }, []) || [];
+
+        setRawAssignmentsMap(alreadyMappedUserMap);
+        setTargetKeys(assignedUsers);
+      }
+    },
+    [
+      loading,
+      error,
+      data]
+  );
+
+  if (loading || usersLoading) { return <p>Loading...</p>; }
+  if (error || usersError) { return <p>Error :(</p>; }
+
+  const onChange = (nextTargetKeys: string[]) => {
+    const diff =  difference(nextTargetKeys, targetKeys) as string[];
+
+    if(nextTargetKeys.length > targetKeys.length) {
+      diff.forEach((userId) => {
+        assignUser({ variables: { projectId, userId } });
+      });
+    } else {
+      diff.forEach((userId) => {
+        deleteUserAssignment({ variables: { projectAssignmentId: rawAssignmentsMap[userId] } });
+      });
+    }
+
     setTargetKeys(nextTargetKeys);
   };
 
-  const allData = data?.users?.map((user) => {
+  const allUsers = usersData?.users?.map((user) => {
     return {
       key: user.id,
       name: user.name
     };
-  }) || [];
+  });
 
   return (
     <>
@@ -160,7 +204,7 @@ export const ProjectAssignmentsView = () : JSX.Element => {
       </Breadcrumb>
 
       <TableTransfer
-        dataSource={allData}
+        dataSource={allUsers}
         targetKeys={targetKeys}
         // disabled={disabled}
         // showSearch={showSearch}
