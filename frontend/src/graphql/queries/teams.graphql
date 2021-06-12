@@ -9,7 +9,10 @@ query GetAllTeams {
 
 query GetAllUsersInTeam($teamId: ID!) {
     teamMembers(teamId: $teamId) {
-        userId 
+        userId,
+        user { id, name, roles },
+        team { id, name, description, archived, createdAt },
+        teamId
     }
 }
 
@@ -17,6 +20,8 @@ query GetUserTeams($userId: ID!) {
     userTeams(userId: $userId) {
         userId,
         teamId,
+        user { id, name, roles },
+        team { id, name, description, archived, createdAt },
         createdAt
     }
 }

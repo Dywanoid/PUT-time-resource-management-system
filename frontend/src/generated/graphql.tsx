@@ -492,6 +492,8 @@ export type TeamMember = {
   userId: Scalars['ID'];
   teamId: Scalars['ID'];
   createdAt: Scalars['DateTime'];
+  user: User;
+  team: Team;
 };
 
 export type TimeLog = {
@@ -927,7 +929,14 @@ export type GetAllUsersInTeamQuery = (
   { __typename?: 'Query' }
   & { teamMembers?: Maybe<Array<(
     { __typename?: 'TeamMember' }
-    & Pick<TeamMember, 'userId'>
+    & Pick<TeamMember, 'userId' | 'teamId'>
+    & { user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'roles'>
+    ), team: (
+      { __typename?: 'Team' }
+      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
+    ) }
   )>> }
 );
 
@@ -941,6 +950,13 @@ export type GetUserTeamsQuery = (
   & { userTeams?: Maybe<Array<(
     { __typename?: 'TeamMember' }
     & Pick<TeamMember, 'userId' | 'teamId' | 'createdAt'>
+    & { user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'roles'>
+    ), team: (
+      { __typename?: 'Team' }
+      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
+    ) }
   )>> }
 );
 
@@ -1913,6 +1929,19 @@ export const GetAllUsersInTeamDocument = gql`
     query GetAllUsersInTeam($teamId: ID!) {
   teamMembers(teamId: $teamId) {
     userId
+    user {
+      id
+      name
+      roles
+    }
+    team {
+      id
+      name
+      description
+      archived
+      createdAt
+    }
+    teamId
   }
 }
     `;
@@ -1949,6 +1978,18 @@ export const GetUserTeamsDocument = gql`
   userTeams(userId: $userId) {
     userId
     teamId
+    user {
+      id
+      name
+      roles
+    }
+    team {
+      id
+      name
+      description
+      archived
+      createdAt
+    }
     createdAt
   }
 }
