@@ -93,21 +93,22 @@ def resolve_users(obj, info, offset, limit):
 
 @query.field("user")
 def resolve_user(obj, info, id=None):
-    if not id or id == current_user.id:
-        return current_user
-    else:
+    id = id or current_user.id
+    if id != current_user.id:
         roles_check('manager')
-        return find_item(User, id)
+    return find_item(User, id)
 
 
-def find_project_assignments(offset, limit, from_date, to_date, user_id, project_id=None, exclude_project_assignment_id=None):
+def find_project_assignments(offset, limit, from_date, to_date, user_id=None, project_id=None, exclude_project_assignment_id=None):
     filters = [
         ProjectAssignment.end_date >= from_date,
-        ProjectAssignment.begin_date <= to_date,
-        ProjectAssignment.user_id == user_id
-    ]  
+        ProjectAssignment.begin_date <= to_date
+    ]
     if project_id:
         filters.append(ProjectAssignment.project_id == project_id)
+
+    if user_id:
+        filters.append(ProjectAssignment.user_id == user_id)
 
     if exclude_project_assignment_id:
         filters.append(ProjectAssignment.id != exclude_project_assignment_id)
@@ -122,8 +123,7 @@ def find_project_assignments(offset, limit, from_date, to_date, user_id, project
 @query.field("projectAssignments")
 @convert_kwargs_to_snake_case
 def resolve_project_assignments(obj, info, offset, limit, from_date, to_date, user_id=None, project_id=None):
-    user_id = user_id or current_user.id
-    if user_id != current_user.id:
+    if user_id is None or user_id != current_user.id:
         roles_check('manager')
     return find_project_assignments(offset, limit, from_date, to_date, user_id, project_id)
 
