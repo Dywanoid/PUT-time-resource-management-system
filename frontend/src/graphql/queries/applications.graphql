@@ -1,26 +1,42 @@
 query GetUserApplications($holidayUserId: ID!) {
-    userHolidayRequests(userId: $holidayUserId) {
-        id,
-        userId,
-        typeId,
-        statusId,
-        createdAt,
-        status { id, name },
-        startDate,
-        endDate,
-        type { id, name }
-    }
+  userHolidayRequests(userId: $holidayUserId) {
+      id,
+      userId,
+      typeId,
+      statusId,
+      createdAt,
+      status { id, name },
+      startDate,
+      endDate,
+      type { id, name, shortCode }
+  }
 }
 
+query GetUsersApplications($requestStatusIds: [ID]!, $start: DateTime, $end: DateTime) {
+  holidayRequests(requestStatuses: $requestStatusIds, startDate: $start, endDate: $end) {
+      id,
+      userId,
+      typeId,
+      statusId,
+      createdAt,
+      status { id, name },
+      startDate,
+      endDate,
+      type { id, name, shortCode }
+  }
+}
+
+
 query GetUserApplicationsTypes { 
-    HolidayRequestTypes { 
-        id, 
-        name
-    } 
+  holidayRequestTypes { 
+      id, 
+      name,
+      shortCode
+  } 
 }
 
 query GetHolidayRequestStatuses { 
-  HolidayRequestStatuses {
+  holidayRequestStatuses {
     id,
     name
   }

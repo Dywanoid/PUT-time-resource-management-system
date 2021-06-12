@@ -4,7 +4,8 @@ mutation CreateClient($name: String!, $taxId: String, $streetWithNumber: String,
             taxId: $taxId,
             streetWithNumber: $streetWithNumber,
             zipCode: $zipCode,
-            city: $city
+            city: $city,
+            currency: PLN
         }) {
             id,
             name,
@@ -22,7 +23,8 @@ mutation UpdateClient($clientId: ID!, $name: String!, $taxId: String, $streetWit
             taxId: $taxId,
             streetWithNumber: $streetWithNumber,
             zipCode: $zipCode,
-            city: $city
+            city: $city,
+            currency: PLN
         }) {
             id,
             name,

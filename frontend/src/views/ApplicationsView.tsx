@@ -1,10 +1,9 @@
 import React, { useRef, useState } from 'react';
 import {
-  Layout, Form, Input, Button, Menu, Dropdown,
+  Layout, Form, Input, Button,
   List, Select, FormInstance, DatePicker, notification,
   Avatar
 } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
 import {
   useChangeHolidayRequestStatusMutation,
   useGetHolidayRequestStatusesQuery,
@@ -15,6 +14,7 @@ import {
   useGetUserInfoQuery,
   useGetUserApplicationsTypesQuery
 } from '../generated/graphql';
+import moment from 'moment';
 import '../css/ApplicationView.css';
 
 const { Content } = Layout;
@@ -29,19 +29,28 @@ const openNotificationWithIcon = (type, action) => {
   });
 };
 
+const colorHash = (str: string) => {
+  let hash = 0;
+
+  for(let i=0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 3) - hash);
+  }
+  const color = Math.abs(hash).toString(16).substring(0, 6);
+
+  return '#' + '000000'.substring(0, 6 - color.length) + color;
+};
+
 export const ApplicationsView = (): JSX.Element => {
   const { data: userInfo } = useGetUserInfoQuery();
   const { data: usersData } = useGetAllUsersQuery();
   const { data: requestStatuses } = useGetHolidayRequestStatusesQuery();
   const [supervisorId, setSupervisorId] = useState('');
   const [requestType, setRequestType] = useState('');
-  const [applicationId, setApplicationId] = useState('');
   const [startDate, setStartDate] = useState(Date);
   const [endDate, setEndDate] = useState(Date);
   const [userId, setUserId] = useState('');
   const [userRole, setUserRole] = useState<string[]>([]);
   const [getUserApplications, { data: applicationData }] = useGetUserApplicationsLazyQuery();
-  // const holidayUserId = userInfo?.me.id || '1';
   const { data: applicationsTypes } = useGetUserApplicationsTypesQuery();
   const [createApplication] = useCreateHolidayRequestMutation({
     onCompleted(){ openNotificationWithIcon('success', 'tworzenia wniosku'); },
@@ -65,24 +74,20 @@ export const ApplicationsView = (): JSX.Element => {
   };
 
   if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0) {
-    setUserId(userInfo.me.id);
-    setUserRole(userInfo.me.roles as any);
-    getUserApplications({ variables: { holidayUserId: userInfo.me.id } });
+    setUserId(userInfo.user.id);
+    setUserRole(userInfo.user.roles as any);
+    getUserApplications({ variables: { holidayUserId: userInfo.user.id } });
   }
-  console.log(userRole);
-
-  // console.log(applicationData?.userHolidayRequests);
 
   const users = usersData?.users || [];
-  const types = applicationsTypes?.HolidayRequestTypes || [];
+  const types = applicationsTypes?.holidayRequestTypes || [];
   const applicationsData = applicationData?.userHolidayRequests || [];
-  const requestStatusesData = requestStatuses?.HolidayRequestStatuses || [];
+  const requestStatusesData = requestStatuses?.holidayRequestStatuses || [];
 
-  console.log(userId);
+  // console.log(userId);
 
   const superVisors = [] as any;
   const requestTypes = [] as any;
-  const requestStatus = [] as any;
 
   for (let i = 0; i < users.length; i++) {
     if (users[i].roles!.includes('manager')) {
@@ -105,17 +110,6 @@ export const ApplicationsView = (): JSX.Element => {
       >
         { types[i].name }
       </Select.Option>
-    );
-  }
-
-  for (let i = 0; i < requestStatusesData.length; i++) {
-    requestStatus.push(
-      <Menu.Item
-        key={ requestStatusesData[i].id }
-        onClick	={ () => changeStatus(requestStatusesData[i].id) }
-      >
-        { requestStatusesData[i].name }
-      </Menu.Item>
     );
   }
 
@@ -148,35 +142,36 @@ export const ApplicationsView = (): JSX.Element => {
     formRef.current?.resetFields();
   };
 
-  const onRangePickerChange = (dates, dateStrings) => {
-    console.log(dates[0].format('DD-MM-YYYY'));
+  const onRangePickerChange = (dates) => {
     setStartDate(dates[0]._d);
     setEndDate(dates[1]._d);
   };
 
-  const onFill = () => {
-    formRef.current?.setFieldsValue({
-      gender: 'male',
-      note: 'Hello world!'
-    });
+  const handleEventChange = (buttonType, itemId) => {
+    changeApplicationRequestStatus(itemId, buttonType);
   };
 
-  const changeStatus = (requestId) => {
-    changeApplicationRequestStatus(applicationId, requestId);
-  };
+  const getUserName = (id) => {
+    for (const user in users) {
+      if(users[user].id === id) {
+        return users[user].name;
+      }
+    }
 
-  const menu = () => (
-    <Menu>
-      { requestStatus }
-    </Menu>
-  );
+    return '';
+  };
 
   return (
     <Layout>
       <Content>
-        <Form labelCol={{ span: 8 }} wrapperCol={{ span: 16 }}
+        <Form labelCol={{ span: 8 }} wrapperCol={{ span: 10 }}
           ref={ formRef } name="control-ref" onFinish={ onFinish }>
-          <Form.Item name="Wybierz przełożonego" label="Wybierz przełożonego" rules={[{ required: true }]}>
+          <Form.Item
+            className="changeSupervisor"
+            name="Wybierz przełożonego"
+            label="Wybierz przełożonego"
+            rules={[{ required: true }]}
+          >
             <Select
               onSelect={ onSupervisorChange }
             >
@@ -191,7 +186,7 @@ export const ApplicationsView = (): JSX.Element => {
               { requestTypes }
             </Select>
           </Form.Item>
-          <Form.Item name="Dates" label="Dates" rules={[{ required: true }]}>
+          <Form.Item name="Data" label="Data" rules={[{ required: true }]}>
             <RangePicker onChange={ onRangePickerChange }/>
           </Form.Item>
           <Form.Item
@@ -213,7 +208,7 @@ export const ApplicationsView = (): JSX.Element => {
             }
           </Form.Item>
           <Form.Item  wrapperCol={{ offset: 8, span: 16 }}>
-            <Button htmlType="button" onClick={onReset}>
+            <Button htmlType="button" onClick={ onReset }>
               Wyczyść
             </Button>
             <Button type="primary" htmlType="submit">
@@ -226,30 +221,54 @@ export const ApplicationsView = (): JSX.Element => {
         header={ <h1>Wnioski</h1> }
         bordered
         className="teamsList"
-        itemLayout="vertical"
+        itemLayout="horizontal"
         dataSource={ [...applicationsData] }
+        pagination={{ pageSize: 10 }}
         renderItem={ (item: any) => {
           return (
             <List.Item
               actions={
-                (userRole.includes('manager'))
+                (userRole.includes('manager') && item.status.name === 'Accepted')
                   ? ([
-                    <Dropdown
-                      key="1"
-                      overlay={ menu }
-                      className="actionButton"
-                      trigger={ ['click'] }
+                    <a key="1"
+                      onClick={() => handleEventChange(requestStatusesData[2].id,item.id)}
                     >
-                      <Button onClick={ () => setApplicationId(item.id) }>Akcja</Button>
-                    </Dropdown>
+                      { requestStatusesData[2].name.substr(0, requestStatusesData[2].name.length - 2) }
+                    </a>
                   ])
-                  : undefined
+                  : ((userRole.includes('manager') && item.status.name === 'Cancelled')
+                    ? ([
+                      <div key="2">Cancelled</div>
+                    ])
+                    : ([
+                      <a key="3"
+                        onClick={() => handleEventChange(requestStatusesData[3].id,item.id)}
+                      >
+                        { requestStatusesData[3].name.substr(0, requestStatusesData[3].name.length - 3) }
+                      </a>,
+                      <a key="4"
+                        onClick={() => handleEventChange(requestStatusesData[1].id,item.id)}
+                      >
+                        { requestStatusesData[1].name.substr(0, requestStatusesData[1].name.length - 2) }
+                      </a>
+                    ]))
               }
             >
               <List.Item.Meta
-                title={ <div>{ item.type.name }</div> }
-                description={ <div>{ item.status.name }</div> }
-                avatar={ <Avatar size={ 64 } icon={ <UserOutlined/> }/> }
+                title={ <div>
+                  { item.type.name + ' - ' }
+                  { getUserName(item.userId) }
+                </div> }
+                description={ <div>
+                  od
+                  { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
+                  do
+                  {' ' + moment(item.endDate).format('DD-MM-YYYY')}
+                </div> }
+                avatar={ <Avatar style={{ backgroundColor: colorHash(item.type.name), verticalAlign: 'middle' }}
+                  size={ 64 } gap={ 1 } shape="square">
+                  { item.type.shortCode }
+                </Avatar> }
               />
             </List.Item>
           );

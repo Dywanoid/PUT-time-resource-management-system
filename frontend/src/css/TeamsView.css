@@ -26,3 +26,7 @@
 .teamManagementTransfer {
     min-width: 600px !important;
 }
+
+.teamsList {
+    min-height: 1000px !important;
+}
