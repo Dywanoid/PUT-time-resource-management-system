@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Transfer, Switch, Table, Tag, Breadcrumb } from 'antd';
+import { Transfer, Table, Breadcrumb } from 'antd';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
 
@@ -79,7 +79,7 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: any) => (
           rowSelection={rowSelection}
           size="small"
           style={{ pointerEvents: listDisabled ? 'none' : 'auto' }}
-
+          pagination={false}
         />
       );
     }}
@@ -88,12 +88,11 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: any) => (
 
 const mockData: any[] = [];
 
-for (let i = 0; i < 20; i++) {
+for (let i = 0; i < 25; i++) {
   mockData.push({
-    description: `description of content${ i + 1 }`,
-    disabled: i % 4 === 0,
+    // disabled: i % 4 === 0,
     key: i.toString(),
-    title: `content${ i + 1 }`
+    name: `Pracownik ${ i + 1 }`
   });
 }
 
@@ -101,25 +100,19 @@ const originTargetKeys = mockData.filter((item) => +item.key % 3 > 1).map((item)
 
 const leftTableColumns = [
   {
-    dataIndex: 'title',
-    title: 'Name'
-  },
-  {
-    dataIndex: 'description',
-    title: 'Description'
+    dataIndex: 'name',
+    title: 'Imie i nazwisko'
   }
 ];
 const rightTableColumns = [
   {
-    dataIndex: 'title',
-    title: 'Name'
+    dataIndex: 'name',
+    title: 'Imie i nazwisko'
   }
 ];
 
 export const ProjectAssignmentsView = () : JSX.Element => {
   const [targetKeys, setTargetKeys] = useState(originTargetKeys);
-  const [disabled, setDisabled] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
   const { loading, error, data }  = useGetAllUsersQuery();
   const location = useLocation<AssignmentLocation>();
   const {
@@ -136,13 +129,12 @@ export const ProjectAssignmentsView = () : JSX.Element => {
     setTargetKeys(nextTargetKeys);
   };
 
-  const triggerDisable = (nextDisabled) => {
-    setDisabled(nextDisabled);
-  };
-
-  const triggerShowSearch = (nextShowSearch) => {
-    setShowSearch(nextShowSearch);
-  };
+  const allData = data?.users?.map((user) => {
+    return {
+      key: user.id,
+      name: user.name
+    };
+  }) || [];
 
   return (
     <>
@@ -168,32 +160,13 @@ export const ProjectAssignmentsView = () : JSX.Element => {
       </Breadcrumb>
 
       <TableTransfer
-        dataSource={mockData}
+        dataSource={allData}
         targetKeys={targetKeys}
-        disabled={disabled}
-        showSearch={showSearch}
+        // disabled={disabled}
+        // showSearch={showSearch}
         onChange={onChange}
-        filterOption={(inputValue, item) =>
-          item.title.indexOf(inputValue) !== -1 || item.tag.indexOf(inputValue) !== -1
-        }
         leftColumns={leftTableColumns}
         rightColumns={rightTableColumns}
-      />
-
-      <Switch
-        unCheckedChildren="disabled"
-        checkedChildren="disabled"
-        checked={disabled}
-        onChange={triggerDisable}
-        style={{ marginTop: 16 }}
-      />
-
-      <Switch
-        unCheckedChildren="showSearch"
-        checkedChildren="showSearch"
-        checked={showSearch}
-        onChange={triggerShowSearch}
-        style={{ marginTop: 16 }}
       />
     </>
   );

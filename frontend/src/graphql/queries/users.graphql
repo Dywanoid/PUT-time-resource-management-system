@@ -5,7 +5,7 @@ query GetAllUsers {
     } 
 }
 
-query getCurrentUser {
+query GetCurrentUser {
     user {
         id,
         name
