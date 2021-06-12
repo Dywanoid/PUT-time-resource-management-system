@@ -334,6 +334,7 @@ const useUserTimeLogData = (userId, date, { setData, setError, setIsLoading }) =
 
   const { data, loading, error } = useGetUserProjectsQuery(
     {
+      fetchPolicy: 'no-cache',
       variables: {
         fromDate: formatDateForBackend(fromDate),
         toDate: formatDateForBackend(toDate),

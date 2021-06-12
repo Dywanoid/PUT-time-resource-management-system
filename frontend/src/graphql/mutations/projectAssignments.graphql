@@ -8,7 +8,8 @@ mutation AssignUserToProject($userId: ID!, $projectId: ID!, $hourlyRate: Float! 
     user {
         id,
         name
-    }
+    },
+    hourlyRate
   }
 }
 
@@ -21,5 +22,19 @@ mutation DeleteUserFromProject($projectAssignmentId: ID!) {
         id,
         name
     }
+  }
+}
+
+mutation updateProjectAssignment($projectAssignmentId: ID!, $hourlyRate: Float!) {
+  updateProjectAssignment(input: {
+    projectAssignmentId: $projectAssignmentId,
+    hourlyRate: $hourlyRate
+  }) {
+    id,
+    user {
+        id,
+        name
+    },
+    hourlyRate
   }
 }

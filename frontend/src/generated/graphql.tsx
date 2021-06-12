@@ -326,7 +326,9 @@ export type Query = {
   team: Team;
   users?: Maybe<Array<User>>;
   user: User;
+  /** @deprecated use team(id) { members { ... } } */
   teamMembers?: Maybe<Array<TeamMember>>;
+  /** @deprecated use user(id) { teams { ... } } */
   userTeams?: Maybe<Array<TeamMember>>;
   projectAssignments?: Maybe<Array<ProjectAssignment>>;
 };
@@ -412,6 +414,7 @@ export type Team = {
   description?: Maybe<Scalars['String']>;
   archived: Scalars['Boolean'];
   createdAt: Scalars['DateTime'];
+  members?: Maybe<Array<User>>;
 };
 
 export type TeamMember = {
@@ -491,6 +494,7 @@ export type User = {
   id: Scalars['ID'];
   name: Scalars['String'];
   roles?: Maybe<Array<Scalars['String']>>;
+  teams?: Maybe<Array<Team>>;
 };
 
 export type CreateClientMutationVariables = Exact<{
@@ -554,7 +558,7 @@ export type AssignUserToProjectMutation = (
   { __typename?: 'Mutation' }
   & { createProjectAssignment: (
     { __typename?: 'ProjectAssignment' }
-    & Pick<ProjectAssignment, 'id'>
+    & Pick<ProjectAssignment, 'id' | 'hourlyRate'>
     & { user: (
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name'>
@@ -572,6 +576,24 @@ export type DeleteUserFromProjectMutation = (
   & { deleteProjectAssignment: (
     { __typename?: 'ProjectAssignment' }
     & Pick<ProjectAssignment, 'id'>
+    & { user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name'>
+    ) }
+  ) }
+);
+
+export type UpdateProjectAssignmentMutationVariables = Exact<{
+  projectAssignmentId: Scalars['ID'];
+  hourlyRate: Scalars['Float'];
+}>;
+
+
+export type UpdateProjectAssignmentMutation = (
+  { __typename?: 'Mutation' }
+  & { updateProjectAssignment: (
+    { __typename?: 'ProjectAssignment' }
+    & Pick<ProjectAssignment, 'id' | 'hourlyRate'>
     & { user: (
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name'>
@@ -771,7 +793,7 @@ export type GetProjectAssignmentsQuery = (
   { __typename?: 'Query' }
   & { projectAssignments?: Maybe<Array<(
     { __typename?: 'ProjectAssignment' }
-    & Pick<ProjectAssignment, 'id'>
+    & Pick<ProjectAssignment, 'id' | 'hourlyRate'>
     & { user: (
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name'>
@@ -1029,6 +1051,7 @@ export const AssignUserToProjectDocument = gql`
       id
       name
     }
+    hourlyRate
   }
 }
     `;
@@ -1097,6 +1120,47 @@ export function useDeleteUserFromProjectMutation(baseOptions?: Apollo.MutationHo
 export type DeleteUserFromProjectMutationHookResult = ReturnType<typeof useDeleteUserFromProjectMutation>;
 export type DeleteUserFromProjectMutationResult = Apollo.MutationResult<DeleteUserFromProjectMutation>;
 export type DeleteUserFromProjectMutationOptions = Apollo.BaseMutationOptions<DeleteUserFromProjectMutation, DeleteUserFromProjectMutationVariables>;
+export const UpdateProjectAssignmentDocument = gql`
+    mutation updateProjectAssignment($projectAssignmentId: ID!, $hourlyRate: Float!) {
+  updateProjectAssignment(
+    input: {projectAssignmentId: $projectAssignmentId, hourlyRate: $hourlyRate}
+  ) {
+    id
+    user {
+      id
+      name
+    }
+    hourlyRate
+  }
+}
+    `;
+export type UpdateProjectAssignmentMutationFn = Apollo.MutationFunction<UpdateProjectAssignmentMutation, UpdateProjectAssignmentMutationVariables>;
+
+/**
+ * __useUpdateProjectAssignmentMutation__
+ *
+ * To run a mutation, you first call `useUpdateProjectAssignmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateProjectAssignmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateProjectAssignmentMutation, { data, loading, error }] = useUpdateProjectAssignmentMutation({
+ *   variables: {
+ *      projectAssignmentId: // value for 'projectAssignmentId'
+ *      hourlyRate: // value for 'hourlyRate'
+ *   },
+ * });
+ */
+export function useUpdateProjectAssignmentMutation(baseOptions?: Apollo.MutationHookOptions<UpdateProjectAssignmentMutation, UpdateProjectAssignmentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateProjectAssignmentMutation, UpdateProjectAssignmentMutationVariables>(UpdateProjectAssignmentDocument, options);
+      }
+export type UpdateProjectAssignmentMutationHookResult = ReturnType<typeof useUpdateProjectAssignmentMutation>;
+export type UpdateProjectAssignmentMutationResult = Apollo.MutationResult<UpdateProjectAssignmentMutation>;
+export type UpdateProjectAssignmentMutationOptions = Apollo.BaseMutationOptions<UpdateProjectAssignmentMutation, UpdateProjectAssignmentMutationVariables>;
 export const AddProjectDocument = gql`
     mutation AddProject($clientId: ID!, $name: String!) {
   addProject(input: {clientId: $clientId, name: $name}) {
@@ -1567,6 +1631,7 @@ export const GetProjectAssignmentsDocument = gql`
       id
       name
     }
+    hourlyRate
   }
 }
     `;
@@ -1899,6 +1964,7 @@ export const namedOperations = {
     ArchiveClient: 'ArchiveClient',
     AssignUserToProject: 'AssignUserToProject',
     DeleteUserFromProject: 'DeleteUserFromProject',
+    updateProjectAssignment: 'updateProjectAssignment',
     AddProject: 'AddProject',
     UpdateProject: 'UpdateProject',
     ArchiveProject: 'ArchiveProject',

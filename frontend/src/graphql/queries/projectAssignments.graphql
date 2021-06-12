@@ -4,6 +4,7 @@ query GetProjectAssignments($projectId: ID!) {
     user {
         id,
         name
-    }
+    },
+    hourlyRate
   }
 }

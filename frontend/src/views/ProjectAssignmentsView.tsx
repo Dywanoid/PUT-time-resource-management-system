@@ -5,10 +5,12 @@ import { Link } from 'react-router-dom';
 
 import '../css/ProjectAssignmentsView.css';
 import {
+  namedOperations,
   useAssignUserToProjectMutation,
   useDeleteUserFromProjectMutation,
   useGetAllUsersQuery,
-  useGetProjectAssignmentsQuery
+  useGetProjectAssignmentsQuery,
+  useUpdateProjectAssignmentMutation
 } from '../generated/graphql';
 interface AssignmentLocation {
   client: {
@@ -41,7 +43,10 @@ const difference = (a, b) => {
 };
 
 const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: any) => (
-  <Transfer {...restProps} showSelectAll={false}>
+  <Transfer
+    {...restProps}
+    showSelectAll={false}
+  >
     {({
       direction,
       filteredItems,
@@ -91,26 +96,21 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: any) => (
   </Transfer>
 );
 
-const mockData: any[] = [];
-
-for (let i = 0; i < 25; i++) {
-  mockData.push({
-    // disabled: i % 4 === 0,
-    key: i.toString(),
-    name: `Pracownik ${ i + 1 }`
-  });
-}
-
 const leftTableColumns = [
   {
     dataIndex: 'name',
     title: 'Imie i nazwisko'
   }
 ];
+
 const rightTableColumns = [
   {
     dataIndex: 'name',
     title: 'Imie i nazwisko'
+  },
+  {
+    dataIndex: 'hourlyRate',
+    title: 'Stawka godzinowa (zł/h)'
   }
 ];
 
@@ -122,29 +122,41 @@ export const ProjectAssignmentsView = () : JSX.Element => {
   } = location.state;
 
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
-  const [rawAssignmentsMap, setRawAssignmentsMap] = useState<{[id: string]: string}>({});
+  const [hourlyRates, setHourlyRates] = useState<{[id: string]: string}>({});
+  const [rawAssignmentsMap, setRawAssignmentsMap] = useState<{[id: string]: string[]}>({});
 
-  const { loading, error, data } = useGetProjectAssignmentsQuery({ variables: { projectId } });
+  const { loading, error, data } = useGetProjectAssignmentsQuery({
+    fetchPolicy: 'no-cache',
+    variables: { projectId }
+  });
+
   const { loading: usersLoading, error: usersError, data: usersData } = useGetAllUsersQuery();
   const [deleteUserAssignment] = useDeleteUserFromProjectMutation();
   const [assignUser] = useAssignUserToProjectMutation();
+  const [updateAssignment] = useUpdateProjectAssignmentMutation();
 
   useEffect(
     () => {
       if(!loading && !error) {
         const alreadyMappedUserMap = {};
+        const hourlyRatesMap = {};
+
         const assignedUsers = data?.projectAssignments?.reduce((acc: string[], assignment) => {
           const { user } = assignment;
 
           if(!alreadyMappedUserMap[user.id]) {
             acc.push(user.id);
-            alreadyMappedUserMap[user.id] = assignment.id;
+            alreadyMappedUserMap[user.id] = [];
           }
+
+          alreadyMappedUserMap[user.id].push(assignment.id);
+          hourlyRatesMap[assignment.id] = assignment.hourlyRate;
 
           return acc;
         }, []) || [];
 
         setRawAssignmentsMap(alreadyMappedUserMap);
+        setHourlyRates(hourlyRatesMap);
         setTargetKeys(assignedUsers);
       }
     },
@@ -157,16 +169,65 @@ export const ProjectAssignmentsView = () : JSX.Element => {
   if (loading || usersLoading) { return <p>Loading...</p>; }
   if (error || usersError) { return <p>Error :(</p>; }
 
+  const attachRenderer = (columns) => {
+    const onInputBlur = (event, record) => {
+      const changedMap = {};
+
+      record.projectAssignmentIds.forEach((projectAssignmentId) => {
+        const newHourlyRate = parseFloat(event.target.value);
+
+        changedMap[projectAssignmentId] = newHourlyRate;
+        updateAssignment({
+          variables: {
+            hourlyRate: newHourlyRate,
+            projectAssignmentId
+          }
+        });
+
+      });
+      setHourlyRates({ ...hourlyRates, ...changedMap });
+    };
+
+    return columns.map((column) => {
+      if(column.dataIndex === 'hourlyRate') {
+        return {
+          ...column,
+          render: function HourlyRateInput(currentRate, record){
+            return (
+              <input
+                type="number"
+                step="0.01"
+                style={{ textAlign: 'right' }}
+                onBlur={(event) => onInputBlur(event, record)}
+                defaultValue={currentRate}
+              />
+            );
+          }
+        };
+      }
+
+      return column;
+    });
+  };
+
   const onChange = (nextTargetKeys: string[]) => {
     const diff =  difference(nextTargetKeys, targetKeys) as string[];
 
     if(nextTargetKeys.length > targetKeys.length) {
       diff.forEach((userId) => {
-        assignUser({ variables: { projectId, userId } });
+        assignUser({
+          refetchQueries: [namedOperations.Query.GetProjectAssignments],
+          variables: { projectId, userId }
+        });
       });
     } else {
       diff.forEach((userId) => {
-        deleteUserAssignment({ variables: { projectAssignmentId: rawAssignmentsMap[userId] } });
+        rawAssignmentsMap[userId].forEach((projectAssignmentId) => {
+          deleteUserAssignment({
+            refetchQueries: [namedOperations.Query.GetProjectAssignments],
+            variables:  { projectAssignmentId }
+          });
+        });
       });
     }
 
@@ -175,10 +236,14 @@ export const ProjectAssignmentsView = () : JSX.Element => {
 
   const allUsers = usersData?.users?.map((user) => {
     return {
+      hourlyRate: rawAssignmentsMap[user.id] && hourlyRates[rawAssignmentsMap[user.id][0]],
       key: user.id,
-      name: user.name
+      name: user.name,
+      projectAssignmentIds: rawAssignmentsMap[user.id]
     };
   });
+
+  console.log(allUsers);
 
   return (
     <>
@@ -210,7 +275,7 @@ export const ProjectAssignmentsView = () : JSX.Element => {
         // showSearch={showSearch}
         onChange={onChange}
         leftColumns={leftTableColumns}
-        rightColumns={rightTableColumns}
+        rightColumns={attachRenderer(rightTableColumns)}
       />
     </>
   );
