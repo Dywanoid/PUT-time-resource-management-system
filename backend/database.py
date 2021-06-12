@@ -67,6 +67,9 @@ class TeamMember(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey(Team.id), primary_key=True)
     created_at = db.Column(db.DateTime, nullable=False)
 
+    user = db.relationship(User, lazy='joined')
+    team = db.relationship(Team, lazy='joined')
+
     @classmethod
     def pk(cls, user_id, team_id):
         return {

@@ -66,6 +66,8 @@ type TeamMember {
     userId: ID!
     teamId: ID!
     createdAt: DateTime!
+    user: User!
+    team: Team!
 }
 
 type HolidayRequestType {
