@@ -91,6 +91,7 @@ type HolidayRequest {
     createdAt: DateTime!
     status: HolidayRequestStatus!
     type: HolidayRequestType!
+    user: User!
 }
 
 type ProjectAssignment {
