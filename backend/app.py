@@ -14,6 +14,8 @@ app.config.update({
     'SQLALCHEMY_TRACK_MODIFICATIONS': False,
     'SQLALCHEMY_ECHO': bool(os.getenv("SQLALCHEMY_ECHO", False)),
     'SECRET_KEY': os.getenv("SECRET_KEY", os.urandom(16)),
+    'SERVER_NAME': os.getenv("SERVER_NAME", "localhost"),
+    'PREFERRED_URL_SCHEME': os.getenv("PREFERRED_URL_SCHEME", "http"),
     'CORS_SUPPORTS_CREDENTIALS': True,
     'CORS_ORIGINS': 'http://localhost*',
     'CACHE_TYPE': 'SimpleCache',
@@ -24,6 +26,7 @@ app.config.update({
     'OIDC_USERINFO_URL': os.getenv("OIDC_USERINFO_URL", f"{OIDC_BASE_URL}/userinfo"),
     'OIDC_TOKEN_URL': os.getenv("OIDC_TOKEN_URL", f"{OIDC_BASE_URL}/token"),
     'OIDC_AUTHORIZATION_URL': os.getenv("OIDC_AUTHORIZATION_URL", f"{OIDC_BASE_URL}/auth"),
+    'OIDC_END_SESSION_URL': os.getenv("OIDC_END_SESSION_URL", f"{OIDC_BASE_URL}/logout"),
     'OIDC_HOST_HEADER_OVERRIDE': os.getenv("OIDC_HOST_HEADER_OVERRIDE", None)
 })
 cache = Cache(app)

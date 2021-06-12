@@ -7,7 +7,8 @@ from schema import schema
 from app import app
 from datetime import datetime
 from flask_login import login_required, logout_user
-
+from auth import oidc_blueprint
+from werkzeug.urls import url_encode
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -43,5 +44,7 @@ def graphql_server():
 
 @app.route('/logout')
 def logout():
+    encoded_redirect_params = url_encode({'redirect_uri': url_for('oidc.login', _external=True)})
+    oidc_logout_url = f"{app.config['OIDC_END_SESSION_URL']}?{encoded_redirect_params}"
     logout_user()
-    return redirect(url_for('oidc.login'))
+    return redirect(oidc_logout_url)
