@@ -9,6 +9,7 @@ query GetUserApplications($holidayUserId: ID!) {
       startDate,
       endDate,
       type { id, name, shortCode }
+      user { id, name, roles }
   }
 }
 
@@ -23,6 +24,7 @@ query GetUsersApplications($requestStatusIds: [ID]!, $start: DateTime, $end: Dat
       startDate,
       endDate,
       type { id, name, shortCode }
+      user { id, name, roles }
   }
 }
 

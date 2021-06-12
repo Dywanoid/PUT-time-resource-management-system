@@ -155,6 +155,7 @@ export type HolidayRequest = {
   createdAt: Scalars['DateTime'];
   status: HolidayRequestStatus;
   type: HolidayRequestType;
+  user: User;
 };
 
 export type HolidayRequestStatus = {
@@ -817,6 +818,9 @@ export type GetUserApplicationsQuery = (
     ), type: (
       { __typename?: 'HolidayRequestType' }
       & Pick<HolidayRequestType, 'id' | 'name' | 'shortCode'>
+    ), user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'roles'>
     ) }
   )>> }
 );
@@ -839,6 +843,9 @@ export type GetUsersApplicationsQuery = (
     ), type: (
       { __typename?: 'HolidayRequestType' }
       & Pick<HolidayRequestType, 'id' | 'name' | 'shortCode'>
+    ), user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'roles'>
     ) }
   )>> }
 );
@@ -1613,6 +1620,11 @@ export const GetUserApplicationsDocument = gql`
       name
       shortCode
     }
+    user {
+      id
+      name
+      roles
+    }
   }
 }
     `;
@@ -1666,6 +1678,11 @@ export const GetUsersApplicationsDocument = gql`
       id
       name
       shortCode
+    }
+    user {
+      id
+      name
+      roles
     }
   }
 }

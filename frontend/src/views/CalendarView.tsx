@@ -1,6 +1,5 @@
 import { Calendar, Select, Layout, Avatar } from 'antd';
 import {
-  useGetAllUsersQuery,
   useGetUserInfoQuery,
   useGetTeamInfoQuery,
   useGetUsersApplicationsQuery
@@ -10,24 +9,15 @@ import moment from 'moment';
 
 const { Content } = Layout;
 
-const getListData = (value, userApplications, users) => {
+const getListData = (value, userApplications) => {
   const listData: Array<{ content: string, type: string, id: string, name: string, userId: string }> = [];
-  const getUserName = (id) => {
-    for (const user in users) {
-      if(users[user].id === id) {
-        return users[user].name;
-      }
-    }
-
-    return '';
-  };
 
   for (let i = 0; i < userApplications.length; i++) {
     if (value === moment(userApplications[i].startDate)
     || value >= moment(userApplications[i].startDate) && value <= moment(userApplications[i].endDate).add(1, 'days')) {
       listData.push({
         content: userApplications[i].type.name, id: userApplications[i].id,
-        name: getUserName(userApplications[i].userId)
+        name: userApplications[i].user.name
         , type: 'black', userId: userApplications[i].userId
       });
     }
@@ -59,7 +49,6 @@ export const CalendarView = (): JSX.Element => {
   );
   const { data: userInfo } = useGetUserInfoQuery();
   const userId = userInfo?.user?.id as any;
-  const { data: usersData } = useGetAllUsersQuery();
   const { data: userTeamsData } = useGetTeamInfoQuery(
     {
       fetchPolicy: 'no-cache',
@@ -67,14 +56,13 @@ export const CalendarView = (): JSX.Element => {
     }
   );
   const userApplications = applicationData?.holidayRequests || [];
-  const users = usersData?.users || [];
   const userTeamsInfo = userTeamsData?.team || [];
 
   console.log(userTeamsInfo);
   console.log(userApplications);
 
   const dateCellRender = (value) => {
-    const listData = getListData(value, userApplications, users);
+    const listData = getListData(value, userApplications);
 
     return (
       <ul className="events">
@@ -97,7 +85,7 @@ export const CalendarView = (): JSX.Element => {
       requestStatusIds: ['2'], start: value.clone().startOf('month')
     });
 
-    const listData = getListData(value, applicationData?.holidayRequests, users);
+    const listData = getListData(value, applicationData?.holidayRequests);
 
     return (
       <ul className="events">
