@@ -422,6 +422,8 @@ const getTimeColumns = (weekDates): TableColumn[] =>
     };
   });
 
+const currentMomentGetter = () => moment();
+
 export const TimesheetTable: React.FC = () => {
   const user = useContext(UserContext);
   const userId = user?.id as string;
@@ -433,7 +435,7 @@ export const TimesheetTable: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [error, setError] = useState<string | null>(null);
-  const [date, setDate] = useState<Moment>(() => moment());
+  const [date, setDate] = useState<Moment>(currentMomentGetter);
 
   const weekDates = useMemo(() => getWeekDates(date), [date]);
   const timeColumns = useMemo(() => getTimeColumns(weekDates), [date]);
