@@ -577,11 +577,25 @@ def resolve_holiday_request_statuses(obj, info):
 
 @query.field("holidayRequests")
 @convert_kwargs_to_snake_case
-def resolve_holiday_requests(obj, info, request_statuses, start_date = date.min, end_date = date.max):
+def resolve_holiday_requests(obj, info, request_statuses, only_user_teams, start_date = date.min, end_date = date.max):
     if({int(x) for x in request_statuses} != {HolidayRequestStatus.ACCEPTED}):
         roles_check('manager')
     if(end_date < start_date):
         raise WrongTimespanError(start_date, end_date)
-    result = (HolidayRequest.query
-        .filter(HolidayRequest.status_id.in_(request_statuses), HolidayRequest.end_date >= start_date, HolidayRequest.start_date <= end_date).all())
+    if(only_user_teams):
+        teams = Team.query.join(TeamMember).filter(TeamMember.user_id == current_user.id).all()
+        teams = [team.id for team in teams]
+        users = TeamMember.query.filter(TeamMember.team_id.in_(teams)).all()
+        users = {user.user_id for user in users}
+        result = (HolidayRequest.query
+            .filter(HolidayRequest.status_id.in_(request_statuses), 
+            HolidayRequest.end_date >= start_date, 
+            HolidayRequest.start_date <= end_date, 
+            HolidayRequest.user_id.in_(users)).all())
+    else:
+        roles_check('manager')
+        result = (HolidayRequest.query
+            .filter(HolidayRequest.status_id.in_(request_statuses), 
+            HolidayRequest.end_date >= start_date, 
+            HolidayRequest.start_date <= end_date).all())
     return result

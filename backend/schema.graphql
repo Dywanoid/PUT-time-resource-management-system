@@ -134,7 +134,7 @@ type Query {
     holidayRequestTypes: [HolidayRequestType!]
     holidayRequestStatuses: [HolidayRequestStatus!]
     userHolidayRequests(userId: ID!, onlyPending: Boolean = false): [HolidayRequest!]
-    holidayRequests(requestStatuses: [ID]!, startDate: DateTime, endDate: DateTime): [HolidayRequest!]
+    holidayRequests(requestStatuses: [ID]!, onlyUserTeams: Boolean = true, startDate: DateTime, endDate: DateTime): [HolidayRequest!]
     projectAssignments(
         userId: ID, 
         projectId: ID, 
