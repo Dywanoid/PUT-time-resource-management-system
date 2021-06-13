@@ -84,8 +84,6 @@ export const ApplicationsView = (): JSX.Element => {
   const applicationsData = applicationData?.userHolidayRequests || [];
   const requestStatusesData = requestStatuses?.holidayRequestStatuses || [];
 
-  // console.log(userId);
-
   const superVisors = [] as any;
   const requestTypes = [] as any;
 
@@ -117,24 +115,18 @@ export const ApplicationsView = (): JSX.Element => {
 
   const onSupervisorChange = (value: string) => {
     setSupervisorId(value);
-    console.log(value, 'onSupervisorChange');
   };
 
   const onRequestTypeChange = (value: string) => {
     setRequestType(value);
-    console.log(value, 'onRequestTypeChange');
   };
 
   const onFinish = () => {
-    // values are passed here
-    console.log(supervisorId, requestType, startDate, endDate);
-
     sendApplicationRequest(supervisorId, requestType, startDate, endDate);
     setSupervisorId('');
     setRequestType('');
     setStartDate('');
     setEndDate('');
-    console.log('done!');
     formRef.current?.resetFields();
   };
 

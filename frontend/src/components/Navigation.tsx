@@ -1,4 +1,3 @@
-import React from 'react';
 import { Layout, Menu, Avatar } from 'antd';
 import { Link } from 'react-router-dom';
 import { useGetUserInfoQuery } from '../generated/graphql';
@@ -11,7 +10,8 @@ const { SubMenu } = Menu;
 export const Navigation = (): JSX.Element => {
   const { data: userInfo } = useGetUserInfoQuery();
 
-  const user = userInfo?.user.name || '';
+  const user = userInfo?.user?.name || '';
+  const userRoles = userInfo?.user?.roles || '';
 
   return(
     <Header className="header">
@@ -35,9 +35,12 @@ export const Navigation = (): JSX.Element => {
           <Menu.Item key="5">
             <Link to="/teams" className="nav-text">Zespoły</Link>
           </Menu.Item>
-          <Menu.Item key="6">
+          { userRoles.includes('manager')
+          && <Menu.Item key="6">
             <Link to="/subordinate" className="nav-text">Przydziel podwładnych</Link>
           </Menu.Item>
+          }
+
         </SubMenu>
       </Menu>
       <Menu theme="dark" mode="horizontal" defaultSelectedKeys={ ['1'] } className="logoutMenu">

@@ -60,9 +60,6 @@ export const CalendarView = (): JSX.Element => {
   const userApplications = applicationData?.holidayRequests || [];
   const userTeamsInfo = userTeamsData?.team || [];
 
-  console.log(userTeamsInfo);
-  console.log(userApplications);
-
   const dateCellRender = (value) => {
     const listData = getListData(value, userApplications);
 

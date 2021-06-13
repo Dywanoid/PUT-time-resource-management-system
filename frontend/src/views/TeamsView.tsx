@@ -286,10 +286,6 @@ export const TeamsView = () : JSX.Element => {
     teams = teamsArr;
   }
 
-  console.log(userTeams);
-  console.log(teams, 'teams');
-  // console.log(userTeamsData);
-
   const mockData: Array<{ key: string, username: string }> = [];
 
   for (let i = 0; i < users.length; i++) {
