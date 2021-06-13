@@ -2,6 +2,7 @@ import enum
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
+from sqlalchemy.ext.associationproxy import association_proxy
 from app import app
 
 
@@ -54,6 +55,9 @@ class Team(db.Model):
     archived = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False)
 
+    members = association_proxy('team_memberships', 'user')
+    team_memberships = db.relationship("TeamMember", back_populates="team")
+
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,14 +65,17 @@ class User(db.Model, UserMixin):
     roles = db.Column(db.JSON, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
 
+    teams = association_proxy('team_memberships', 'team')
+    team_memberships = db.relationship("TeamMember", back_populates="user")
+
 
 class TeamMember(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True)
     team_id = db.Column(db.Integer, db.ForeignKey(Team.id), primary_key=True)
     created_at = db.Column(db.DateTime, nullable=False)
 
-    user = db.relationship(User)
-    team = db.relationship(Team)
+    user = db.relationship(User, back_populates="team_memberships")
+    team = db.relationship(Team, back_populates="team_memberships")
 
     @classmethod
     def pk(cls, user_id, team_id):
