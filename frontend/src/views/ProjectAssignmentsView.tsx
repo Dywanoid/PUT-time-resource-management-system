@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
-import { Transfer, Switch, Table, Tag, Breadcrumb } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Transfer, Table, Breadcrumb } from 'antd';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import '../css/ProjectAssignmentsView.css';
-import { useGetAllUsersQuery } from '../generated/graphql';
+import {
+  namedOperations,
+  useAssignUserToProjectMutation,
+  useDeleteUserFromProjectMutation,
+  useGetAllUsersQuery,
+  useGetProjectAssignmentsQuery,
+  useUpdateProjectAssignmentMutation
+} from '../generated/graphql';
 interface AssignmentLocation {
   client: {
     id: string,
@@ -36,7 +43,10 @@ const difference = (a, b) => {
 };
 
 const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: any) => (
-  <Transfer {...restProps} showSelectAll={false}>
+  <Transfer
+    {...restProps}
+    showSelectAll={false}
+  >
     {({
       direction,
       filteredItems,
@@ -79,70 +89,161 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: any) => (
           rowSelection={rowSelection}
           size="small"
           style={{ pointerEvents: listDisabled ? 'none' : 'auto' }}
-
+          pagination={false}
         />
       );
     }}
   </Transfer>
 );
 
-const mockData: any[] = [];
-
-for (let i = 0; i < 20; i++) {
-  mockData.push({
-    description: `description of content${ i + 1 }`,
-    disabled: i % 4 === 0,
-    key: i.toString(),
-    title: `content${ i + 1 }`
-  });
-}
-
-const originTargetKeys = mockData.filter((item) => +item.key % 3 > 1).map((item) => item.key);
-
 const leftTableColumns = [
   {
-    dataIndex: 'title',
-    title: 'Name'
-  },
-  {
-    dataIndex: 'description',
-    title: 'Description'
+    dataIndex: 'name',
+    title: 'Imie i nazwisko'
   }
 ];
+
 const rightTableColumns = [
   {
-    dataIndex: 'title',
-    title: 'Name'
+    dataIndex: 'name',
+    title: 'Imie i nazwisko'
+  },
+  {
+    dataIndex: 'hourlyRate',
+    title: 'Stawka godzinowa (zł/h)'
   }
 ];
 
 export const ProjectAssignmentsView = () : JSX.Element => {
-  const [targetKeys, setTargetKeys] = useState(originTargetKeys);
-  const [disabled, setDisabled] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
-  const { loading, error, data }  = useGetAllUsersQuery();
   const location = useLocation<AssignmentLocation>();
   const {
     client: { name: clientName },
     project: { id: projectId, name: projectName }
   } = location.state;
 
-  if (loading) { return <p>Loading...</p>; }
-  if (error) { return <p>Error :(</p>; }
+  const [targetKeys, setTargetKeys] = useState<string[]>([]);
+  const [hourlyRates, setHourlyRates] = useState<{[id: string]: string}>({});
+  const [rawAssignmentsMap, setRawAssignmentsMap] = useState<{[id: string]: string[]}>({});
 
-  console.log(data);
+  const { loading, error, data } = useGetProjectAssignmentsQuery({
+    fetchPolicy: 'no-cache',
+    variables: { projectId }
+  });
 
-  const onChange = (nextTargetKeys) => {
+  const { loading: usersLoading, error: usersError, data: usersData } = useGetAllUsersQuery();
+  const [deleteUserAssignment] = useDeleteUserFromProjectMutation();
+  const [assignUser] = useAssignUserToProjectMutation();
+  const [updateAssignment] = useUpdateProjectAssignmentMutation();
+
+  useEffect(
+    () => {
+      if(!loading && !error) {
+        const alreadyMappedUserMap = {};
+        const hourlyRatesMap = {};
+
+        const assignedUsers = data?.projectAssignments?.reduce((acc: string[], assignment) => {
+          const { user } = assignment;
+
+          if(!alreadyMappedUserMap[user.id]) {
+            acc.push(user.id);
+            alreadyMappedUserMap[user.id] = [];
+          }
+
+          alreadyMappedUserMap[user.id].push(assignment.id);
+          hourlyRatesMap[assignment.id] = assignment.hourlyRate;
+
+          return acc;
+        }, []) || [];
+
+        setRawAssignmentsMap(alreadyMappedUserMap);
+        setHourlyRates(hourlyRatesMap);
+        setTargetKeys(assignedUsers);
+      }
+    },
+    [
+      loading,
+      error,
+      data]
+  );
+
+  if (loading || usersLoading) { return <p>Loading...</p>; }
+  if (error || usersError) { return <p>Error :(</p>; }
+
+  const attachRenderer = (columns) => {
+    const onInputBlur = (event, record) => {
+      const changedMap = {};
+
+      record.projectAssignmentIds.forEach((projectAssignmentId) => {
+        const newHourlyRate = parseFloat(event.target.value);
+
+        changedMap[projectAssignmentId] = newHourlyRate;
+        updateAssignment({
+          variables: {
+            hourlyRate: newHourlyRate,
+            projectAssignmentId
+          }
+        });
+
+      });
+      setHourlyRates({ ...hourlyRates, ...changedMap });
+    };
+
+    return columns.map((column) => {
+      if(column.dataIndex === 'hourlyRate') {
+        return {
+          ...column,
+          render: function HourlyRateInput(currentRate, record){
+            return (
+              <input
+                type="number"
+                step="0.01"
+                style={{ textAlign: 'right' }}
+                onBlur={(event) => onInputBlur(event, record)}
+                defaultValue={currentRate}
+              />
+            );
+          }
+        };
+      }
+
+      return column;
+    });
+  };
+
+  const onChange = (nextTargetKeys: string[]) => {
+    const diff =  difference(nextTargetKeys, targetKeys) as string[];
+
+    if(nextTargetKeys.length > targetKeys.length) {
+      diff.forEach((userId) => {
+        assignUser({
+          refetchQueries: [namedOperations.Query.GetProjectAssignments],
+          variables: { projectId, userId }
+        });
+      });
+    } else {
+      diff.forEach((userId) => {
+        rawAssignmentsMap[userId].forEach((projectAssignmentId) => {
+          deleteUserAssignment({
+            refetchQueries: [namedOperations.Query.GetProjectAssignments],
+            variables:  { projectAssignmentId }
+          });
+        });
+      });
+    }
+
     setTargetKeys(nextTargetKeys);
   };
 
-  const triggerDisable = (nextDisabled) => {
-    setDisabled(nextDisabled);
-  };
+  const allUsers = usersData?.users?.map((user) => {
+    return {
+      hourlyRate: rawAssignmentsMap[user.id] && hourlyRates[rawAssignmentsMap[user.id][0]],
+      key: user.id,
+      name: user.name,
+      projectAssignmentIds: rawAssignmentsMap[user.id]
+    };
+  });
 
-  const triggerShowSearch = (nextShowSearch) => {
-    setShowSearch(nextShowSearch);
-  };
+  console.log(allUsers);
 
   return (
     <>
@@ -168,32 +269,13 @@ export const ProjectAssignmentsView = () : JSX.Element => {
       </Breadcrumb>
 
       <TableTransfer
-        dataSource={mockData}
+        dataSource={allUsers}
         targetKeys={targetKeys}
-        disabled={disabled}
-        showSearch={showSearch}
+        // disabled={disabled}
+        // showSearch={showSearch}
         onChange={onChange}
-        filterOption={(inputValue, item) =>
-          item.title.indexOf(inputValue) !== -1 || item.tag.indexOf(inputValue) !== -1
-        }
         leftColumns={leftTableColumns}
-        rightColumns={rightTableColumns}
-      />
-
-      <Switch
-        unCheckedChildren="disabled"
-        checkedChildren="disabled"
-        checked={disabled}
-        onChange={triggerDisable}
-        style={{ marginTop: 16 }}
-      />
-
-      <Switch
-        unCheckedChildren="showSearch"
-        checkedChildren="showSearch"
-        checked={showSearch}
-        onChange={triggerShowSearch}
-        style={{ marginTop: 16 }}
+        rightColumns={attachRenderer(rightTableColumns)}
       />
     </>
   );
