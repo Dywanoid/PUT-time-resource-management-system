@@ -95,8 +95,8 @@ def resolve_users(obj, info, offset, limit):
 
 @query.field("user")
 def resolve_user(obj, info, id=None):
-    id = id or current_user.id
-    if id != current_user.id:
+    id = id or str(current_user.id)
+    if id != str(current_user.id):
         roles_check('manager')
     return find_item(User, id)
 
@@ -125,7 +125,7 @@ def find_project_assignments(offset, limit, from_date, to_date, user_id=None, pr
 @query.field("projectAssignments")
 @convert_kwargs_to_snake_case
 def resolve_project_assignments(obj, info, offset, limit, from_date, to_date, user_id=None, project_id=None):
-    if user_id is None or user_id != current_user.id:
+    if user_id is None or user_id != str(current_user.id):
         roles_check('manager')
     return find_project_assignments(offset, limit, from_date, to_date, user_id, project_id)
 
