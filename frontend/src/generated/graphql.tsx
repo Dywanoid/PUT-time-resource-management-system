@@ -377,14 +377,14 @@ export type Query = {
   team: Team;
   users?: Maybe<Array<User>>;
   user: User;
-  /** @deprecated use team(id) { members { ... } } */
-  teamMembers?: Maybe<Array<TeamMember>>;
-  /** @deprecated use user(id) { teams { ... } } */
-  userTeams?: Maybe<Array<TeamMember>>;
   holidayRequestTypes?: Maybe<Array<HolidayRequestType>>;
   holidayRequestStatuses?: Maybe<Array<HolidayRequestStatus>>;
   userHolidayRequests?: Maybe<Array<HolidayRequest>>;
   holidayRequests?: Maybe<Array<HolidayRequest>>;
+  /** @deprecated use team(id) { members { ... } } */
+  teamMembers?: Maybe<Array<TeamMember>>;
+  /** @deprecated use user(id) { teams { ... } } */
+  userTeams?: Maybe<Array<TeamMember>>;
   projectAssignments?: Maybe<Array<ProjectAssignment>>;
 };
 
@@ -434,16 +434,6 @@ export type QueryUserArgs = {
 };
 
 
-export type QueryTeamMembersArgs = {
-  teamId: Scalars['ID'];
-};
-
-
-export type QueryUserTeamsArgs = {
-  userId: Scalars['ID'];
-};
-
-
 export type QueryUserHolidayRequestsArgs = {
   userId: Scalars['ID'];
   onlyPending?: Maybe<Scalars['Boolean']>;
@@ -455,6 +445,16 @@ export type QueryHolidayRequestsArgs = {
   onlyUserTeams?: Maybe<Scalars['Boolean']>;
   startDate?: Maybe<Scalars['DateTime']>;
   endDate?: Maybe<Scalars['DateTime']>;
+};
+
+
+export type QueryTeamMembersArgs = {
+  teamId: Scalars['ID'];
+};
+
+
+export type QueryUserTeamsArgs = {
+  userId: Scalars['ID'];
 };
 
 
