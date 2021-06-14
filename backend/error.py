@@ -18,10 +18,6 @@ class ValidationError(Exception):
     def errors(cls, errors):
         return cls(f"Vaidation errors: {', '.join(errors)}")
 
-class ActiveRequestError(Exception):
+class ActiveHolidayRequestError(Exception):
     def __init__(self, start_date, end_date):
         super().__init__(f"There is already active request between {start_date} and {end_date}")
-
-class WrongTimespanError(Exception):
-    def __init__(self, start_date, end_date):
-        super().__init__(f"Starting date ({start_date}) must be earlier than ending date ({end_date})")

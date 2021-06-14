@@ -8,7 +8,7 @@ from database import Client, Currency, Project, Task, Team, TimeLog, TeamMember,
 from datetime import datetime, date, timedelta
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
-from error import NotFound, ValidationError, ActiveRequestError, WrongTimespanError
+from error import NotFound, ValidationError, ActiveHolidayRequestError
 from auth import roles_required, roles_check
 
 query = QueryType()
@@ -522,16 +522,17 @@ def resolve_create_holiday_request(obj, info, input):
     start_date = input.get('start_date')
     end_date = input.get('end_date')
     if(end_date < start_date):
-        raise WrongTimespanError(start_date, end_date)
+        raise ValidationError(f"Starting date ({start_date}) must be earlier than ending date ({end_date})")
     if(HolidayRequest.query.filter(
-        (HolidayRequest.start_date.between(start_date, end_date) | HolidayRequest.end_date.between(start_date, end_date)),
-        HolidayRequest.status_id.in_((HolidayRequestStatus.PENDING, HolidayRequestStatus.ACCEPTED))
+        HolidayRequest.end_date >= start_date, 
+        HolidayRequest.start_date <= end_date,
+        HolidayRequest.status.in_((HolidayRequestStatus.Pending, HolidayRequestStatus.Accepted))
         ).count()):
-            raise ActiveRequestError(start_date, end_date)
+            raise ActiveHolidayRequestError(start_date, end_date)
     holiday_request = HolidayRequest(
         user_id=user_id,
-        type_id=input.get('type_id'),
-        status_id=HolidayRequestStatus.PENDING,
+        type=input.get('type'),
+        status=HolidayRequestStatus.Pending,
         start_date=input.get('start_date'),
         end_date=input.get('end_date'),
         created_at=datetime.now()
@@ -553,49 +554,44 @@ def resolve_change_holiday_request_status(holiday_request, input):
 
 @query.field("userHolidayRequests")
 @convert_kwargs_to_snake_case
-def resolve_user_holiday_requests(obj, info, user_id, only_pending):
+def resolve_user_holiday_requests(obj, info, user_id, only_pending, start_date = date.min, end_date = date.max):
     if(user_id != current_user.id):
         roles_check('manager')
+    if(end_date < start_date):
+        raise ValidationError(f"Starting date ({start_date}) must be earlier than ending date ({end_date})")
     if(only_pending):
-        result = HolidayRequest.query.join(HolidayRequestStatus).filter(HolidayRequest.user_id == user_id, HolidayRequestStatus.name == "pending").all()
+        result = (HolidayRequest.query
+        .filter(HolidayRequest.user_id == user_id, 
+            HolidayRequest.status == HolidayRequestStatus.Pending,
+            HolidayRequest.end_date >= start_date, 
+            HolidayRequest.start_date <= end_date).all())
     else:
-        result = HolidayRequest.query.filter(HolidayRequest.user_id == user_id).all()
+        result = (HolidayRequest.query.filter(HolidayRequest.user_id == user_id).all())
     return result
 
 
-@query.field("holidayRequestTypes")
+@query.field("teamHolidayRequests")
 @convert_kwargs_to_snake_case
-def resolve_holiday_request_types(obj, info):
-    return HolidayRequestType.query.all()
-
-
-@query.field("holidayRequestStatuses")
-@convert_kwargs_to_snake_case
-def resolve_holiday_request_statuses(obj, info):
-    return HolidayRequestStatus.query.all()
-
-
-@query.field("holidayRequests")
-@convert_kwargs_to_snake_case
-def resolve_holiday_requests(obj, info, request_statuses, only_user_teams, start_date = date.min, end_date = date.max):
-    if({int(x) for x in request_statuses} != {HolidayRequestStatus.ACCEPTED}):
+def resolve_team_holiday_requests(obj, info, request_statuses, team_list, start_date = date.min, end_date = date.max):
+    if({int(x) for x in request_statuses} != {HolidayRequestStatus.Accepted}):
         roles_check('manager')
     if(end_date < start_date):
-        raise WrongTimespanError(start_date, end_date)
-    if(only_user_teams):
-        teams = Team.query.join(TeamMember).filter(TeamMember.user_id == current_user.id).all()
-        teams = [team.id for team in teams]
-        users = TeamMember.query.filter(TeamMember.team_id.in_(teams)).all()
+        raise ValidationError(f"Starting date ({start_date}) must be earlier than ending date ({end_date})")
+    user = find_item(User, current_user.id)
+    user_teams = {str(team) for team in user.teams}
+    wanted_teams = {str(team) for team in team_list}
+    if(wanted_teams.issubset(user_teams)):
+        users = TeamMember.query.filter(TeamMember.team_id.in_(wanted_teams)).all()
         users = {user.user_id for user in users}
         result = (HolidayRequest.query
-            .filter(HolidayRequest.status_id.in_(request_statuses), 
+            .filter(HolidayRequest.status.in_(request_statuses), 
             HolidayRequest.end_date >= start_date, 
             HolidayRequest.start_date <= end_date, 
             HolidayRequest.user_id.in_(users)).all())
     else:
         roles_check('manager')
         result = (HolidayRequest.query
-            .filter(HolidayRequest.status_id.in_(request_statuses), 
+            .filter(HolidayRequest.status.in_(request_statuses), 
             HolidayRequest.end_date >= start_date, 
             HolidayRequest.start_date <= end_date).all())
     return result

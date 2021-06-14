@@ -8,6 +8,22 @@ enum Currency {
     PLN
 }
 
+enum HolidayRequestStatus {
+    Pending
+    Accepted
+    Rejected
+    Cancelled
+}
+
+enum HolidayRequestType {
+    HO
+    OD
+    UP
+    CC
+    CL
+    L4
+}
+
 # Indicates that if value is not specified, it's treated as min or max
 directive @defaultmax on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 directive @defaultmin on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
@@ -72,27 +88,14 @@ type TeamMember {
     team: Team!
 }
 
-type HolidayRequestType {
-    id: ID!
-    name: String!
-    shortCode: String!
-}
-
-type HolidayRequestStatus {
-    id: ID!
-    name: String!
-}
-
 type HolidayRequest {
     id: ID!
     userId: ID!
-    typeId: ID!
-    statusId: ID!
+    status: HolidayRequestStatus!
+    type: HolidayRequestType!
     startDate: DateTime!
     endDate: DateTime!
     createdAt: DateTime!
-    status: HolidayRequestStatus!
-    type: HolidayRequestType!
     user: User!
 }
 
@@ -131,10 +134,8 @@ type Query {
     team(id: ID!): Team!
     users(offset: Int = 0, limit: Int = 10): [User!]
     user(id: ID): User!
-    holidayRequestTypes: [HolidayRequestType!]
-    holidayRequestStatuses: [HolidayRequestStatus!]
-    userHolidayRequests(userId: ID!, onlyPending: Boolean = false): [HolidayRequest!]
-    holidayRequests(requestStatuses: [ID]!, onlyUserTeams: Boolean = true, startDate: DateTime, endDate: DateTime): [HolidayRequest!]
+    userHolidayRequests(userId: ID!, onlyPending: Boolean = false, startDate: DateTime, endDate: DateTime): [HolidayRequest!]
+    teamHolidayRequests(requestStatuses: [ID]!, teamList: [ID]!, startDate: DateTime, endDate: DateTime): [HolidayRequest!]
     teamMembers(teamId: ID!): [TeamMember!] @deprecated(reason: "use team(id) { members { ... } }")
     userTeams(userId: ID!): [TeamMember!] @deprecated(reason: "use user(id) { teams { ... } }")
     projectAssignments(
@@ -251,14 +252,14 @@ input CreateTeamMemberBatchInput {
 
 input CreateHolidayRequestInput {
     userId: ID!
-    typeId: ID!
+    type: HolidayRequestType!
     startDate: DateTime!
     endDate: DateTime!
 }
 
 input ChangeHolidayRequestStatusInput {
     requestId: ID!
-    statusId: ID!
+    status: HolidayRequestStatus!
 }
 
 input CreateProjectAssignmentInput {

@@ -15,6 +15,22 @@ class Currency(enum.Enum):
     PLN = 'PLN'
 
 
+class HolidayRequestStatus(enum.Enum):
+    Pending =   'Pending'
+    Accepted =  'Accepted'
+    Rejected =  'Rejected'
+    Cancelled = 'Cancelled'
+
+
+class HolidayRequestType(enum.Enum):
+    HO = 'Holiday'
+    OD = 'On demand'
+    UP = 'Unpaid'
+    CC = 'Child care'
+    CL = 'Compassionate leave'
+    L4 = 'Sick leave'
+
+
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
@@ -91,33 +107,16 @@ class OAuth(OAuthConsumerMixin, db.Model):
     user = db.relationship(User)
 
 
-class HolidayRequestType(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    short_code = db.Column(db.String, nullable=False)
-
-
-class HolidayRequestStatus(db.Model):
-    PENDING = 1
-    ACCEPTED = 2
-    REJECTED = 3
-    CANCELLED = 4
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False, unique=True)
-
 
 class HolidayRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    type_id = db.Column(db.Integer, db.ForeignKey(HolidayRequestType.id))
-    status_id = db.Column(db.Integer, db.ForeignKey(HolidayRequestStatus.id))
+    type = db.Column(db.Enum(HolidayRequestType), nullable=False)
+    status = db.Column(db.Enum(HolidayRequestStatus), nullable=False)
     start_date = db.Column(db.DateTime, nullable=False)
     end_date = db.Column(db.DateTime, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
 
-    status = db.relationship(HolidayRequestStatus, lazy='joined')
-    type = db.relationship(HolidayRequestType, lazy='joined')
     user = db.relationship(User, lazy='joined')
 
 
