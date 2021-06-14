@@ -9,6 +9,7 @@ query GetAllUsers {
 query GetCurrentUser {
     user {
         id,
-        name
+        name,
+        roles
     }
 }

@@ -1,17 +1,18 @@
+import { useContext } from 'react';
 import { Layout, Menu, Avatar } from 'antd';
 import { Link } from 'react-router-dom';
-import { useGetUserInfoQuery } from '../generated/graphql';
 import pracujta from '../resources/pracujta.png';
+import { UserContext } from '../utils/auth';
 import '../css/Navigation.css';
 
 const { Header } = Layout;
 const { SubMenu } = Menu;
 
 export const Navigation = (): JSX.Element => {
-  const { data: userInfo } = useGetUserInfoQuery();
+  const userInfo = useContext(UserContext);
 
-  const user = userInfo?.user?.name || '';
-  const userRoles = userInfo?.user?.roles || '';
+  const user = userInfo?.name || '';
+  const userRoles = userInfo?.roles || '';
 
   return(
     <Header className="header">

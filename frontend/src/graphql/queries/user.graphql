@@ -1,7 +1,0 @@
-query GetUserInfo($userId: ID) { 
-    user(id: $userId) { 
-        id, 
-        name,
-        roles
-    } 
-}

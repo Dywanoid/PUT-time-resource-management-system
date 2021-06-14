@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useContext } from 'react';
 import {
   Layout, Form, Input, Button,
   List, Select, FormInstance, DatePicker, notification,
@@ -11,10 +11,10 @@ import {
   useGetAllUsersQuery,
   namedOperations,
   useCreateHolidayRequestMutation,
-  useGetUserInfoQuery,
   useGetUserApplicationsTypesQuery
 } from '../generated/graphql';
 import moment from 'moment';
+import { UserContext } from '../utils/auth';
 import '../css/ApplicationView.css';
 
 const { Content } = Layout;
@@ -41,7 +41,7 @@ const colorHash = (str: string) => {
 };
 
 export const ApplicationsView = (): JSX.Element => {
-  const { data: userInfo } = useGetUserInfoQuery();
+  const userInfo = useContext(UserContext);
   const { data: usersData } = useGetAllUsersQuery();
   const { data: requestStatuses } = useGetHolidayRequestStatusesQuery();
   const [supervisorId, setSupervisorId] = useState('');
@@ -74,9 +74,9 @@ export const ApplicationsView = (): JSX.Element => {
   };
 
   if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0) {
-    setUserId(userInfo.user.id);
-    setUserRole(userInfo.user.roles as any);
-    getUserApplications({ variables: { holidayUserId: userInfo.user.id } });
+    setUserId(userInfo.id || '');
+    setUserRole(userInfo.roles as any);
+    getUserApplications({ variables: { holidayUserId: userInfo.id || '' } });
   }
 
   const users = usersData?.users || [];

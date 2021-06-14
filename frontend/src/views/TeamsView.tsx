@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { List, Modal, Form, Input, Button, Space, Transfer, notification, Avatar } from 'antd';
 import { useApolloClient } from '@apollo/client';
 import {
   useGetAllTeamsQuery,
   useGetAllUsersQuery,
-  useGetUserInfoQuery,
   useCreateTeamMutation,
   useCreateTeamMembersMutation,
   useDeleteTeamMembersMutation,
@@ -16,6 +15,7 @@ import {
 } from '../generated/graphql';
 import PropTypes from 'prop-types';
 import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
+import { UserContext } from '../utils/auth';
 import '../css/TeamsView.css';
 
 const { Search } = Input;
@@ -62,9 +62,9 @@ const colorHash = (str: string) => {
 };
 
 export const TeamsView = () : JSX.Element => {
-  const { data: userInfo } = useGetUserInfoQuery();
-  const userRole = userInfo?.user?.roles || ['user'];
-  const userId = userInfo?.user?.id || '0';
+  const userInfo = useContext(UserContext);
+  const userRole = userInfo?.roles || ['user'];
+  const userId = userInfo?.id || '0';
   const { data: userTeamsData } = useGetUserTeamsQuery(
     {
       fetchPolicy: 'no-cache',

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Layout, Menu, Avatar, Modal, Transfer, notification, List } from 'antd';
-import { useGetAllUsersQuery, useGetUserInfoQuery } from '../generated/graphql';
+import { useGetAllUsersQuery } from '../generated/graphql';
+import { UserContext } from '../utils/auth';
 
 const openNotificationWithIcon = (type, action) => {
   notification[type]({
@@ -16,13 +17,13 @@ const elementCompare = (a, b) =>
     && a.every((v, i) => v === b[i]);
 
 export const SubordinatesView = () : JSX.Element => {
-  const { data: userInfo } = useGetUserInfoQuery();
+  const userInfo = useContext(UserContext);
   const { data: userData } = useGetAllUsersQuery();
   const [teamIdentify, setTeamId] = useState('');
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
   const [targetKeysInitial, setTargetKeysInitial] = useState<string[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-  const user = userInfo?.user.name || '';
+  const user = userInfo?.name || '';
   const users = userData?.users || [] as any;
   const mockData: Array<{ key: string, username: string }> = [];
 

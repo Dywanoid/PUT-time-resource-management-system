@@ -1109,19 +1109,6 @@ export type GetUserProjectsQuery = (
   )>> }
 );
 
-export type GetUserInfoQueryVariables = Exact<{
-  userId?: Maybe<Scalars['ID']>;
-}>;
-
-
-export type GetUserInfoQuery = (
-  { __typename?: 'Query' }
-  & { user: (
-    { __typename?: 'User' }
-    & Pick<User, 'id' | 'name' | 'roles'>
-  ) }
-);
-
 export type GetAllUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1140,7 +1127,7 @@ export type GetCurrentUserQuery = (
   { __typename?: 'Query' }
   & { user: (
     { __typename?: 'User' }
-    & Pick<User, 'id' | 'name'>
+    & Pick<User, 'id' | 'name' | 'roles'>
   ) }
 );
 
@@ -2469,43 +2456,6 @@ export function useGetUserProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
 export type GetUserProjectsQueryHookResult = ReturnType<typeof useGetUserProjectsQuery>;
 export type GetUserProjectsLazyQueryHookResult = ReturnType<typeof useGetUserProjectsLazyQuery>;
 export type GetUserProjectsQueryResult = Apollo.QueryResult<GetUserProjectsQuery, GetUserProjectsQueryVariables>;
-export const GetUserInfoDocument = gql`
-    query GetUserInfo($userId: ID) {
-  user(id: $userId) {
-    id
-    name
-    roles
-  }
-}
-    `;
-
-/**
- * __useGetUserInfoQuery__
- *
- * To run a query within a React component, call `useGetUserInfoQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserInfoQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetUserInfoQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useGetUserInfoQuery(baseOptions?: Apollo.QueryHookOptions<GetUserInfoQuery, GetUserInfoQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetUserInfoQuery, GetUserInfoQueryVariables>(GetUserInfoDocument, options);
-      }
-export function useGetUserInfoLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserInfoQuery, GetUserInfoQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetUserInfoQuery, GetUserInfoQueryVariables>(GetUserInfoDocument, options);
-        }
-export type GetUserInfoQueryHookResult = ReturnType<typeof useGetUserInfoQuery>;
-export type GetUserInfoLazyQueryHookResult = ReturnType<typeof useGetUserInfoLazyQuery>;
-export type GetUserInfoQueryResult = Apollo.QueryResult<GetUserInfoQuery, GetUserInfoQueryVariables>;
 export const GetAllUsersDocument = gql`
     query GetAllUsers {
   users {
@@ -2547,6 +2497,7 @@ export const GetCurrentUserDocument = gql`
   user {
     id
     name
+    roles
   }
 }
     `;
@@ -2592,7 +2543,6 @@ export const namedOperations = {
     GetUserTeams: 'GetUserTeams',
     GetTeamInfo: 'GetTeamInfo',
     GetUserProjects: 'GetUserProjects',
-    GetUserInfo: 'GetUserInfo',
     GetAllUsers: 'GetAllUsers',
     GetCurrentUser: 'GetCurrentUser'
   },

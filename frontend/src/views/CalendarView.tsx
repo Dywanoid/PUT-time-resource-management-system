@@ -1,10 +1,12 @@
+import { useContext } from 'react';
 import { Calendar, Select, Layout, Avatar } from 'antd';
 import {
-  useGetUserInfoQuery,
   useGetTeamInfoQuery,
   useGetUsersApplicationsQuery
 } from '../generated/graphql';
 import '../css/CalendarView.css';
+import { UserContext } from '../utils/auth';
+
 import moment from 'moment';
 
 const { Content } = Layout;
@@ -38,9 +40,9 @@ const colorHash = (str: string) => {
 };
 
 export const CalendarView = (): JSX.Element => {
-  const { data: userInfo } = useGetUserInfoQuery();
-  const userId = userInfo?.user?.id as any;
-  const userRole = userInfo?.user?.roles || ['user'] as any;
+  const userInfo = useContext(UserContext);
+  const userId = userInfo?.id as any;
+  const userRole = userInfo?.roles || ['user'] as any;
   const { data: applicationData, refetch:refetchApplicationData } = useGetUsersApplicationsQuery(
     {
       fetchPolicy: 'no-cache',
