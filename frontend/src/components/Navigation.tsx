@@ -3,6 +3,7 @@ import { Layout, Menu, Avatar } from 'antd';
 import { Link } from 'react-router-dom';
 import pracujta from '../resources/pracujta.png';
 import { UserContext } from '../utils/auth';
+import { colorHash } from '../utils/colorHash';
 import '../css/Navigation.css';
 
 const { Header } = Layout;
@@ -46,7 +47,9 @@ export const Navigation = (): JSX.Element => {
       </Menu>
       <Menu theme="dark" mode="horizontal" defaultSelectedKeys={ ['1'] } className="logoutMenu">
         <SubMenu
-          key="SubMenu3" title={ <Avatar>{ user.match(/\b(\w)/g) }</Avatar> }>
+          key="SubMenu3" title={
+            <Avatar style={{ backgroundColor: colorHash(user) }}>{ user.match(/\b(\w)/g) }</Avatar>
+          }>
           <Menu.Item key="7" onClick={ () => window.location.href='http://localhost/logout'}>Wyloguj</Menu.Item>
         </SubMenu>
       </Menu>

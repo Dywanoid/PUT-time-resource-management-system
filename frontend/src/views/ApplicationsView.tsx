@@ -15,6 +15,7 @@ import {
 } from '../generated/graphql';
 import moment from 'moment';
 import { UserContext } from '../utils/auth';
+import { colorHash } from '../utils/colorHash';
 import '../css/ApplicationView.css';
 
 const { Content } = Layout;
@@ -27,17 +28,6 @@ const openNotificationWithIcon = (type, action) => {
       : `Akcja ${ action } nie została wykonana.`,
     message: 'Powiadomienie'
   });
-};
-
-const colorHash = (str: string) => {
-  let hash = 0;
-
-  for(let i=0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 3) - hash);
-  }
-  const color = Math.abs(hash).toString(16).substring(0, 6);
-
-  return '#' + '000000'.substring(0, 6 - color.length) + color;
 };
 
 export const ApplicationsView = (): JSX.Element => {
