@@ -96,6 +96,42 @@ type TimeLogInfo {
     totalCount: Int
 }
 
+type Report {
+    fromDate: Date!
+    toDate: Date!
+    clientReports: [ClientReport!]
+}
+
+type ClientReport {
+    client: Client!
+    projectReports: [ProjectReport!]
+    summary: ReportSummary!
+    invoiceUrl: String!
+}
+
+type ProjectReport {
+    project: Project!
+    taskReports: [TaskReport!]
+    summary: ReportSummary!
+}
+
+type TaskReport {
+    task: Task!
+    summary: ReportSummary!
+}
+
+type ReportSummary {
+    totalCost: Float!
+    timeLogCosts: [TimeLogCost!]
+}
+
+type TimeLogCost {
+    user: User!
+    duration: Interval!
+    hourlyRate: Float!
+    cost: Float!
+}
+
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client!
@@ -115,6 +151,11 @@ type Query {
         offset: Int = 0, 
         limit: Int = 10
         ): [ProjectAssignment!]
+    report(
+        projectIds: [ID!]
+        fromDate: Date!,
+        toDate: Date!
+    ): Report!
 }
 
 input CreateClientInput {
