@@ -18,7 +18,8 @@ client_object = ObjectType("Client")
 project_object = ObjectType("Project")
 project_assignment_object = ObjectType("ProjectAssignment")
 currency_enum = EnumType("Currency", Currency)
-
+holiday_request_type_enum = EnumType("HolidayRequestType", HolidayRequestType)
+holiday_request_status_enum = EnumType("HolidayRequestStatus", HolidayRequestStatus)
 
 @dataclass
 class TimeLogInfo:
