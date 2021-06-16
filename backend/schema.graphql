@@ -9,19 +9,19 @@ enum Currency {
 }
 
 enum HolidayRequestStatus {
-    Pending
-    Accepted
-    Rejected
-    Cancelled
+    PENDING
+    ACCEPTED
+    REJECTED
+    CANCELLED
 }
 
 enum HolidayRequestType {
-    HO
-    OD
-    UP
-    CC
-    CL
-    L4
+    HOLIDAY
+    ON_DEMAND
+    UNPAID
+    CHILD_CARE
+    COMPASSIONATE_LEAVE
+    SICK_LEAVE
 }
 
 # Indicates that if value is not specified, it's treated as min or max
@@ -88,15 +88,21 @@ type TeamMember {
     team: Team!
 }
 
+type DayOff {
+    startDate: DateTime!
+    endDate: DateTime!
+    user: User!
+}
+
 type HolidayRequest {
     id: ID!
-    userId: ID!
     status: HolidayRequestStatus!
     type: HolidayRequestType!
     startDate: DateTime!
     endDate: DateTime!
     createdAt: DateTime!
     user: User!
+    changedBy: User!
 }
 
 type ProjectAssignment {
@@ -134,8 +140,13 @@ type Query {
     team(id: ID!): Team!
     users(offset: Int = 0, limit: Int = 10): [User!]
     user(id: ID): User!
-    userHolidayRequests(userId: ID!, onlyPending: Boolean = false, startDate: DateTime, endDate: DateTime): [HolidayRequest!]
-    teamHolidayRequests(requestStatuses: [ID]!, teamList: [ID]!, startDate: DateTime, endDate: DateTime): [HolidayRequest!]
+    holidayRequests(
+        requestStatuses: [HolidayRequestStatus]
+        requestType: [HolidayRequestType]
+        userList: [ID], teamList: [ID], 
+        startDate: DateTime, 
+        endDate: DateTime): [HolidayRequest!]
+    daysOff(userList: [ID], teamList: [ID], startDate: DateTime, endDate: DateTime): [DayOff!]
     teamMembers(teamId: ID!): [TeamMember!] @deprecated(reason: "use team(id) { members { ... } }")
     userTeams(userId: ID!): [TeamMember!] @deprecated(reason: "use user(id) { teams { ... } }")
     projectAssignments(
