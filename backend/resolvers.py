@@ -546,10 +546,10 @@ def resolve_create_holiday_request(obj, info, input):
 @mutation.field("changeHolidayRequestStatus")
 @mutate_item(HolidayRequest, 'request_id')
 def resolve_change_holiday_request_status(holiday_request, input):
-    status_id = input.get('status_id')
-    if(holiday_request.user_id != current_user.id or status_id != HolidayRequestStatus.CANCELLED):
+    status = input.get('status')
+    if(holiday_request.user_id != current_user.id or status != HolidayRequestStatus.CANCELLED):
         roles_check('manager')
-    holiday_request.status_id = status_id
+    holiday_request.status = status
     holiday_request.changed_by_id = current_user.id
     return holiday_request
 
