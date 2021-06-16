@@ -557,18 +557,20 @@ def resolve_change_holiday_request_status(holiday_request, input):
 
 @query.field("holidayRequests")
 @convert_kwargs_to_snake_case
-def resolve_holiday_requests(obj, info, request_statuses = [HolidayRequestStatus.PENDING], request_type = [HolidayRequestType.HOLIDAY, HolidayRequestType.ON_DEMAND], user_list = [], team_list = [], start_date = date.min, end_date = date.max):
-    user = find_item(User, current_user.id)
-    wanted_users = {int(user) for user in user_list}
+def resolve_holiday_requests(obj, info, request_statuses = [HolidayRequestStatus.PENDING], request_types = [HolidayRequestType.HOLIDAY, HolidayRequestType.ON_DEMAND], user_list = [], team_list = [], start_date = date.min, end_date = date.max):
+    if(not(user_list or team_list)):
+        wanted_users = {current_user.id}
+    else:
+        wanted_users = {int(user) for user in user_list}
     wanted_teams =  {str(team.id) for team in team_list}
-    if(wanted_users != {user.id} or wanted_teams):
+    if(wanted_users != {current_user.id} or wanted_teams):
         roles_check('manager')
     if(end_date < start_date):
         raise ValidationError(f"Starting date ({start_date}) must be earlier than ending date ({end_date})")
     filters = [HolidayRequest.end_date >= start_date, 
         HolidayRequest.start_date <= end_date,
         HolidayRequest.status.in_(request_statuses),
-        HolidayRequest.type.in_(request_type)]
+        HolidayRequest.type.in_(request_types)]
     if user_list:
         filters.append(HolidayRequest.user_id.in_(wanted_users))
     if team_list:

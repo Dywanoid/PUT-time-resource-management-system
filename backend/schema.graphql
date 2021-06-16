@@ -142,7 +142,7 @@ type Query {
     user(id: ID): User!
     holidayRequests(
         requestStatuses: [HolidayRequestStatus]
-        requestType: [HolidayRequestType]
+        requestTypes: [HolidayRequestType]
         userList: [ID], teamList: [ID], 
         startDate: DateTime, 
         endDate: DateTime): [HolidayRequest!]
