@@ -27,6 +27,9 @@ export const Navigation = (): JSX.Element =>  (
       <Menu.Item key="6">
         <Link to="/teams" className="nav-text">Zespoły</Link>
       </Menu.Item>
+      <Menu.Item key="7">
+        <Link to="/reports" className="nav-text">Raporty</Link>
+      </Menu.Item>
     </Menu>
   </Header>
 );

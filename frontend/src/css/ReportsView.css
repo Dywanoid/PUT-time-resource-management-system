@@ -1,0 +1,11 @@
+.pickerLabel { 
+    padding-right: 1em;
+}
+
+.datePicker {
+    float: right;
+}
+
+.reports-date-picker .ant-picker-clear {
+    visibility: hidden;
+}
