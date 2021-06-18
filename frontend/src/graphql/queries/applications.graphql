@@ -1,45 +1,49 @@
-query GetUserApplications($holidayUserId: ID!) {
-  userHolidayRequests(userId: $holidayUserId) {
+query GetHolidayRequests($requestStatuses: [HolidayRequestStatus], $requestTypes: [HolidayRequestType], $startDate: DateTime, $userList: [ID], $teamList: [ID], $endDate: DateTime) {
+  holidayRequests(requestStatuses: $requestStatuses, requestTypes: $requestTypes, startDate: $startDate, endDate: $endDate, userList: $userList, teamList: $teamList) {
       id,
-      userId,
-      typeId,
-      statusId,
+      type,
+      status,
       createdAt,
-      status { id, name },
       startDate,
       endDate,
-      type { id, name, shortCode }
-      user { id, name, roles }
+      user {
+        id,
+        name,
+        roles,
+        teams {
+          id,
+          name,
+          description,
+          archived,
+          createdAt,
+          members{
+            id,
+            name
+          }
+        }
+      }
   }
 }
 
-query GetUsersApplications($requestStatusIds: [ID]!, $start: DateTime, $end: DateTime, $onlyUserTeams: Boolean) {
-  holidayRequests(requestStatuses: $requestStatusIds, startDate: $start, endDate: $end, onlyUserTeams: $onlyUserTeams) {
-      id,
-      userId,
-      typeId,
-      statusId,
-      createdAt,
-      status { id, name },
+query GetUsersDayOff($startDate: DateTime, $userList: [ID], $teamList: [ID], $endDate: DateTime) {
+  holidayRequests(startDate: $startDate, endDate: $endDate, userList: $userList, teamList: $teamList) {
       startDate,
       endDate,
-      type { id, name, shortCode }
-      user { id, name, roles }
-  }
-}
-
-
-query GetUserApplicationsTypes { 
-  holidayRequestTypes { 
-      id, 
-      name,
-      shortCode
-  } 
-}
-
-query GetHolidayRequestStatuses { 
-  holidayRequestStatuses {
-    id,
-    name
+      user {
+        id,
+        name,
+        roles,
+        teams {
+          id,
+          name,
+          description,
+          archived,
+          createdAt,
+          members{
+            id,
+            name
+          }
+        }
+      }
   }
 }

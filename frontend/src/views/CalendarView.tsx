@@ -2,7 +2,8 @@ import { useContext } from 'react';
 import { Calendar, Select, Layout, Avatar } from 'antd';
 import {
   useGetTeamInfoQuery,
-  useGetUsersApplicationsQuery
+  useGetHolidayRequestsQuery,
+  HolidayRequestType
 } from '../generated/graphql';
 import { colorHash } from '../utils/colorHash';
 import '../css/CalendarView.css';
@@ -19,9 +20,9 @@ const getListData = (value, userApplications) => {
     if (value === moment(userApplications[i].startDate)
     || value >= moment(userApplications[i].startDate) && value <= moment(userApplications[i].endDate).add(1, 'days')) {
       listData.push({
-        content: userApplications[i].type.name, id: userApplications[i].id,
+        content: userApplications[i].type, id: userApplications[i].id,
         name: userApplications[i].user.name
-        , type: 'black', userId: userApplications[i].userId
+        , type: 'black', userId: userApplications[i].user.id
       });
     }
   }
@@ -29,18 +30,20 @@ const getListData = (value, userApplications) => {
   return listData || [];
 };
 
+const applicationsTypes = Object.values(HolidayRequestType);
+
 export const CalendarView = (): JSX.Element => {
   const userInfo = useContext(UserContext);
   const userId = userInfo?.id as any;
   const userRole = userInfo?.roles || ['user'] as any;
-  const { data: applicationData, refetch:refetchApplicationData } = useGetUsersApplicationsQuery(
+  const { data: applicationData, refetch:refetchApplicationData } = useGetHolidayRequestsQuery(
     {
       fetchPolicy: 'no-cache',
       variables: {
         end: moment().clone().endOf('month')
-        , onlyUserTeams: !userRole.includes('manager')
-        , requestStatusIds: ['2'], start: moment().clone().startOf('month')
-      }
+        , requestStatuses: ['ACCEPTED'], requestTypes: applicationsTypes,
+        start: moment().clone().startOf('month')
+      } as any
     }
   );
   const { data: userTeamsData } = useGetTeamInfoQuery(
@@ -63,7 +66,7 @@ export const CalendarView = (): JSX.Element => {
               size={ 21 } gap={ 4 } shape="square">
               { item.name.match(/\b(\w)/g) }
             </Avatar>
-            { ' ' + item.content }
+            { ' ' + item.content.replace('_', ' ') }
           </li>
         ))}
       </ul>
@@ -73,11 +76,11 @@ export const CalendarView = (): JSX.Element => {
   const changeDateCellRender = (value) => {
     refetchApplicationData({
       end:value.clone().endOf('month')
-      , onlyUserTeams: !userRole.includes('manager'),
-      requestStatusIds: ['2'], start: value.clone().startOf('month')
-    });
+      , requestStatuses: ['ACCEPTED'], requestTypes: applicationsTypes,
+      start: value.clone().startOf('month')
+    } as any);
 
-    const listData = getListData(value, applicationData?.holidayRequests);
+    const listData = getListData(value, userApplications);
 
     return (
       <ul className="events">
@@ -88,7 +91,7 @@ export const CalendarView = (): JSX.Element => {
               { item.name.match(/\b(\w)/g) }
             </Avatar>
             { ' ' }
-            { item.content }
+            { item.content.replace('_', ' ') }
           </li>
         ))}
       </ul>

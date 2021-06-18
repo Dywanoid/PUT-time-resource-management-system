@@ -1,19 +1,55 @@
-mutation createHolidayRequest($userId: ID!, $typeId: ID!, $startDate: DateTime!, $endDate: DateTime!) {
+mutation createHolidayRequest($userId: ID!, $type: HolidayRequestType!, $startDate: DateTime!, $endDate: DateTime!) {
     createHolidayRequest(input: {
             userId: $userId,
-            typeId: $typeId,
+            type: $type,
             startDate: $startDate,
             endDate: $endDate
         }) {
-        id
+        id,
+        status,
+        type,
+        startDate,
+        endDate,
+        createdAt,
+        user {
+            id,
+            name,
+            roles,
+            teams {
+                id,
+                name,
+                description,
+                archived,
+                createdAt
+            }
+        }
+        changedBy { id, name }
     }
 }
 
-mutation changeHolidayRequestStatus($requestId: ID!, $statusId: ID!) {
+mutation changeHolidayRequestStatus($requestId: ID!, $status: HolidayRequestStatus!) {
     changeHolidayRequestStatus(input: {
             requestId: $requestId,
-            statusId: $statusId
+            status: $status
         }) {
-        status{ id, name }
+        id,
+        status,
+        type,
+        startDate,
+        endDate,
+        createdAt,
+        user {
+            id,
+            name,
+            roles,
+            teams {
+                id,
+                name,
+                description,
+                archived,
+                createdAt
+            }
+        }
+        changedBy { id, name }
     }
 }

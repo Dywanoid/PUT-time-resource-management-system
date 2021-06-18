@@ -6,12 +6,12 @@ import {
 } from 'antd';
 import {
   useChangeHolidayRequestStatusMutation,
-  useGetHolidayRequestStatusesQuery,
-  useGetUserApplicationsLazyQuery,
   useGetAllUsersQuery,
   namedOperations,
   useCreateHolidayRequestMutation,
-  useGetUserApplicationsTypesQuery
+  HolidayRequestStatus,
+  HolidayRequestType,
+  useGetHolidayRequestsLazyQuery
 } from '../generated/graphql';
 import moment from 'moment';
 import { UserContext } from '../utils/auth';
@@ -30,18 +30,19 @@ const openNotificationWithIcon = (type, action) => {
   });
 };
 
+const requestStatuses = Object.values(HolidayRequestStatus);
+const applicationsTypes = Object.values(HolidayRequestType);
+
 export const ApplicationsView = (): JSX.Element => {
   const userInfo = useContext(UserContext);
   const { data: usersData } = useGetAllUsersQuery();
-  const { data: requestStatuses } = useGetHolidayRequestStatusesQuery();
   const [supervisorId, setSupervisorId] = useState('');
   const [requestType, setRequestType] = useState('');
   const [startDate, setStartDate] = useState(Date);
   const [endDate, setEndDate] = useState(Date);
   const [userId, setUserId] = useState('');
   const [userRole, setUserRole] = useState<string[]>([]);
-  const [getUserApplications, { data: applicationData }] = useGetUserApplicationsLazyQuery();
-  const { data: applicationsTypes } = useGetUserApplicationsTypesQuery();
+  const [getHolidayRequests, { data: applicationData }] = useGetHolidayRequestsLazyQuery();
   const [createApplication] = useCreateHolidayRequestMutation({
     onCompleted(){ openNotificationWithIcon('success', 'tworzenia wniosku'); },
     onError() { openNotificationWithIcon('error', 'tworzenia wniosku'); }
@@ -52,27 +53,30 @@ export const ApplicationsView = (): JSX.Element => {
   });
   const sendApplicationRequest = (supervisor, request, start, end) => {
     createApplication({
-      refetchQueries: [namedOperations.Query.GetUserApplications],
-      variables: { endDate: end, startDate: start, typeId: request, userId: supervisor }
+      refetchQueries: [namedOperations.Query.GetHolidayRequests],
+      variables: { endDate: end, startDate: start, type: request, userId: supervisor }
     });
   };
   const changeApplicationRequestStatus = (appId, reqId) => {
     changeApplicationRequest({
-      refetchQueries: [namedOperations.Query.GetUserApplications],
-      variables: { requestId: appId, statusId: reqId }
+      refetchQueries: [namedOperations.Query.GetHolidayRequests],
+      variables: { requestId: appId, status: reqId }
     });
   };
 
   if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0) {
     setUserId(userInfo.id || '');
     setUserRole(userInfo.roles as any);
-    getUserApplications({ variables: { holidayUserId: userInfo.id || '' } });
+    getHolidayRequests(
+      {
+        variables:
+        { requestStatuses, requestTypes: applicationsTypes }
+      }
+    );
   }
 
   const users = usersData?.users || [];
-  const types = applicationsTypes?.holidayRequestTypes || [];
-  const applicationsData = applicationData?.userHolidayRequests || [];
-  const requestStatusesData = requestStatuses?.holidayRequestStatuses || [];
+  const applicationsData = applicationData?.holidayRequests || [];
 
   const superVisors = [] as any;
   const requestTypes = [] as any;
@@ -90,13 +94,13 @@ export const ApplicationsView = (): JSX.Element => {
     }
   }
 
-  for (let i = 0; i < types.length; i++) {
+  for (let i = 0; i < applicationsTypes.length; i++) {
     requestTypes.push(
       <Select.Option
-        key={ types[i].id }
-        value={ types[i].id }
+        key={ applicationsTypes[i] }
+        value={ applicationsTypes[i] }
       >
-        { types[i].name }
+        { applicationsTypes[i] }
       </Select.Option>
     );
   }
@@ -131,16 +135,6 @@ export const ApplicationsView = (): JSX.Element => {
 
   const handleEventChange = (buttonType, itemId) => {
     changeApplicationRequestStatus(itemId, buttonType);
-  };
-
-  const getUserName = (id) => {
-    for (const user in users) {
-      if(users[user].id === id) {
-        return users[user].name;
-      }
-    }
-
-    return '';
   };
 
   return (
@@ -210,36 +204,36 @@ export const ApplicationsView = (): JSX.Element => {
           return (
             <List.Item
               actions={
-                (userRole.includes('manager') && item.status.name === 'Accepted')
+                (userRole.includes('manager') && item.status === 'ACCEPTED')
                   ? ([
                     <a key="1"
-                      onClick={() => handleEventChange(requestStatusesData[2].id,item.id)}
+                      onClick={() => handleEventChange(requestStatuses[2],item.id)}
                     >
-                      { requestStatusesData[2].name.substr(0, requestStatusesData[2].name.length - 2) }
+                      { requestStatuses[2].substr(0, requestStatuses[2].length - 2) }
                     </a>
                   ])
-                  : ((userRole.includes('manager') && item.status.name === 'Cancelled')
+                  : ((userRole.includes('manager') && item.status === 'CANCELLED')
                     ? ([
                       <div key="2">Cancelled</div>
                     ])
                     : ([
                       <a key="3"
-                        onClick={() => handleEventChange(requestStatusesData[3].id,item.id)}
+                        onClick={() => handleEventChange(requestStatuses[3],item.id)}
                       >
-                        { requestStatusesData[3].name.substr(0, requestStatusesData[3].name.length - 3) }
+                        { requestStatuses[3].substr(0, requestStatuses[3].length - 3) }
                       </a>,
                       <a key="4"
-                        onClick={() => handleEventChange(requestStatusesData[1].id,item.id)}
+                        onClick={() => handleEventChange(requestStatuses[1],item.id)}
                       >
-                        { requestStatusesData[1].name.substr(0, requestStatusesData[1].name.length - 2) }
+                        { requestStatuses[1].substr(0, requestStatuses[1].length - 2) }
                       </a>
                     ]))
               }
             >
               <List.Item.Meta
                 title={ <div>
-                  { item.type.name + ' - ' }
-                  { getUserName(item.userId) }
+                  { item.type.replace('_', ' ') + ' - ' }
+                  { item.user.name }
                 </div> }
                 description={ <div>
                   od
@@ -247,9 +241,10 @@ export const ApplicationsView = (): JSX.Element => {
                   do
                   {' ' + moment(item.endDate).format('DD-MM-YYYY')}
                 </div> }
-                avatar={ <Avatar style={{ backgroundColor: colorHash(item.type.name), verticalAlign: 'middle' }}
-                  size={ 64 } gap={ 1 } shape="square">
-                  { item.type.shortCode }
+                avatar={ <Avatar style={
+                  { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
+                size={ 64 } gap={ 1 } shape="square">
+                  { item.type }
                 </Avatar> }
               />
             </List.Item>
