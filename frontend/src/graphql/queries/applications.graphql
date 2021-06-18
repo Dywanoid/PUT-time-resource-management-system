@@ -1,0 +1,49 @@
+query GetHolidayRequests($requestStatuses: [HolidayRequestStatus], $requestTypes: [HolidayRequestType], $startDate: DateTime, $userList: [ID], $teamList: [ID], $endDate: DateTime) {
+  holidayRequests(requestStatuses: $requestStatuses, requestTypes: $requestTypes, startDate: $startDate, endDate: $endDate, userList: $userList, teamList: $teamList) {
+      id,
+      type,
+      status,
+      createdAt,
+      startDate,
+      endDate,
+      user {
+        id,
+        name,
+        roles,
+        teams {
+          id,
+          name,
+          description,
+          archived,
+          createdAt,
+          members{
+            id,
+            name
+          }
+        }
+      }
+  }
+}
+
+query GetUsersDayOff($startDate: DateTime, $userList: [ID], $teamList: [ID], $endDate: DateTime) {
+  holidayRequests(startDate: $startDate, endDate: $endDate, userList: $userList, teamList: $teamList) {
+      startDate,
+      endDate,
+      user {
+        id,
+        name,
+        roles,
+        teams {
+          id,
+          name,
+          description,
+          archived,
+          createdAt,
+          members{
+            id,
+            name
+          }
+        }
+      }
+  }
+}

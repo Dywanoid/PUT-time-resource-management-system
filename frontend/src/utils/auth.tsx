@@ -3,6 +3,7 @@ import { useGetCurrentUserQuery } from '../generated/graphql';
 export interface User {
   id: string | null;
   name: string | null;
+  roles: string[] | [];
 }
 
 export interface ProvideAuthProps {
@@ -17,11 +18,11 @@ const ProvideAuth = ({ children } : ProvideAuthProps) : JSX.Element => {
   if(loading || error) {
     return (<></>);
   }
-  const user: User = { id: data?.user.id || null, name: data?.user.name || null };
+  const user: User = { id: data?.user.id || null, name: data?.user.name || null, roles: data?.user.roles || [] };
 
   return (
     <UserContext.Provider value={user}>
-      {children}
+      { children }
     </UserContext.Provider>
   );
 };

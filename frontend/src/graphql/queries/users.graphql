@@ -1,13 +1,15 @@
 query GetAllUsers { 
     users { 
         id, 
-        name 
+        name,
+        roles
     } 
 }
 
 query GetCurrentUser {
     user {
         id,
-        name
+        name,
+        roles
     }
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { ConfigProvider  } from 'antd';
 import { BrowserRouter as Router, Switch } from 'react-router-dom';
 import {
   ApplicationsView,
@@ -7,7 +8,7 @@ import {
   ClientsView,
   HomeView,
   ProjectAssignmentsView,
-  ResourcesView,
+  SubordinatesView,
   TeamsView,
   ProjectsView,
   TaskView
@@ -17,26 +18,29 @@ import { ProvideAuth } from './utils/auth';
 import { PrivateRoute } from './components';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './graphql/apolloClient';
+import plPL from 'antd/lib/locale/pl_PL';
 import 'antd/dist/antd.css';
 
 ReactDOM.render(
-  <ApolloProvider client={ client }>
-    <ProvideAuth>
-      <Router>
-        <Switch>
-          <PrivateRoute exact component={ HomeView } path='/'/>
-          <PrivateRoute component={ CalendarView } path='/calendar'/>
-          <PrivateRoute component={ ClientsView } path='/clients'/>
-          <PrivateRoute component={ ResourcesView}  path='/resources'/>
-          <PrivateRoute component={ ApplicationsView } path='/applications'/>
-          <PrivateRoute component={ TeamsView } path='/teams'/>
-          <PrivateRoute component={ ProjectsView } path='/projects'/>
-          <PrivateRoute component={ TaskView } path='/tasks'/>
-          <PrivateRoute component={ProjectAssignmentsView} path='/projectAssignments'/>
-        </Switch>
-      </Router>
-    </ProvideAuth>
-  </ApolloProvider>,
+  <ConfigProvider locale={ plPL }>
+    <ApolloProvider client={ client }>
+      <ProvideAuth>
+        <Router>
+          <Switch>
+            <PrivateRoute exact component={ HomeView } path='/'/>
+            <PrivateRoute component={ CalendarView } path='/calendar'/>
+            <PrivateRoute component={ ClientsView } path='/clients'/>
+            <PrivateRoute component={ ApplicationsView } path='/applications'/>
+            <PrivateRoute component={ TeamsView } path='/teams'/>
+            <PrivateRoute component={ ProjectsView } path='/projects'/>
+            <PrivateRoute component={ TaskView } path='/tasks'/>
+            <PrivateRoute component={ ProjectAssignmentsView } path='/projectAssignments'/>
+            <PrivateRoute component={ SubordinatesView } path='/subordinate'/>
+          </Switch>
+        </Router>
+      </ProvideAuth>
+    </ApolloProvider>
+  </ConfigProvider>,
   document.getElementById('root')
 );
 

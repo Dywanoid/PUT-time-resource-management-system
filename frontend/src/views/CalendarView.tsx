@@ -1,117 +1,117 @@
-import React from 'react';
-import { Calendar, Badge, Select } from 'antd';
-import 'antd/dist/antd.css';
+import { useContext } from 'react';
+import { Calendar, Select, Layout, Avatar } from 'antd';
+import {
+  useGetTeamInfoQuery,
+  useGetHolidayRequestsQuery,
+  HolidayRequestType
+} from '../generated/graphql';
+import { colorHash } from '../utils/colorHash';
+import '../css/CalendarView.css';
+import { UserContext } from '../utils/auth';
 
-const getListData = (value) => {
-  let listData;
+import moment from 'moment';
 
-  switch (value.date()) {
-    case 21:
-      listData = [
-        { content: 'Urlop - Tomek', key: '1', type: 'error'  }
-      ];
-      break;
-    case 4:
-      listData = [
-        { content: 'Opieka - Jan Kowalski', key: '2', type: 'error' }
-      ];
-      break;
-    case 5:
-      listData = [
-        { content: 'Opieka - Jan Kowalski', key: '3', type: 'error' }
-      ];
-      break;
-    case 6:
-      listData = [
-        { content: 'Opieka - Jan Kowalski', key: '4', type: 'error' }
-      ];
-      break;
-    case 7:
-      listData = [
-        { content: 'Opieka - Jan Kowalski', key: '5', type: 'error' }
-      ];
-      break;
-    case 24:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '6', type: 'error' }
-      ];
-      break;
-    case 28:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '7', type: 'error' }
-      ];
-      break;
-    case 25:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '8', type: 'error' }
-      ];
-      break;
-    case 27:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '9', type: 'error' }
-      ];
-      break;
-    case 26:
-      listData = [
-        { content: 'Opieka - Piotr Nowak', key: '10', type: 'error' }
-      ];
-      break;
-    case 10:
-      listData = [
-        { key: '11', pe: 'warning',  tycontent: 'Urlop - Mariusz.' },
-        { key: '12', pe: 'success', tycontent: 'L4 - Piotr Nowak' }
-      ];
-      break;
-    case 11:
-      listData = [
-        { key: '13', pe: 'success', tycontent: 'L4 - Piotr Nowak' }
-      ];
-      break;
-    case 12:
-      listData = [
-        { content: 'L4 - Piotr Nowak.', key: '14', type: 'success' }
-      ];
-      break;
-    case 14:
-      listData = [
-        { content: 'Urlop - Krzysztof', key: '15', type: 'warning' },
-        { content: 'L4 - Jan Kowalski', key: '16', type: 'success' }
-      ];
-      break;
-    case 20:
-      listData = [
-        { content: 'Urlop - Cyryl', key: '17', type: 'warning' },
-        { content: 'L4 - Jan Kowalski', key: '18', type: 'success' }
-      ];
-      break;
-    default:
+const { Content } = Layout;
+
+const getListData = (value, userApplications) => {
+  const listData: Array<{ content: string, type: string, id: string, name: string, userId: string }> = [];
+
+  for (let i = 0; i < userApplications.length; i++) {
+    if (value === moment(userApplications[i].startDate)
+    || value >= moment(userApplications[i].startDate) && value <= moment(userApplications[i].endDate).add(1, 'days')) {
+      listData.push({
+        content: userApplications[i].type, id: userApplications[i].id,
+        name: userApplications[i].user.name
+        , type: 'black', userId: userApplications[i].user.id
+      });
+    }
   }
 
   return listData || [];
 };
 
-const dateCellRender = (value) => {
-  const listData = getListData(value);
+const applicationsTypes = Object.values(HolidayRequestType);
+
+export const CalendarView = (): JSX.Element => {
+  const userInfo = useContext(UserContext);
+  const userId = userInfo?.id as any;
+  const userRole = userInfo?.roles || ['user'] as any;
+  const { data: applicationData, refetch:refetchApplicationData } = useGetHolidayRequestsQuery(
+    {
+      fetchPolicy: 'no-cache',
+      variables: {
+        end: moment().clone().endOf('month')
+        , requestStatuses: ['ACCEPTED'], requestTypes: applicationsTypes,
+        start: moment().clone().startOf('month')
+      } as any
+    }
+  );
+  const { data: userTeamsData } = useGetTeamInfoQuery(
+    {
+      fetchPolicy: 'no-cache',
+      skip: !userId, variables:{ id: userId }
+    }
+  );
+  const userApplications = applicationData?.holidayRequests || [];
+  const userTeamsInfo = userTeamsData?.team || [];
+
+  const dateCellRender = (value) => {
+    const listData = getListData(value, userApplications);
+
+    return (
+      <ul className="events">
+        {listData.map((item) => (
+          <li key={ item.id }>
+            <Avatar style={{ backgroundColor: colorHash(item.name), marginTop: '-3px', verticalAlign: 'middle' }}
+              size={ 21 } gap={ 4 } shape="square">
+              { item.name.match(/\b(\w)/g) }
+            </Avatar>
+            { ' ' + item.content.replace('_', ' ') }
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  const changeDateCellRender = (value) => {
+    refetchApplicationData({
+      end:value.clone().endOf('month')
+      , requestStatuses: ['ACCEPTED'], requestTypes: applicationsTypes,
+      start: value.clone().startOf('month')
+    } as any);
+
+    const listData = getListData(value, userApplications);
+
+    return (
+      <ul className="events">
+        {listData.map((item) => (
+          <li key={ item.id }>
+            <Avatar style={{ backgroundColor: colorHash(item.name), marginTop: '-3px', verticalAlign: 'middle' }}
+              size={ 21 } gap={ 4 } shape="square">
+              { item.name.match(/\b(\w)/g) }
+            </Avatar>
+            { ' ' }
+            { item.content.replace('_', ' ') }
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
-    <ul className="events">
-      {listData.map((item) => (
-        <li key={ item.key }>
-          <Badge status={ item.type } text={ item.content }/>
-        </li>
-      ))}
-    </ul>
+    <Layout>
+      <Content>
+        <Select
+          showSearch
+          style={{ float:'right', marginLeft:'1%', marginTop: '0.8%', width: 200 }}
+          placeholder="Wybierz Kategorię"
+          optionFilterProp="children"
+        />
+        <Calendar
+          dateCellRender={ dateCellRender }
+          onChange={ changeDateCellRender }
+        />
+      </Content>
+    </Layout>
   );
 };
-
-export const CalendarView = (): JSX.Element => (
-  <div>
-    <Select
-      showSearch
-      style={{ float:'right', marginLeft:'1%', marginTop: '0.8%', width: 200 }}
-      placeholder="Wybierz Kategorię"
-      optionFilterProp="children"
-    />
-    <Calendar dateCellRender={ dateCellRender }/>
-  </div>
-);

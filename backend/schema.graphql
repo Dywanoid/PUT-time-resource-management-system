@@ -8,6 +8,22 @@ enum Currency {
     PLN
 }
 
+enum HolidayRequestStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+    CANCELLED
+}
+
+enum HolidayRequestType {
+    HOLIDAY
+    ON_DEMAND
+    UNPAID
+    CHILD_CARE
+    COMPASSIONATE_LEAVE
+    SICK_LEAVE
+}
+
 # Indicates that if value is not specified, it's treated as min or max
 directive @defaultmax on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 directive @defaultmin on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
@@ -68,6 +84,25 @@ type TeamMember {
     userId: ID!
     teamId: ID!
     createdAt: DateTime!
+    user: User!
+    team: Team!
+}
+
+type DayOff {
+    startDate: DateTime!
+    endDate: DateTime!
+    user: User!
+}
+
+type HolidayRequest {
+    id: ID!
+    status: HolidayRequestStatus!
+    type: HolidayRequestType!
+    startDate: DateTime!
+    endDate: DateTime!
+    createdAt: DateTime!
+    user: User!
+    changedBy: User!
 }
 
 type ProjectAssignment {
@@ -105,6 +140,13 @@ type Query {
     team(id: ID!): Team!
     users(offset: Int = 0, limit: Int = 10): [User!]
     user(id: ID): User!
+    holidayRequests(
+        requestStatuses: [HolidayRequestStatus]
+        requestTypes: [HolidayRequestType]
+        userList: [ID], teamList: [ID], 
+        startDate: DateTime, 
+        endDate: DateTime): [HolidayRequest!]
+    daysOff(userList: [ID], teamList: [ID], startDate: DateTime, endDate: DateTime): [DayOff!]
     teamMembers(teamId: ID!): [TeamMember!] @deprecated(reason: "use team(id) { members { ... } }")
     userTeams(userId: ID!): [TeamMember!] @deprecated(reason: "use user(id) { teams { ... } }")
     projectAssignments(
@@ -219,6 +261,18 @@ input CreateTeamMemberBatchInput {
     teamId: ID!
 }
 
+input CreateHolidayRequestInput {
+    userId: ID!
+    type: HolidayRequestType!
+    startDate: DateTime!
+    endDate: DateTime!
+}
+
+input ChangeHolidayRequestStatusInput {
+    requestId: ID!
+    status: HolidayRequestStatus!
+}
+
 input CreateProjectAssignmentInput {
     userId: ID!
     projectId: ID!
@@ -272,6 +326,8 @@ type Mutation {
     deleteTeamMember(input: DeleteTeamMemberInput!): TeamMember!
     deleteTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
     createTeamMemberBatch(input: DeleteTeamMemberBatchInput!): [TeamMember!]
+    createHolidayRequest(input: CreateHolidayRequestInput!): HolidayRequest!
+    changeHolidayRequestStatus(input: ChangeHolidayRequestStatusInput!): HolidayRequest!
     createProjectAssignment(input: CreateProjectAssignmentInput!): ProjectAssignment!
     updateProjectAssignment(input: UpdateProjectAssignmentInput!): ProjectAssignment!
     deleteProjectAssignment(input: DeleteProjectAssignmentInput!): ProjectAssignment!

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { List, Modal, Form, Input, Button, Space, Transfer, notification } from 'antd';
+import React, { useState, useContext } from 'react';
+import { List, Modal, Form, Input, Button, Space, Transfer, notification, Avatar } from 'antd';
 import { useApolloClient } from '@apollo/client';
 import {
   useGetAllTeamsQuery,
@@ -10,10 +10,13 @@ import {
   useUpdateTeamMutation,
   useArchiveTeamMutation,
   namedOperations,
-  GetAllUsersInTeamDocument
+  GetAllUsersInTeamDocument,
+  useGetUserTeamsQuery
 } from '../generated/graphql';
 import PropTypes from 'prop-types';
 import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
+import { UserContext } from '../utils/auth';
+import { colorHash } from '../utils/colorHash';
 import '../css/TeamsView.css';
 
 const { Search } = Input;
@@ -49,6 +52,15 @@ const elementCompare = (a, b) =>
   && a.every((v, i) => v === b[i]);
 
 export const TeamsView = () : JSX.Element => {
+  const userInfo = useContext(UserContext);
+  const userRole = userInfo?.roles || ['user'];
+  const userId = userInfo?.id || '0';
+  const { data: userTeamsData } = useGetUserTeamsQuery(
+    {
+      fetchPolicy: 'no-cache',
+      skip: !userId, variables:{ userId: userId }
+    }
+  );
   const { data } = useGetAllTeamsQuery();
   const { data: userData } = useGetAllUsersQuery();
   const [createTeam] = useCreateTeamMutation({
@@ -82,11 +94,13 @@ export const TeamsView = () : JSX.Element => {
   const [showArchived, setShowArchived] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isTeamManagementModalVisible, setIsTeamManagementVisible] = useState(false);
+  const [isTeamViewModalVisible, setIsTeamViewVisible] = useState(false);
   const [isArchiveModalVisible, setIsArchiveModalVisible] = useState(false);
   const [isCreateTeamModal, setCreateTeamModal] = useState(false);
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
   const [targetKeysInitial, setTargetKeysInitial] = useState<string[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const [usersInTeamArr, setUseresInTeamArr] = useState([{ key: '0',name: 'lol' }]);
   const [form] = Form.useForm();
   const client = useApolloClient();
 
@@ -153,6 +167,23 @@ export const TeamsView = () : JSX.Element => {
     setIsTeamManagementVisible(true);
   };
 
+  const showTeamViewModal = async (teamId) => {
+    setTeamId(teamId);
+    const { data:usersInTeamData } = await client.query({
+      query: GetAllUsersInTeamDocument,
+      variables: { teamId }
+    });
+
+    const usersInTeam = await usersInTeamData?.teamMembers || [];
+    const usersList: Array<{ key: string, name: string }> = [];
+
+    for (let i = 0; i < usersInTeam.length; i++) {
+      usersList.push({ key: usersInTeam[i].userId, name: usersInTeam[i].user.name });
+    }
+    setUseresInTeamArr(usersList);
+    setIsTeamViewVisible(true);
+  };
+
   const showArchiveModal = async (teamId) => {
     setTeamId(teamId);
     setIsArchiveModalVisible(true);
@@ -165,6 +196,10 @@ export const TeamsView = () : JSX.Element => {
 
   const handleArchiveModalCancel = () => {
     setIsArchiveModalVisible(false);
+  };
+
+  const handleTeamViewModalCancel = () => {
+    setIsTeamViewVisible(false);
   };
 
   const handleCancel = () => {
@@ -223,8 +258,23 @@ export const TeamsView = () : JSX.Element => {
     setIsModalVisible(true);
   };
 
-  const teams = data?.teams || [];
+  let teams = data?.teams || [];
+  const userTeams = userTeamsData?.userTeams || [];
   const users = userData?.users || [];
+
+  if (!userRole.includes('manager')) {
+    const teamsArr: Array<{ id: string, name: string, description: any, archived: boolean }> = [];
+
+    for (let i = 0; i < userTeams.length; i++) {
+      teamsArr.push({
+        archived: userTeams[i].team.archived,
+        description: userTeams[i].team.description,
+        id: userTeams[i].team.id,
+        name: userTeams[i].team.name
+      });
+    }
+    teams = teamsArr;
+  }
 
   const mockData: Array<{ key: string, username: string }> = [];
 
@@ -236,21 +286,18 @@ export const TeamsView = () : JSX.Element => {
   }
 
   const onElementChange = (nextTargetKeys) => {
-    // console.log('targetKeys:', nextTargetKeys);
-    // console.log('direction:', direction);
-    // console.log('moveKeys:', moveKeys);
-
     setTargetKeys(nextTargetKeys);
   };
 
   const onSelectChange = (sourceSelectedKeys, targetSelectedKeys) => {
-    // console.log(sourceSelectedKeys, targetSelectedKeys);
     setSelectedKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
   };
 
   return (
     <>
-      <Button onClick={ newTeamHandler } className="addTeam">Dodaj zespół ➕</Button>
+      {userRole.includes('manager')
+      && <Button onClick={ newTeamHandler } className="addTeam">Dodaj zespół ➕</Button>
+      }
       <Search
         className="searchInput"
         placeholder="Szukaj zespołu"
@@ -267,14 +314,15 @@ export const TeamsView = () : JSX.Element => {
         bordered
         className="teamsList"
         itemLayout="vertical"
-        dataSource={ [...teams] }
+        dataSource={ [...teams.filter((el) => (showArchived ? el : !el.archived) )] }
+        pagination={{ pageSize: 10 }}
         renderItem={ (item: any) => {
           if ((!item.archived || showArchived) && item.name.toLowerCase().startsWith(searchValue)) {
             return (
               <List.Item
                 className={ item.archived ? 'archivedItem' : 'notArchived' }
                 actions={
-                  (!item.archived)
+                  (!item.archived && userRole.includes('manager'))
                     ? ([
                       <Button key="1" size='small' onClick={
                         () => editTeamButton(item.id, item.name, item.description) }
@@ -286,9 +334,16 @@ export const TeamsView = () : JSX.Element => {
                       </Button>,
                       <Button size='small' key="3" onClick={ () => showTeamManagementModal(item.id) }>
                         <IconText icon={ FormOutlined } text="Zarządzaj zespołem" key="list-vertical-like-o"/>
+                      </Button>,
+                      <Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
+                        <IconText icon={ FormOutlined } text="Pokaż zespół" key="list-vertical-like-o"/>
                       </Button>
                     ])
-                    : undefined
+                    : (!item.archived && !userRole.includes('manager'))
+                      ? ([<Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
+                        <IconText icon={ FormOutlined } text="Pokaż zespół" key="list-vertical-like-o"/>
+                      </Button>])
+                      : undefined
                 }
               >
                 <List.Item.Meta
@@ -361,12 +416,6 @@ export const TeamsView = () : JSX.Element => {
           selectedKeys={ selectedKeys }
           onChange={ onElementChange }
           onSelectChange={ onSelectChange }
-          locale={{
-            itemsUnit: 'użytkownicy',
-            itemUnit: 'użytkownik',
-            notFoundContent: 'lista jest pusta',
-            searchPlaceholder: 'Szukaj tutaj'
-          }}
           render={ (item) => (<List.Item.Meta
             key={ item.key }
             title={ <div>{ item.username }</div> }
@@ -383,6 +432,30 @@ export const TeamsView = () : JSX.Element => {
         visible={ isArchiveModalVisible }
       >
          Czy na pewno chcesz zarchiwizować zespół ?
+      </Modal>
+      <Modal
+        title="Zespół"
+        onCancel={ handleTeamViewModalCancel }
+        cancelText="Wróć"
+        visible={ isTeamViewModalVisible }
+        okButtonProps={{ style: { display: 'none' } }}
+      >
+        <List
+          itemLayout="horizontal"
+          dataSource={ usersInTeamArr }
+          renderItem={(item) => (
+            <List.Item>
+              <List.Item.Meta
+                avatar={
+                  <Avatar style={{ backgroundColor: colorHash(item.name), marginTop: '-3px', verticalAlign: 'middle' }}
+                    size={ 21 } gap={ 4 } shape="square">
+                    { item.name.match(/\b(\w)/g) }
+                  </Avatar> }
+                title={ item.name }
+              />
+            </List.Item>
+          )}
+        />
       </Modal>
     </>
   );};
