@@ -1,0 +1,15 @@
+.actionButton {
+    float: right;
+}
+
+.changeSupervisor {
+    margin-top: 20px;
+}
+
+.ant-list-split.ant-list-something-after-last-item .ant-spin-container > .ant-list-items > .ant-list-item:last-child {
+    color:#0e0e0d2e;
+}
+
+.ant-list-item:last-child {
+    color:black;
+}
