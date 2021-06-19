@@ -1,0 +1,10 @@
+query GetAllClientsAndProjects {
+    clients {
+        id,
+        name,
+        projects {
+            id, 
+            name
+        }
+    }
+}

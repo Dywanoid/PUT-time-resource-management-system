@@ -6,19 +6,21 @@ import moment, { Moment } from 'moment';
 import { Button, Select, Typography, DatePicker, Space } from 'antd';
 import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 
-import { useState } from 'react';
-const { Option } = Select;
+import { useEffect, useState } from 'react';
+import { useGetAllClientsAndProjectsQuery, useGetAllTeamsQuery } from '../generated/graphql';
+import { Loader } from '../components';
 const { Text } = Typography;
 
 interface PickerOption {
-  id: string;
+  label: string;
   value: string;
 }
 
 interface PickerProps {
-  defaultValue: PickerOption;
+  defaultValue: PickerOption[];
   label: string;
-  onChange: (newValue: string) => void;
+  selected: PickerOption[];
+  onChange: (newValue: string[]) => void;
   options: PickerOption[];
 }
 
@@ -26,6 +28,7 @@ const Picker = (props: PickerProps): JSX.Element => {
   const {
     defaultValue,
     label,
+    selected,
     onChange,
     options
   } = props;
@@ -39,67 +42,112 @@ const Picker = (props: PickerProps): JSX.Element => {
       </Text>
 
       <Select
-        defaultValue={defaultValue.id}
+        mode='multiple'
+        style= {{ width: '300px' }}
+        maxTagCount='responsive'
+        value={selected.map((value) => value.value)}
+        defaultValue={defaultValue.map((value) => value.value)}
         onChange={onChange}
-      >
-        {
-          options.map((option) => (
-            <Option
-              key={option.id}
-              value={option.id}
-            >
-              {option.value}
-            </Option>
-          ))
-        }
-      </Select>
+        options={options}
+      />
     </>
   );
 };
 
 const getHandlerForCollection = (
   collection: PickerOption[],
-  setter: React.Dispatch<React.SetStateAction<PickerOption>>
-) => (newSelectedValue: string): void =>
-  setter(collection.find((option) => option.id === newSelectedValue) as PickerOption);
-
-const clientOptions: PickerOption[] = [
-  { id: 'vw', value: 'Volkswagen' },
-  { id: 'biedra', value: 'Biedronka' }
-];
-
-const projectOptions: PickerOption[] = [
-  { id: 'proj1', value: 'Projekt 1' },
-  { id: 'proj2', value: 'Projekt 2' }
-];
-
-const teamOptions: PickerOption[] = [
-  { id: 'team1', value: 'Zespół A' },
-  { id: 'team2', value: 'Zespół B' }
-];
+  setter: React.Dispatch<React.SetStateAction<PickerOption[]>>
+) => (newSelectedValues: string[]): void => {
+  if(newSelectedValues.length) {
+    setter(newSelectedValues.map((value) => collection.find((option) => option.value === value)) as PickerOption[]);
+  }
+};
 
 const currentMomentGetter = () => moment();
-
-// const getMonthEnds = (month: Moment) => {
-//   return {
-//     end: month.clone().endOf('month'),
-//     start: month.clone().startOf('month')
-//   };
-// };
 
 const customDateFormat = (value) => value.format('MMMM YYYY');
 
 export const ReportsView = () : JSX.Element => {
-  const [selectedClient, setSelectedClient] = useState(clientOptions[0]);
-  const [selectedProject, setSelectedProject] = useState(projectOptions[0]);
-  const [selectedTeam, setSelectedTeam] = useState(teamOptions[0]);
+  const [clientOptions, setClientOptions] = useState<PickerOption[]>([]);
+  const [projectOptions, setProjectOptions] = useState<PickerOption[]>([]);
+  const [teamOptions, setTeamOptions] = useState<PickerOption[]>([]);
+
+  const [selectedClients, setSelectedClients] = useState<PickerOption[]>([]);
+  const [selectedProjects, setSelectedProjects] = useState<PickerOption[]>([]);
+  const [selectedTeams, setSelectedTeams] = useState<PickerOption[]>([]);
+
   const [date, setDate] = useState<Moment>(currentMomentGetter);
 
-  const handleClientChange = getHandlerForCollection(clientOptions, setSelectedClient);
-  const handleProjectChange = getHandlerForCollection(projectOptions, setSelectedProject);
-  const handleTeamChange = getHandlerForCollection(teamOptions, setSelectedTeam);
+  const teamsQuery = useGetAllTeamsQuery();
+  const clientsProjectsQuery = useGetAllClientsAndProjectsQuery();
 
-  console.log(selectedClient, selectedProject, selectedTeam);
+  useEffect(
+    () => {
+      if(teamsQuery.error || clientsProjectsQuery.error || teamsQuery.loading || clientsProjectsQuery.loading) {
+        return;
+      }
+      const newClients = clientsProjectsQuery?.data?.clients || [];
+      const newClientOptions = newClients.map(
+        (client) => {
+          return { label: client.name, value: client.id };
+        }
+      ) || [];
+
+      setClientOptions(newClientOptions);
+      setSelectedClients(newClientOptions);
+      handleProjects(newClients, newClientOptions);
+
+      const newTeams = teamsQuery.data?.teams || [];
+      const newTeamOptions = newTeams.map(
+        (team) => {
+          return { label: team.name, value: team.id };
+        }
+      );
+
+      setTeamOptions(newTeamOptions);
+      setSelectedTeams(newTeamOptions);
+    },
+    [
+      teamsQuery,
+      clientsProjectsQuery
+    ]
+  );
+
+  const handleProjects = (clients, selected) => {
+    const selectedClientsMap: {[id: string]: boolean} = selected.reduce((acc, client) => {
+      acc[client.value] = true;
+
+      return acc;
+    }, {});
+
+    const newProjectOptions = clients.reduce((acc: PickerOption[], client) => {
+      if(selectedClientsMap[client.id]) {
+        acc.push(
+          ...(client.projects?.map((project) => {return { label: project.name, value: project.id };}) || [])
+        );
+      }
+
+      return acc;
+    }, []) || [];
+
+    setProjectOptions(newProjectOptions);
+    setSelectedProjects(newProjectOptions);
+  };
+
+  useEffect(
+    () => {
+      if(!teamsQuery.loading && !clientsProjectsQuery.loading) {
+        handleProjects(clientsProjectsQuery?.data?.clients, selectedClients);
+      }
+    },
+    [
+      selectedClients
+    ]
+  );
+
+  const handleClientChange = getHandlerForCollection(clientOptions, setSelectedClients);
+  const handleProjectChange = getHandlerForCollection(projectOptions, setSelectedProjects);
+  const handleTeamChange = getHandlerForCollection(teamOptions, setSelectedTeams);
 
   const changeMonth = (forwardDirection: boolean): void => {
     const months = forwardDirection ? 1 : -1;
@@ -115,6 +163,14 @@ export const ReportsView = () : JSX.Element => {
     }
   };
 
+  if(teamsQuery.error || clientsProjectsQuery.error) {return (<p>Error!</p>);}
+  if(teamsQuery.loading || clientsProjectsQuery.loading) {return (<Loader/>);}
+  if(!selectedClients.length
+    || !selectedProjects.length
+    || !selectedTeams.length) {
+    return (<p>Selektory sie zepsuly</p>);
+  }
+
   return (
     <>
       <Space
@@ -122,21 +178,24 @@ export const ReportsView = () : JSX.Element => {
         size="large"
       >
         <Picker
-          defaultValue={selectedClient}
+          defaultValue={selectedClients}
+          selected={selectedClients}
           label="Klient"
           onChange={handleClientChange}
           options={clientOptions}
         />
 
         <Picker
-          defaultValue={selectedProject}
+          defaultValue={selectedProjects}
+          selected={selectedProjects}
           label="Projekt"
           onChange={handleProjectChange}
           options={projectOptions}
         />
 
         <Picker
-          defaultValue={selectedTeam}
+          defaultValue={selectedTeams}
+          selected={selectedTeams}
           label="Zespół"
           onChange={handleTeamChange}
           options={teamOptions}
