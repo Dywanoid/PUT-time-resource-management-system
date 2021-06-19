@@ -5,6 +5,7 @@ import React, { useContext, useEffect, useMemo, useReducer, useState } from 'rea
 import moment, { Moment } from 'moment';
 import 'moment/locale/pl';
 import locale from 'antd/es/date-picker/locale/pl_PL';
+import { Loader } from './Loader';
 
 import '../css/TimesheetTable.css';
 import {
@@ -447,7 +448,7 @@ export const TimesheetTable: React.FC = () => {
   useDataTransform(data, weekDates, date, dispatch);
 
   if (error) {return <p>{error}</p>;}
-  if (isLoading) {return <p>Loading...</p>;}
+  if (isLoading) {return <Loader/>;}
   // if(!state.length) {return <p>Nie ma żadnych przypisanych projektów!</p>;}
 
   const columns = [
