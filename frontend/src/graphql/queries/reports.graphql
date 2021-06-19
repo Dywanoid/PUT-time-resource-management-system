@@ -1,10 +1,14 @@
-query GetAllClientsAndProjects {
+query GetAllClientsAndProjectsWithTasks {
     clients {
         id,
         name,
         projects {
             id, 
-            name
+            name,
+            tasks {
+                id, 
+                name
+            }
         }
     }
 }

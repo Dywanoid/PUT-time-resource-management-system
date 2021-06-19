@@ -3,11 +3,11 @@ import '../css/ReportsView.css';
 import locale from 'antd/es/date-picker/locale/pl_PL';
 import moment, { Moment } from 'moment';
 
-import { Button, Select, Typography, DatePicker, Space } from 'antd';
+import { Button, Select,Table, Typography, DatePicker, Space } from 'antd';
 import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 
 import { useEffect, useState } from 'react';
-import { useGetAllClientsAndProjectsQuery, useGetAllTeamsQuery } from '../generated/graphql';
+import { useGetAllClientsAndProjectsWithTasksQuery, useGetAllTeamsQuery } from '../generated/graphql';
 import { Loader } from '../components';
 const { Text } = Typography;
 
@@ -23,6 +23,70 @@ interface PickerProps {
   onChange: (newValue: string[]) => void;
   options: PickerOption[];
 }
+
+interface TableRow {
+  client: string;
+  key: string;
+  project: string;
+  task: string;
+  team: string;
+  time: string;
+  cost: string;
+  clientRowSpan: number;
+  projectRowSpan: number;
+  teamRowSpan: number;
+}
+interface TableColumn {
+  // align?: 'center'
+  dataIndex: string;
+  render?: any;
+  title: string;
+}
+
+const dataColumns : TableColumn[] = [
+  {
+    dataIndex: 'client',
+    render: (value, row) => {
+      return {
+        children: value,
+        props: { rowSpan: row.clientRowSpan }
+      };
+    },
+    title: 'Klient'
+  },
+  {
+    dataIndex: 'project',
+    render: (value, row) => {
+      return {
+        children: value,
+        props: { rowSpan: row.projectRowSpan }
+      };
+    },
+    title: 'Projekt'
+  },
+  {
+    dataIndex: 'team',
+    render: (value, row) => {
+      return {
+        children: value,
+        props: { rowSpan: row.teamRowSpan }
+      };
+    },
+    title: 'Zespół'
+  },
+  {
+    dataIndex: 'task',
+    title: 'Zadanie'
+  },
+  {
+    dataIndex: 'time',
+    title: 'Godziny'
+  },
+  {
+    dataIndex: 'cost',
+    title: 'Koszt'
+  }
+];
 
 const Picker = (props: PickerProps): JSX.Element => {
   const {
@@ -43,7 +107,7 @@ const Picker = (props: PickerProps): JSX.Element => {
 
       <Select
         mode='multiple'
-        style= {{ width: '300px' }}
+        style= {{ width: '350px' }}
         maxTagCount='responsive'
         value={selected.map((value) => value.value)}
         defaultValue={defaultValue.map((value) => value.value)}
@@ -79,7 +143,7 @@ export const ReportsView = () : JSX.Element => {
   const [date, setDate] = useState<Moment>(currentMomentGetter);
 
   const teamsQuery = useGetAllTeamsQuery();
-  const clientsProjectsQuery = useGetAllClientsAndProjectsQuery();
+  const clientsProjectsQuery = useGetAllClientsAndProjectsWithTasksQuery();
 
   useEffect(
     () => {
@@ -171,60 +235,161 @@ export const ReportsView = () : JSX.Element => {
     return (<p>Selektory sie zepsuly</p>);
   }
 
+  const rowSpanMap: {[id: string]: number} = {};
+
+  clientsProjectsQuery?.data?.clients?.forEach((client) => {
+    const clientId = `client_${ client.id }`;
+
+    client?.projects?.forEach((project)=>{
+      const projectId = `project_${ project.id }_${ clientId }`;
+      const taskCount = project?.tasks?.length || 0;
+
+      teamsQuery?.data?.teams?.forEach((team) => {
+        const teamId = `team_${ team.id }_${ projectId }`;
+
+        if(!rowSpanMap[clientId]) {
+          rowSpanMap[clientId] = 0;
+        }
+
+        if(!rowSpanMap[projectId]) {
+          rowSpanMap[projectId] = 0;
+        }
+
+        if(!rowSpanMap[teamId]) {
+          rowSpanMap[teamId] = 0;
+        }
+
+        rowSpanMap[clientId] += taskCount;
+        rowSpanMap[projectId] += taskCount;
+        rowSpanMap[teamId] = taskCount;
+      });
+    });
+  });
+
+  const rowSpansUsedMap: {[id: string]: boolean} = {};
+
+  const rows = clientsProjectsQuery?.data?.clients?.reduce((acc: TableRow[], client) => {
+    const clientId = `client_${ client.id }`;
+
+    client?.projects?.forEach((project)=>{
+      const projectId = `project_${ project.id }_${ clientId }`;
+
+      teamsQuery?.data?.teams?.forEach((team) => {
+        const teamId = `team_${ team.id }_${ projectId }`;
+
+        acc.push(...project?.tasks?.map((task) => {
+          let clientRowSpan = 0;
+          let projectRowSpan = 0;
+          let teamRowSpan = 0;
+
+          if(!rowSpansUsedMap[clientId]) {
+            rowSpansUsedMap[clientId] = true;
+            clientRowSpan = rowSpanMap[clientId];
+          }
+
+          if(!rowSpansUsedMap[projectId]) {
+            rowSpansUsedMap[projectId] = true;
+            projectRowSpan = rowSpanMap[projectId];
+          }
+
+          if(!rowSpansUsedMap[teamId]) {
+            rowSpansUsedMap[teamId] = true;
+            teamRowSpan = rowSpanMap[teamId];
+          }
+
+          const randomTime = Math.floor(Math.random() * 100 + 10);
+          const randomCost = Math.floor(Math.random() * 50 + 20);
+
+          const row: TableRow = {
+            client: client.name,
+            clientRowSpan,
+            cost: `${ randomCost * randomTime } zł`,
+            key: `${ Math.random() }`,
+            project: project.name,
+            projectRowSpan,
+            task: task.name,
+            team: team.name,
+            teamRowSpan,
+            time: `${ randomTime }h`
+          };
+
+          return row;
+        }) || []);
+
+      });
+    });
+
+    return acc;
+  }, []) || [];
+
   return (
     <>
       <Space
-        direction="horizontal"
+        direction="vertical"
         size="large"
+        style={{ width: '100%' }}
       >
-        <Picker
-          defaultValue={selectedClients}
-          selected={selectedClients}
-          label="Klient"
-          onChange={handleClientChange}
-          options={clientOptions}
-        />
+        <Space
+          direction="horizontal"
+          size="large"
+        >
+          <Picker
+            defaultValue={selectedClients}
+            selected={selectedClients}
+            label="Klienci"
+            onChange={handleClientChange}
+            options={clientOptions}
+          />
 
-        <Picker
-          defaultValue={selectedProjects}
-          selected={selectedProjects}
-          label="Projekt"
-          onChange={handleProjectChange}
-          options={projectOptions}
-        />
+          <Picker
+            defaultValue={selectedProjects}
+            selected={selectedProjects}
+            label="Projekty"
+            onChange={handleProjectChange}
+            options={projectOptions}
+          />
 
-        <Picker
-          defaultValue={selectedTeams}
-          selected={selectedTeams}
-          label="Zespół"
-          onChange={handleTeamChange}
-          options={teamOptions}
+          <Picker
+            defaultValue={selectedTeams}
+            selected={selectedTeams}
+            label="Zespoły"
+            onChange={handleTeamChange}
+            options={teamOptions}
+          />
+          <div className="datePicker">
+            <Button
+              type="ghost"
+              shape="round"
+              icon={<CaretLeftOutlined/>}
+              size='small'
+              onClick={() => changeMonth(false)}
+            />
+            <DatePicker
+              className="reports-date-picker"
+              locale={locale}
+              onChange={onChangeForDataPicker}
+              picker="month"
+              format={customDateFormat}
+              value={date}
+            />
+            <Button
+              type="ghost"
+              shape="round"
+              icon={<CaretRightOutlined/>}
+              size='small'
+              onClick={() => changeMonth(true)}
+            />
+          </div>
+        </Space>
+
+        <Table
+          columns={dataColumns}
+          dataSource={rows}
+          pagination={false}
+          bordered
         />
       </Space>
-      <div className="datePicker">
-        <Button
-          type="ghost"
-          shape="round"
-          icon={<CaretLeftOutlined/>}
-          size='small'
-          onClick={() => changeMonth(false)}
-        />
-        <DatePicker
-          className="reports-date-picker"
-          locale={locale}
-          onChange={onChangeForDataPicker}
-          picker="month"
-          format={customDateFormat}
-          value={date}
-        />
-        <Button
-          type="ghost"
-          shape="round"
-          icon={<CaretRightOutlined/>}
-          size='small'
-          onClick={() => changeMonth(true)}
-        />
-      </div>
+
     </>
   );
 };

@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable */ 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
@@ -1008,10 +1008,10 @@ export type GetProjectsQuery = (
   ) }
 );
 
-export type GetAllClientsAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetAllClientsAndProjectsWithTasksQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllClientsAndProjectsQuery = (
+export type GetAllClientsAndProjectsWithTasksQuery = (
   { __typename?: 'Query' }
   & { clients?: Maybe<Array<(
     { __typename?: 'Client' }
@@ -1019,6 +1019,10 @@ export type GetAllClientsAndProjectsQuery = (
     & { projects?: Maybe<Array<(
       { __typename?: 'Project' }
       & Pick<Project, 'id' | 'name'>
+      & { tasks?: Maybe<Array<(
+        { __typename?: 'Task' }
+        & Pick<Task, 'id' | 'name'>
+      )>> }
     )>> }
   )>> }
 );
@@ -2189,45 +2193,49 @@ export function useGetProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
 export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLazyQuery>;
 export type GetProjectsQueryResult = Apollo.QueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
-export const GetAllClientsAndProjectsDocument = gql`
-    query GetAllClientsAndProjects {
+export const GetAllClientsAndProjectsWithTasksDocument = gql`
+    query GetAllClientsAndProjectsWithTasks {
   clients {
     id
     name
     projects {
       id
       name
+      tasks {
+        id
+        name
+      }
     }
   }
 }
     `;
 
 /**
- * __useGetAllClientsAndProjectsQuery__
+ * __useGetAllClientsAndProjectsWithTasksQuery__
  *
- * To run a query within a React component, call `useGetAllClientsAndProjectsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAllClientsAndProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetAllClientsAndProjectsWithTasksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllClientsAndProjectsWithTasksQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetAllClientsAndProjectsQuery({
+ * const { data, loading, error } = useGetAllClientsAndProjectsWithTasksQuery({
  *   variables: {
  *   },
  * });
  */
-export function useGetAllClientsAndProjectsQuery(baseOptions?: Apollo.QueryHookOptions<GetAllClientsAndProjectsQuery, GetAllClientsAndProjectsQueryVariables>) {
+export function useGetAllClientsAndProjectsWithTasksQuery(baseOptions?: Apollo.QueryHookOptions<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAllClientsAndProjectsQuery, GetAllClientsAndProjectsQueryVariables>(GetAllClientsAndProjectsDocument, options);
+        return Apollo.useQuery<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>(GetAllClientsAndProjectsWithTasksDocument, options);
       }
-export function useGetAllClientsAndProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllClientsAndProjectsQuery, GetAllClientsAndProjectsQueryVariables>) {
+export function useGetAllClientsAndProjectsWithTasksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAllClientsAndProjectsQuery, GetAllClientsAndProjectsQueryVariables>(GetAllClientsAndProjectsDocument, options);
+          return Apollo.useLazyQuery<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>(GetAllClientsAndProjectsWithTasksDocument, options);
         }
-export type GetAllClientsAndProjectsQueryHookResult = ReturnType<typeof useGetAllClientsAndProjectsQuery>;
-export type GetAllClientsAndProjectsLazyQueryHookResult = ReturnType<typeof useGetAllClientsAndProjectsLazyQuery>;
-export type GetAllClientsAndProjectsQueryResult = Apollo.QueryResult<GetAllClientsAndProjectsQuery, GetAllClientsAndProjectsQueryVariables>;
+export type GetAllClientsAndProjectsWithTasksQueryHookResult = ReturnType<typeof useGetAllClientsAndProjectsWithTasksQuery>;
+export type GetAllClientsAndProjectsWithTasksLazyQueryHookResult = ReturnType<typeof useGetAllClientsAndProjectsWithTasksLazyQuery>;
+export type GetAllClientsAndProjectsWithTasksQueryResult = Apollo.QueryResult<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>;
 export const GetTasksDocument = gql`
     query GetTasks($projectId: ID!) {
   project(id: $projectId) {
@@ -2583,7 +2591,7 @@ export const namedOperations = {
     GetAllClients: 'GetAllClients',
     GetProjectAssignments: 'GetProjectAssignments',
     GetProjects: 'GetProjects',
-    GetAllClientsAndProjects: 'GetAllClientsAndProjects',
+    GetAllClientsAndProjectsWithTasks: 'GetAllClientsAndProjectsWithTasks',
     GetTasks: 'GetTasks',
     GetAllTeams: 'GetAllTeams',
     GetAllUsersInTeam: 'GetAllUsersInTeam',
