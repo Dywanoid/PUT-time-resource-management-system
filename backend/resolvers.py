@@ -100,7 +100,29 @@ def resolve_user(obj, info, id=None):
     if id != str(current_user.id):
         roles_check('manager')
     return find_item(User, id)
+        
 
+@mutation.field("updateSupervisor")
+@roles_required('manager')
+@mutate_item(User, 'user_id')
+def resolve_update_supervisor(user, input):
+    supervisor_id = int(input.get('supervisor_id'))
+    if(user.id == supervisor_id):
+        raise ValidationError("You can't be your own supervisor")
+    subordinates = user.get_all_subordinates()
+    subordinates_id = {subordinate.id for subordinate in subordinates}
+    if(supervisor_id in subordinates_id):
+        raise ValidationError(f"User with ID: {supervisor_id} is subordinate of {user.id}.")
+    user.supervisor_id = supervisor_id
+    return user
+
+
+@query.field("getAllSubordinates")
+@convert_kwargs_to_snake_case
+def resolve_get_all_subordinates(obj, info, user_id = None):
+    id = user_id if user_id else current_user.id
+    user = find_item(User, id)
+    return user.get_all_subordinates()
 
 def find_project_assignments(offset, limit, from_date, to_date, user_id=None, project_id=None, exclude_project_assignment_id=None):
     filters = [
