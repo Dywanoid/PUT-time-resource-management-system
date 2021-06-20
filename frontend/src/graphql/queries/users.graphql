@@ -2,7 +2,23 @@ query GetAllUsers {
     users { 
         id, 
         name,
-        roles
+        roles,
+        teams {
+          id,
+          name,
+          description,
+          archived,
+          createdAt,
+          members{
+            id,
+            name,
+            roles,
+            supervisor{ id, name }
+            subordinates{ id, name, roles }
+          },
+        },
+        supervisor { id, name },
+        subordinates { id, name, roles }
     } 
 }
 
@@ -10,6 +26,22 @@ query GetCurrentUser {
     user {
         id,
         name,
-        roles
+        roles,
+        teams {
+          id,
+          name,
+          description,
+          archived,
+          createdAt,
+          members {
+            id,
+            name,
+            roles,
+            supervisor{ id, name }
+            subordinates{ id, name, roles }
+          },
+        },
+        supervisor { id, name },
+        subordinates { id, name, roles }
     }
 }

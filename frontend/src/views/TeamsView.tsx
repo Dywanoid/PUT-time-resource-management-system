@@ -1,6 +1,5 @@
 import React, { useState, useContext } from 'react';
 import { List, Modal, Form, Input, Button, Space, Transfer, notification, Avatar } from 'antd';
-import { useApolloClient } from '@apollo/client';
 import {
   useGetAllTeamsQuery,
   useGetAllUsersQuery,
@@ -9,9 +8,7 @@ import {
   useDeleteTeamMembersMutation,
   useUpdateTeamMutation,
   useArchiveTeamMutation,
-  namedOperations,
-  GetAllUsersInTeamDocument,
-  useGetUserTeamsQuery
+  namedOperations
 } from '../generated/graphql';
 import PropTypes from 'prop-types';
 import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
@@ -54,15 +51,8 @@ const elementCompare = (a, b) =>
 export const TeamsView = () : JSX.Element => {
   const userInfo = useContext(UserContext);
   const userRole = userInfo?.roles || ['user'];
-  const userId = userInfo?.id || '0';
-  const { data: userTeamsData } = useGetUserTeamsQuery(
-    {
-      fetchPolicy: 'no-cache',
-      skip: !userId, variables:{ userId: userId }
-    }
-  );
   const { data } = useGetAllTeamsQuery();
-  const { data: userData } = useGetAllUsersQuery();
+  const { data: usersData } = useGetAllUsersQuery();
   const [createTeam] = useCreateTeamMutation({
     onCompleted(){ openNotificationWithIcon('success', 'tworzenia zespołu'); },
     onError() { openNotificationWithIcon('error', 'tworzenia zespołu'); }
@@ -102,7 +92,6 @@ export const TeamsView = () : JSX.Element => {
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [usersInTeamArr, setUseresInTeamArr] = useState([{ key: '0',name: 'lol' }]);
   const [form] = Form.useForm();
-  const client = useApolloClient();
 
   const addTeam = () => {
     createTeam({
@@ -137,30 +126,31 @@ export const TeamsView = () : JSX.Element => {
 
   const addTeamMembers = (teamId, teamList) => {
     createTeamMembers({
-      refetchQueries: [{ query: GetAllUsersInTeamDocument, variables: { teamId: teamIdentify } }],
+      refetchQueries: [namedOperations.Query.GetAllTeams],
       variables: { teamId: teamId, userIdList: teamList }
     });
   };
 
   const removeTeamMembers = (teamId, teamList) => {
     deleteTeamMembers({
-      refetchQueries: [{ query: GetAllUsersInTeamDocument, variables: { teamId: teamIdentify } }],
+      refetchQueries: [namedOperations.Query.GetAllTeams],
       variables: { teamId: teamId, userIdList: teamList }
     });
   };
 
   const showTeamManagementModal = async (teamId) => {
     setTeamId(teamId);
-    const { data:usersInTeamData } = await client.query({
-      query: GetAllUsersInTeamDocument,
-      variables: { teamId }
-    });
 
-    const usersInTeam = await usersInTeamData?.teamMembers || [];
+    const usersInTeam = data?.teams || [] as any;
+
     const rightColumn: string[] = [];
 
     for (let i = 0; i < usersInTeam.length; i++) {
-      rightColumn.push(usersInTeam[i].userId);
+      if (usersInTeam[i].id !== undefined && usersInTeam[i].id === teamId) {
+        for (let j = 0; j < usersInTeam[i].members.length; j++) {
+          rightColumn.push(usersInTeam[i].members[j].id);
+        }
+      }
     }
     setTargetKeysInitial(rightColumn);
     setTargetKeys(rightColumn);
@@ -169,16 +159,16 @@ export const TeamsView = () : JSX.Element => {
 
   const showTeamViewModal = async (teamId) => {
     setTeamId(teamId);
-    const { data:usersInTeamData } = await client.query({
-      query: GetAllUsersInTeamDocument,
-      variables: { teamId }
-    });
 
-    const usersInTeam = await usersInTeamData?.teamMembers || [];
+    const usersInTeam = await data?.teams || [] as any;
     const usersList: Array<{ key: string, name: string }> = [];
 
     for (let i = 0; i < usersInTeam.length; i++) {
-      usersList.push({ key: usersInTeam[i].userId, name: usersInTeam[i].user.name });
+      if (usersInTeam[i].id === teamId) {
+        for (let j = 0; j < usersInTeam[i].members.length; j++) {
+          usersList.push({ key: usersInTeam[i].members[j].id, name: usersInTeam[i].members[j].name });
+        }
+      }
     }
     setUseresInTeamArr(usersList);
     setIsTeamViewVisible(true);
@@ -259,18 +249,18 @@ export const TeamsView = () : JSX.Element => {
   };
 
   let teams = data?.teams || [];
-  const userTeams = userTeamsData?.userTeams || [];
-  const users = userData?.users || [];
+  const userTeams = userInfo?.teams as any || [];
+  const users = usersData?.users || [];
 
   if (!userRole.includes('manager')) {
     const teamsArr: Array<{ id: string, name: string, description: any, archived: boolean }> = [];
 
     for (let i = 0; i < userTeams.length; i++) {
       teamsArr.push({
-        archived: userTeams[i].team.archived,
-        description: userTeams[i].team.description,
-        id: userTeams[i].team.id,
-        name: userTeams[i].team.name
+        archived: userTeams[i].archived,
+        description: userTeams[i].description,
+        id: userTeams[i].id,
+        name: userTeams[i].name
       });
     }
     teams = teamsArr;

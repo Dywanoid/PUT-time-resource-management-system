@@ -3,7 +3,14 @@ query GetAllTeams {
         id, 
         name, 
         description, 
-        archived 
+        archived,
+        members {
+            id,
+            name,
+            roles,
+            supervisor{ id, name }
+            subordinates{ id, name, roles }
+          }
         } 
     }
 

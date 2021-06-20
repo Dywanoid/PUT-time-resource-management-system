@@ -208,6 +208,7 @@ export type Mutation = {
   updateProjectAssignment: ProjectAssignment;
   deleteProjectAssignment: ProjectAssignment;
   createUpdateOrDeleteTimeLog: TimeLog;
+  updateSupervisor: User;
 };
 
 
@@ -340,6 +341,11 @@ export type MutationCreateUpdateOrDeleteTimeLogArgs = {
   input: CreateUpdateOrDeleteTimeLogInput;
 };
 
+
+export type MutationUpdateSupervisorArgs = {
+  input: UpdateSupervisorInput;
+};
+
 export type Project = {
   __typename?: 'Project';
   id: Scalars['ID'];
@@ -392,6 +398,7 @@ export type Query = {
   /** @deprecated use user(id) { teams { ... } } */
   userTeams?: Maybe<Array<TeamMember>>;
   projectAssignments?: Maybe<Array<ProjectAssignment>>;
+  getAllSubordinates?: Maybe<Array<User>>;
 };
 
 
@@ -475,6 +482,17 @@ export type QueryProjectAssignmentsArgs = {
   toDate?: Maybe<Scalars['Date']>;
   offset?: Maybe<Scalars['Int']>;
   limit?: Maybe<Scalars['Int']>;
+};
+
+
+export type QueryGetAllSubordinatesArgs = {
+  userId?: Maybe<Scalars['ID']>;
+};
+
+export type Supervisor = {
+  __typename?: 'Supervisor';
+  id: Scalars['ID'];
+  name: Scalars['String'];
 };
 
 export type Task = {
@@ -576,6 +594,13 @@ export type User = {
   name: Scalars['String'];
   roles?: Maybe<Array<Scalars['String']>>;
   teams?: Maybe<Array<Team>>;
+  supervisor?: Maybe<Supervisor>;
+  subordinates?: Maybe<Array<User>>;
+};
+
+export type UpdateSupervisorInput = {
+  userId: Scalars['ID'];
+  supervisorId: Scalars['ID'];
 };
 
 export type CreateHolidayRequestMutationVariables = Exact<{
@@ -1033,46 +1058,17 @@ export type GetAllTeamsQuery = (
   & { teams?: Maybe<Array<(
     { __typename?: 'Team' }
     & Pick<Team, 'id' | 'name' | 'description' | 'archived'>
-  )>> }
-);
-
-export type GetAllUsersInTeamQueryVariables = Exact<{
-  teamId: Scalars['ID'];
-}>;
-
-
-export type GetAllUsersInTeamQuery = (
-  { __typename?: 'Query' }
-  & { teamMembers?: Maybe<Array<(
-    { __typename?: 'TeamMember' }
-    & Pick<TeamMember, 'userId' | 'teamId'>
-    & { user: (
+    & { members?: Maybe<Array<(
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name' | 'roles'>
-    ), team: (
-      { __typename?: 'Team' }
-      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
-    ) }
-  )>> }
-);
-
-export type GetUserTeamsQueryVariables = Exact<{
-  userId: Scalars['ID'];
-}>;
-
-
-export type GetUserTeamsQuery = (
-  { __typename?: 'Query' }
-  & { userTeams?: Maybe<Array<(
-    { __typename?: 'TeamMember' }
-    & Pick<TeamMember, 'userId' | 'teamId' | 'createdAt'>
-    & { user: (
-      { __typename?: 'User' }
-      & Pick<User, 'id' | 'name' | 'roles'>
-    ), team: (
-      { __typename?: 'Team' }
-      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
-    ) }
+      & { supervisor?: Maybe<(
+        { __typename?: 'Supervisor' }
+        & Pick<Supervisor, 'id' | 'name'>
+      )>, subordinates?: Maybe<Array<(
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'name' | 'roles'>
+      )>> }
+    )>> }
   )>> }
 );
 
@@ -1133,6 +1129,27 @@ export type GetAllUsersQuery = (
   & { users?: Maybe<Array<(
     { __typename?: 'User' }
     & Pick<User, 'id' | 'name' | 'roles'>
+    & { teams?: Maybe<Array<(
+      { __typename?: 'Team' }
+      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
+      & { members?: Maybe<Array<(
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'name' | 'roles'>
+        & { supervisor?: Maybe<(
+          { __typename?: 'Supervisor' }
+          & Pick<Supervisor, 'id' | 'name'>
+        )>, subordinates?: Maybe<Array<(
+          { __typename?: 'User' }
+          & Pick<User, 'id' | 'name' | 'roles'>
+        )>> }
+      )>> }
+    )>>, supervisor?: Maybe<(
+      { __typename?: 'Supervisor' }
+      & Pick<Supervisor, 'id' | 'name'>
+    )>, subordinates?: Maybe<Array<(
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'roles'>
+    )>> }
   )>> }
 );
 
@@ -1144,6 +1161,27 @@ export type GetCurrentUserQuery = (
   & { user: (
     { __typename?: 'User' }
     & Pick<User, 'id' | 'name' | 'roles'>
+    & { teams?: Maybe<Array<(
+      { __typename?: 'Team' }
+      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
+      & { members?: Maybe<Array<(
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'name' | 'roles'>
+        & { supervisor?: Maybe<(
+          { __typename?: 'Supervisor' }
+          & Pick<Supervisor, 'id' | 'name'>
+        )>, subordinates?: Maybe<Array<(
+          { __typename?: 'User' }
+          & Pick<User, 'id' | 'name' | 'roles'>
+        )>> }
+      )>> }
+    )>>, supervisor?: Maybe<(
+      { __typename?: 'Supervisor' }
+      & Pick<Supervisor, 'id' | 'name'>
+    )>, subordinates?: Maybe<Array<(
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'roles'>
+    )>> }
   ) }
 );
 
@@ -2221,6 +2259,20 @@ export const GetAllTeamsDocument = gql`
     name
     description
     archived
+    members {
+      id
+      name
+      roles
+      supervisor {
+        id
+        name
+      }
+      subordinates {
+        id
+        name
+        roles
+      }
+    }
   }
 }
     `;
@@ -2251,103 +2303,6 @@ export function useGetAllTeamsLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetAllTeamsQueryHookResult = ReturnType<typeof useGetAllTeamsQuery>;
 export type GetAllTeamsLazyQueryHookResult = ReturnType<typeof useGetAllTeamsLazyQuery>;
 export type GetAllTeamsQueryResult = Apollo.QueryResult<GetAllTeamsQuery, GetAllTeamsQueryVariables>;
-export const GetAllUsersInTeamDocument = gql`
-    query GetAllUsersInTeam($teamId: ID!) {
-  teamMembers(teamId: $teamId) {
-    userId
-    user {
-      id
-      name
-      roles
-    }
-    team {
-      id
-      name
-      description
-      archived
-      createdAt
-    }
-    teamId
-  }
-}
-    `;
-
-/**
- * __useGetAllUsersInTeamQuery__
- *
- * To run a query within a React component, call `useGetAllUsersInTeamQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAllUsersInTeamQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAllUsersInTeamQuery({
- *   variables: {
- *      teamId: // value for 'teamId'
- *   },
- * });
- */
-export function useGetAllUsersInTeamQuery(baseOptions: Apollo.QueryHookOptions<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>(GetAllUsersInTeamDocument, options);
-      }
-export function useGetAllUsersInTeamLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>(GetAllUsersInTeamDocument, options);
-        }
-export type GetAllUsersInTeamQueryHookResult = ReturnType<typeof useGetAllUsersInTeamQuery>;
-export type GetAllUsersInTeamLazyQueryHookResult = ReturnType<typeof useGetAllUsersInTeamLazyQuery>;
-export type GetAllUsersInTeamQueryResult = Apollo.QueryResult<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>;
-export const GetUserTeamsDocument = gql`
-    query GetUserTeams($userId: ID!) {
-  userTeams(userId: $userId) {
-    userId
-    teamId
-    user {
-      id
-      name
-      roles
-    }
-    team {
-      id
-      name
-      description
-      archived
-      createdAt
-    }
-    createdAt
-  }
-}
-    `;
-
-/**
- * __useGetUserTeamsQuery__
- *
- * To run a query within a React component, call `useGetUserTeamsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserTeamsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetUserTeamsQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useGetUserTeamsQuery(baseOptions: Apollo.QueryHookOptions<GetUserTeamsQuery, GetUserTeamsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetUserTeamsQuery, GetUserTeamsQueryVariables>(GetUserTeamsDocument, options);
-      }
-export function useGetUserTeamsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserTeamsQuery, GetUserTeamsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetUserTeamsQuery, GetUserTeamsQueryVariables>(GetUserTeamsDocument, options);
-        }
-export type GetUserTeamsQueryHookResult = ReturnType<typeof useGetUserTeamsQuery>;
-export type GetUserTeamsLazyQueryHookResult = ReturnType<typeof useGetUserTeamsLazyQuery>;
-export type GetUserTeamsQueryResult = Apollo.QueryResult<GetUserTeamsQuery, GetUserTeamsQueryVariables>;
 export const GetTeamInfoDocument = gql`
     query GetTeamInfo($id: ID!) {
   team(id: $id) {
@@ -2456,6 +2411,36 @@ export const GetAllUsersDocument = gql`
     id
     name
     roles
+    teams {
+      id
+      name
+      description
+      archived
+      createdAt
+      members {
+        id
+        name
+        roles
+        supervisor {
+          id
+          name
+        }
+        subordinates {
+          id
+          name
+          roles
+        }
+      }
+    }
+    supervisor {
+      id
+      name
+    }
+    subordinates {
+      id
+      name
+      roles
+    }
   }
 }
     `;
@@ -2492,6 +2477,36 @@ export const GetCurrentUserDocument = gql`
     id
     name
     roles
+    teams {
+      id
+      name
+      description
+      archived
+      createdAt
+      members {
+        id
+        name
+        roles
+        supervisor {
+          id
+          name
+        }
+        subordinates {
+          id
+          name
+          roles
+        }
+      }
+    }
+    supervisor {
+      id
+      name
+    }
+    subordinates {
+      id
+      name
+      roles
+    }
   }
 }
     `;
@@ -2531,8 +2546,6 @@ export const namedOperations = {
     GetProjects: 'GetProjects',
     GetTasks: 'GetTasks',
     GetAllTeams: 'GetAllTeams',
-    GetAllUsersInTeam: 'GetAllUsersInTeam',
-    GetUserTeams: 'GetUserTeams',
     GetTeamInfo: 'GetTeamInfo',
     GetUserProjects: 'GetUserProjects',
     GetAllUsers: 'GetAllUsers',
