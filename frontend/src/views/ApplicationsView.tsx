@@ -242,7 +242,10 @@ export const ApplicationsView = (): JSX.Element => {
         pagination={{ pageSize: 10 }}
         renderItem={ (item: any) => (
           <List.Item
-            actions={ switchCase(userRole[0].toUpperCase(), item) }
+            actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
+              ? userRole[0].toUpperCase()
+              : 'USER', item)
+            }
           >
             <List.Item.Meta
               title={ <div>
