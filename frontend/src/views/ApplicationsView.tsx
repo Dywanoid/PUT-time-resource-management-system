@@ -137,6 +137,46 @@ export const ApplicationsView = (): JSX.Element => {
     changeApplicationRequestStatus(itemId, buttonType);
   };
 
+  const switchCase = (role, item) => {
+    const concatStr = `${ role }_${ item.status }`;
+
+    switch(concatStr) {
+      case 'USER_PENDING':
+        return (
+          [<a key="1"
+            onClick={() => handleEventChange(requestStatuses[3],item.id)}
+          >
+            { requestStatuses[3].substr(0, requestStatuses[3].length - 2) }
+          </a>]
+        );
+      case 'MANAGER_CANCELLED':
+      case 'USER_CANCELLED':
+        return [<div key="2">Cancelled</div>];
+      case 'MANAGER_REJECTED':
+      case 'USER_REJECTED':
+        return [<div key="2">Rejected</div>];
+      case 'MANAGER_ACCEPTED':
+      case 'USER_ACCEPTED':
+        return [<div key="3">Accepted</div>];
+      case 'MANAGER_PENDING':
+        return (
+          [<a key="3"
+            onClick={() => handleEventChange(requestStatuses[2],item.id)}
+          >
+            { requestStatuses[2].substr(0, requestStatuses[2].length - 2) }
+          </a>
+          ,
+          <a key="4"
+            onClick={() => handleEventChange(requestStatuses[1],item.id)}
+          >
+            { requestStatuses[1].substr(0, requestStatuses[1].length - 2) }
+          </a>]
+        );
+      default:
+        return [];
+    }
+  };
+
   return (
     <Layout>
       <Content>
@@ -200,58 +240,29 @@ export const ApplicationsView = (): JSX.Element => {
         itemLayout="horizontal"
         dataSource={ [...applicationsData] }
         pagination={{ pageSize: 10 }}
-        renderItem={ (item: any) => {
-          return (
-            <List.Item
-              actions={
-                (userRole.includes('manager') && item.status === 'ACCEPTED')
-                  ? ([
-                    <a key="1"
-                      onClick={() => handleEventChange(requestStatuses[2],item.id)}
-                    >
-                      { requestStatuses[2].substr(0, requestStatuses[2].length - 2) }
-                    </a>
-                  ])
-                  : ((userRole.includes('manager') && item.status === 'CANCELLED')
-                    ? ([
-                      <div key="2">Cancelled</div>
-                    ])
-                    : ([
-                      <a key="3"
-                        onClick={() => handleEventChange(requestStatuses[3],item.id)}
-                      >
-                        { requestStatuses[3].substr(0, requestStatuses[3].length - 3) }
-                      </a>,
-                      <a key="4"
-                        onClick={() => handleEventChange(requestStatuses[1],item.id)}
-                      >
-                        { requestStatuses[1].substr(0, requestStatuses[1].length - 2) }
-                      </a>
-                    ]))
-              }
-            >
-              <List.Item.Meta
-                title={ <div>
-                  { item.type.replace('_', ' ') + ' - ' }
-                  { item.user.name }
-                </div> }
-                description={ <div>
-                  od
-                  { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
-                  do
-                  {' ' + moment(item.endDate).format('DD-MM-YYYY')}
-                </div> }
-                avatar={ <Avatar style={
-                  { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
-                size={ 64 } gap={ 1 } shape="square">
-                  { item.type }
-                </Avatar> }
-              />
-            </List.Item>
-          );
-
-          return (null);
-        }}
+        renderItem={ (item: any) => (
+          <List.Item
+            actions={ switchCase(userRole[0].toUpperCase(), item) }
+          >
+            <List.Item.Meta
+              title={ <div>
+                { item.type.replace('_', ' ') + ' - ' }
+                { item.user.name }
+              </div> }
+              description={ <div>
+                od
+                { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
+                do
+                {' ' + moment(item.endDate).format('DD-MM-YYYY')}
+              </div> }
+              avatar={ <Avatar style={
+                { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
+              size={ 64 } gap={ 1 } shape="square">
+                { item.type }
+              </Avatar> }
+            />
+          </List.Item>
+        )}
       />
     </Layout>
   );
