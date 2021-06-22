@@ -6,7 +6,7 @@ import moment, { Moment } from 'moment';
 import { Button, Select,Table, Typography, DatePicker, Space } from 'antd';
 import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGetAllClientsAndProjectsWithTasksQuery, useGetAllTeamsQuery } from '../generated/graphql';
 import { Loader } from '../components';
 const { Text } = Typography;
@@ -19,29 +19,41 @@ interface PickerOption {
 interface PickerProps {
   defaultValue: PickerOption[];
   label: string;
-  selected: PickerOption[];
   onChange: (newValue: string[]) => void;
   options: PickerOption[];
+  selected: PickerOption[];
 }
 
 interface TableRow {
   client: string;
+  clientRowSpan: number;
+  cost: string;
   key: string;
   project: string;
+  projectRowSpan: number;
   task: string;
   team: string;
-  time: string;
-  cost: string;
-  clientRowSpan: number;
-  projectRowSpan: number;
   teamRowSpan: number;
+  time: string;
 }
 interface TableColumn {
-  // align?: 'center'
   dataIndex: string;
-  render?: any;
+  render?: (value: string, row: TableRow) => {
+    children: string;
+    props: {
+      className: string;
+      rowSpan: number;
+    }
+  };
   title: string;
 }
+
+const getTableCellProps = (rowSpan: number) => {
+  return {
+    className: 'table-cell-merged',
+    rowSpan: rowSpan
+  };
+};
 
 const dataColumns : TableColumn[] = [
   {
@@ -49,7 +61,7 @@ const dataColumns : TableColumn[] = [
     render: (value, row) => {
       return {
         children: value,
-        props: { rowSpan: row.clientRowSpan }
+        props: getTableCellProps(row.clientRowSpan)
       };
     },
     title: 'Klient'
@@ -59,7 +71,7 @@ const dataColumns : TableColumn[] = [
     render: (value, row) => {
       return {
         children: value,
-        props: { rowSpan: row.projectRowSpan }
+        props: getTableCellProps(row.projectRowSpan)
       };
     },
     title: 'Projekt'
@@ -69,7 +81,7 @@ const dataColumns : TableColumn[] = [
     render: (value, row) => {
       return {
         children: value,
-        props: { rowSpan: row.teamRowSpan }
+        props: getTableCellProps(row.teamRowSpan)
       };
     },
     title: 'Zespół'
@@ -92,9 +104,9 @@ const Picker = (props: PickerProps): JSX.Element => {
   const {
     defaultValue,
     label,
-    selected,
     onChange,
-    options
+    options,
+    selected
   } = props;
 
   return (
@@ -106,13 +118,13 @@ const Picker = (props: PickerProps): JSX.Element => {
       </Text>
 
       <Select
-        mode='multiple'
-        style= {{ width: '350px' }}
-        maxTagCount='responsive'
-        value={selected.map((value) => value.value)}
+        className='picker-select'
         defaultValue={defaultValue.map((value) => value.value)}
+        maxTagCount='responsive'
+        mode='multiple'
         onChange={onChange}
         options={options}
+        value={selected.map((value) => value.value)}
       />
     </>
   );
@@ -235,16 +247,39 @@ export const ReportsView = () : JSX.Element => {
     return (<p>Selektory sie zepsuly</p>);
   }
 
+  const getUsedValuesMap = (collection: PickerOption[]) => collection.reduce((acc, item) => {
+    acc[item.value] = true;
+
+    return acc;
+  }, {});
+
+  const selectedClientsMap = getUsedValuesMap(selectedClients);
+
+  const selectedProjectsMap = getUsedValuesMap(selectedProjects);
+  const selectedTeamsMap = getUsedValuesMap(selectedTeams);
+
   const rowSpanMap: {[id: string]: number} = {};
 
   clientsProjectsQuery?.data?.clients?.forEach((client) => {
+    if(!selectedClientsMap[client.id]) {
+      return;
+    }
+
     const clientId = `client_${ client.id }`;
 
     client?.projects?.forEach((project)=>{
+      if(!selectedProjectsMap[project.id]) {
+        return;
+      }
+
       const projectId = `project_${ project.id }_${ clientId }`;
       const taskCount = project?.tasks?.length || 0;
 
       teamsQuery?.data?.teams?.forEach((team) => {
+        if(!selectedTeamsMap[team.id]) {
+          return;
+        }
+
         const teamId = `team_${ team.id }_${ projectId }`;
 
         if(!rowSpanMap[clientId]) {
@@ -269,12 +304,24 @@ export const ReportsView = () : JSX.Element => {
   const rowSpansUsedMap: {[id: string]: boolean} = {};
 
   const rows = clientsProjectsQuery?.data?.clients?.reduce((acc: TableRow[], client) => {
+    if(!selectedClientsMap[client.id]) {
+      return acc;
+    }
+
     const clientId = `client_${ client.id }`;
 
-    client?.projects?.forEach((project)=>{
+    client?.projects?.forEach((project)=> {
+      if(!selectedProjectsMap[project.id]) {
+        return;
+      }
+
       const projectId = `project_${ project.id }_${ clientId }`;
 
       teamsQuery?.data?.teams?.forEach((team) => {
+        if(!selectedTeamsMap[team.id]) {
+          return;
+        }
+
         const teamId = `team_${ team.id }_${ projectId }`;
 
         acc.push(...project?.tasks?.map((task) => {
@@ -325,68 +372,73 @@ export const ReportsView = () : JSX.Element => {
   return (
     <>
       <Space
+        className="vertical-spacer"
         direction="vertical"
         size="large"
-        style={{ width: '100%' }}
       >
-        <Space
-          direction="horizontal"
-          size="large"
-        >
-          <Picker
-            defaultValue={selectedClients}
-            selected={selectedClients}
-            label="Klienci"
-            onChange={handleClientChange}
-            options={clientOptions}
-          />
+        <div>
+          <Space
+            direction="horizontal"
+            size="large"
+          >
+            <Picker
+              defaultValue={selectedClients}
+              label="Klienci"
+              onChange={handleClientChange}
+              options={clientOptions}
+              selected={selectedClients}
+            />
 
-          <Picker
-            defaultValue={selectedProjects}
-            selected={selectedProjects}
-            label="Projekty"
-            onChange={handleProjectChange}
-            options={projectOptions}
-          />
+            <Picker
+              defaultValue={selectedProjects}
+              label="Projekty"
+              onChange={handleProjectChange}
+              options={projectOptions}
+              selected={selectedProjects}
+            />
 
-          <Picker
-            defaultValue={selectedTeams}
-            selected={selectedTeams}
-            label="Zespoły"
-            onChange={handleTeamChange}
-            options={teamOptions}
-          />
-          <div className="datePicker">
+            <Picker
+              defaultValue={selectedTeams}
+              label="Zespoły"
+              onChange={handleTeamChange}
+              options={teamOptions}
+              selected={selectedTeams}
+            />
+
+          </Space>
+          <div
+            className="datePicker"
+          >
             <Button
-              type="ghost"
-              shape="round"
               icon={<CaretLeftOutlined/>}
-              size='small'
               onClick={() => changeMonth(false)}
+              shape="round"
+              size='small'
+              type="ghost"
             />
             <DatePicker
               className="reports-date-picker"
+              format={customDateFormat}
               locale={locale}
               onChange={onChangeForDataPicker}
               picker="month"
-              format={customDateFormat}
               value={date}
             />
             <Button
-              type="ghost"
-              shape="round"
               icon={<CaretRightOutlined/>}
-              size='small'
               onClick={() => changeMonth(true)}
+              shape="round"
+              size='small'
+              type="ghost"
             />
           </div>
-        </Space>
+        </div>
 
         <Table
+          bordered
           columns={dataColumns}
           dataSource={rows}
           pagination={false}
-          bordered
         />
       </Space>
 

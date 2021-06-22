@@ -9,3 +9,23 @@
 .reports-date-picker .ant-picker-clear {
     visibility: hidden;
 }
+
+.ant-table-thead>tr.ant-table-row-hover:not(.ant-table-expanded-row)>td, 
+.ant-table-tbody>tr.ant-table-row-hover:not(.ant-table-expanded-row)>td, 
+.ant-table-thead>tr:hover:not(.ant-table-expanded-row)>td, 
+.ant-table-tbody>tr:hover:not(.ant-table-expanded-row)>td {
+    background: unset;
+}
+
+.table-cell-merged {
+    padding-top: 15px; 
+    vertical-align: top;
+}
+
+.picker-select {
+    width: 350px;
+}
+
+.vertical-spacer {
+    width: 100%;
+}

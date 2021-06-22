@@ -530,7 +530,7 @@ export const TimesheetTable: React.FC = () => {
               tableData.length
                 ? <>
                   <Table.Summary.Row className="summaryRow">
-                    <Table.Summary.Cell   colSpan={3} index={0}/>
+                    <Table.Summary.Cell colSpan={3} index={0}/>
                     {
                       dataIndexes.map(
                         (dataIndex, i) => (
