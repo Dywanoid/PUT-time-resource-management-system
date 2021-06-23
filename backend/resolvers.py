@@ -8,7 +8,7 @@ from database import Client, Currency, Project, Task, Team, TimeLog, TeamMember,
 from datetime import datetime, date, timedelta
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
-from error import NotFound, ValidationError, ActiveHolidayRequestError
+from error import NotFound, ValidationError, ActiveHolidayRequestError, Unauthorized
 from auth import roles_required, roles_check
 
 query = QueryType()
@@ -539,14 +539,16 @@ def resolve_user_teams(obj, info, user_id):
 @mutation.field("createHolidayRequest")
 @convert_kwargs_to_snake_case
 def resolve_create_holiday_request(obj, info, input):
+    user = find_item(User, current_user.id)
     user_id = input.get('user_id')
-    if(user_id != current_user.id):
+    if(user_id != current_user.id or not user.is_supervisor_of(user_id)):
         roles_check('manager')
     start_date = input.get('start_date')
     end_date = input.get('end_date')
     if(end_date < start_date):
         raise ValidationError(f"Starting date ({start_date}) must be earlier than ending date ({end_date})")
     if(HolidayRequest.query.filter(
+        HolidayRequest.user_id == user_id,
         HolidayRequest.end_date >= start_date, 
         HolidayRequest.start_date <= end_date,
         HolidayRequest.status.in_((HolidayRequestStatus.PENDING, HolidayRequestStatus.ACCEPTED))
@@ -569,8 +571,17 @@ def resolve_create_holiday_request(obj, info, input):
 @mutation.field("changeHolidayRequestStatus")
 @mutate_item(HolidayRequest, 'request_id')
 def resolve_change_holiday_request_status(holiday_request, input):
+    user = find_item(User, current_user.id)
     status = input.get('status')
-    if(holiday_request.user_id != current_user.id or status != HolidayRequestStatus.CANCELLED):
+    if(status == holiday_request.status):
+        raise ValidationError(f"Holiday request {holiday_request.id} is already {holiday_request.status}")
+    if(holiday_request.user_id == current_user.id):
+        if(holiday_request.status != HolidayRequestStatus.PENDING or status != HolidayRequestStatus.CANCELLED):
+            raise Unauthorized(f"You can not change status from {holiday_request.status} to {status}")
+    elif(user.is_supervisor_of(holiday_request.user_id)):
+        if(holiday_request.status != HolidayRequestStatus.PENDING or status not in [HolidayRequestStatus.ACCEPTED, HolidayRequestStatus.REJECTED]):
+            raise Unauthorized(f"You can not change status from {holiday_request.status} to {status}")
+    else:
         roles_check('manager')
     holiday_request.status = status
     holiday_request.changed_by_id = current_user.id
@@ -579,26 +590,30 @@ def resolve_change_holiday_request_status(holiday_request, input):
 
 @query.field("holidayRequests")
 @convert_kwargs_to_snake_case
-def resolve_holiday_requests(obj, info, request_statuses = [HolidayRequestStatus.PENDING], request_types = [HolidayRequestType.HOLIDAY, HolidayRequestType.ON_DEMAND], user_list = [], team_list = [], start_date = date.min, end_date = date.max):
+def resolve_holiday_requests(obj, info, request_statuses = [], request_types = [], user_list = [], team_list = [], start_date = date.min, end_date = date.max):
+    user = find_item(User, current_user.id)
+    subordinates = user.get_all_subordinates()
+    subordinates = {subordinate.id for subordinate in subordinates}
+    wanted_teams = {str(team.id) for team in team_list}
     if(not(user_list or team_list)):
         wanted_users = {current_user.id}
     else:
         wanted_users = {int(user) for user in user_list}
-    wanted_teams =  {str(team.id) for team in team_list}
-    if(wanted_users != {current_user.id} or wanted_teams):
-        roles_check('manager')
+        team_members = TeamMember.query.filter(TeamMember.team_id.in_(wanted_teams)).all()
+        wanted_users.update({team_member.user_id for team_member in team_members})
     if(end_date < start_date):
         raise ValidationError(f"Starting date ({start_date}) must be earlier than ending date ({end_date})")
     filters = [HolidayRequest.end_date >= start_date, 
         HolidayRequest.start_date <= end_date,
-        HolidayRequest.status.in_(request_statuses),
-        HolidayRequest.type.in_(request_types)]
-    if user_list:
-        filters.append(HolidayRequest.user_id.in_(wanted_users))
-    if team_list:
-        team_members = TeamMember.query.filter(TeamMember.team_id.in_(wanted_teams)).all()
-        team_members = {team_member.user_id for team_member in team_members}
-        filters.append(HolidayRequest.user_id.in_(team_members))
+        HolidayRequest.user_id.in_(wanted_users)]
+    if request_statuses:
+        filters.append(HolidayRequest.status.in_(request_statuses))
+    if request_types:
+        filters.append(HolidayRequest.type.in_(request_types))
+    if(wanted_users != {current_user.id}):
+        permitted_to = subordinates.union({current_user.id})
+        if(not wanted_users.issubset(permitted_to)):
+            roles_check('manager')
     result = HolidayRequest.query.filter(*filters).all()
     return result
 
@@ -613,11 +628,9 @@ def resolve_holiday_requests(obj, info, user_list = [], team_list = [], start_da
     filters = [HolidayRequest.end_date >= start_date, 
         HolidayRequest.start_date <= end_date,
         HolidayRequest.status == HolidayRequestStatus.ACCEPTED]
-    if user_list:
-        filters.append(HolidayRequest.user_id.in_(wanted_users))
-    if team_list:
+    if(user_list or team_list):
+        wanted_users = {int(user) for user in user_list}
         team_members = TeamMember.query.filter(TeamMember.team_id.in_(wanted_teams)).all()
-        team_members = {team_member.user_id for team_member in team_members}
-        filters.append(HolidayRequest.user_id.in_(team_members))
+        wanted_users.update({team_member.user_id for team_member in team_members})
     result = HolidayRequest.query.filter(*filters).all()
     return result

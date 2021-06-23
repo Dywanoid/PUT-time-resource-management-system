@@ -95,6 +95,13 @@ class User(db.Model, UserMixin):
             subordinates += subordinate.get_all_subordinates()
         return subordinates
 
+    def is_supervisor_of(self, subordinate_id):
+        subordinates = self.get_all_subordinates()
+        for subordinate in subordinates:
+            if(subordinate_id == subordinate.id):
+                return True
+        return False
+
 
 class TeamMember(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True)
