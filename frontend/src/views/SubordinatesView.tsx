@@ -1,5 +1,5 @@
-import { useState, useContext } from 'react';
-import { Layout, Menu, Avatar, Modal, Transfer, notification, List } from 'antd';
+import { useState, useContext, useEffect } from 'react';
+import { Transfer, notification, List } from 'antd';
 import { useGetAllUsersQuery } from '../generated/graphql';
 import { UserContext } from '../utils/auth';
 
@@ -18,23 +18,16 @@ const elementCompare = (a, b) =>
 
 export const SubordinatesView = () : JSX.Element => {
   const userInfo = useContext(UserContext);
-  const { data: userData } = useGetAllUsersQuery();
+  const { data: userData , loading, error } = useGetAllUsersQuery();
   const [teamIdentify, setTeamId] = useState('');
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
   const [targetKeysInitial, setTargetKeysInitial] = useState<string[]>([]);
+  const [mockData, setMockData] = useState<string[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-  const user = userInfo?.name || '';
+  const user = userInfo || { id: '' };
   const users = userData?.users || [] as any;
-  const mockData: Array<{ key: string, username: string }> = [];
-
-  for (let i = 0; i < users.length; i++) {
-    if (!users[i].roles.includes('manager')) {
-      mockData.push({
-        key: users[i].id,
-        username: users[i].name
-      });
-    }
-  }
+  const rightColumn: string[] = [];
+  const useMountEffect = (fun) => useEffect(fun, []);
 
   const onElementChange = (nextTargetKeys) => {
     // console.log('targetKeys:', nextTargetKeys);
@@ -49,11 +42,42 @@ export const SubordinatesView = () : JSX.Element => {
     setSelectedKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
   };
 
+  useEffect(
+    () => {
+      const data: Array<{ key: string, username: string }> = [];
+
+      if(!loading && !error && userInfo !== undefined) {
+        for (let i = 0; i < users.length; i++) {
+          if (users[i].supervisor !== null
+            && users[i].supervisor.id === user.id) {
+            rightColumn.push(users[i].id);
+          }
+        }
+
+        for (let i = 0; i < users.length; i++) {
+          if (users[i].id !== userInfo?.id && (users[i].supervisor === null
+            || users[i].supervisor.id === userInfo?.id)) {
+            data.push({
+              key: users[i].id,
+              username: users[i].name
+            });
+          }
+        }
+        setMockData(data as any);
+        setTargetKeys(rightColumn);
+        setTargetKeysInitial(rightColumn);
+      }
+    },
+    [
+      loading,
+      error]
+  );
+
   return (
     <>
       <h1>Przydziel podwładnych</h1>
       <Transfer
-        dataSource={ mockData }
+        dataSource={ mockData as any}
         listStyle={{
           height: 400,
           width: 700
