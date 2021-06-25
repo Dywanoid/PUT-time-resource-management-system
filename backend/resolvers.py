@@ -540,8 +540,8 @@ def resolve_user_teams(obj, info, user_id):
 @convert_kwargs_to_snake_case
 def resolve_create_holiday_request(obj, info, input):
     user = find_item(User, current_user.id)
-    user_id = input.get('user_id')
-    if(user_id != current_user.id or not user.is_supervisor_of(user_id)):
+    user_id = int(input.get('user_id'))
+    if(user_id != current_user.id and not user.is_supervisor_of(user_id)):
         roles_check('manager')
     start_date = input.get('start_date')
     end_date = input.get('end_date')
