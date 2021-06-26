@@ -318,7 +318,7 @@ input UpdateSupervisorInput {
     supervisorId: ID!
 }
 
-input UnassignSupervisor{
+input UnassignSupervisorInput{
     userId: ID!
 }
 
@@ -350,6 +350,6 @@ type Mutation {
     deleteProjectAssignment(input: DeleteProjectAssignmentInput!): ProjectAssignment!
     createUpdateOrDeleteTimeLog(input: CreateUpdateOrDeleteTimeLogInput!): TimeLog!
     updateSupervisor(input: UpdateSupervisorInput!): User!
-    unassignSupervisor(input: UnassignSupervisor!): User!
+    unassignSupervisor(input: UnassignSupervisorInput!): User!
     # TODO split this file into multiple files
 }
