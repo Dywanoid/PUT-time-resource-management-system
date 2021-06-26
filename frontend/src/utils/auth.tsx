@@ -32,8 +32,8 @@ export interface User {
   id: string | null;
   name: string | null;
   roles: string[] | [];
-  supervisor: Supervisor | [];
-  subordinates: Subordinates
+  supervisor: Supervisor | {id: '', name: ''};
+  subordinates: Subordinates | []
   teams: Teams
 }
 
@@ -51,8 +51,8 @@ const ProvideAuth = ({ children } : ProvideAuthProps) : JSX.Element => {
   }
   const user: User = {
     id: data?.user.id || null, name: data?.user.name || null, roles: data?.user.roles || [],
-    subordinates: data?.user.subordinates as any,
-    supervisor: data?.user.supervisor || [], teams: data?.user.teams as any
+    subordinates: data?.user.subordinates as any || [],
+    supervisor: data?.user.supervisor || { id: '', name: '' }, teams: data?.user.teams as any
   };
 
   return (

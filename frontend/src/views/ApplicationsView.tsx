@@ -1,4 +1,4 @@
-import React, { useRef, useState, useContext } from 'react';
+import { useRef, useState, useContext } from 'react';
 import {
   Layout, Form, Input, Button,
   List, Select, FormInstance, DatePicker, notification,
@@ -6,7 +6,6 @@ import {
 } from 'antd';
 import {
   useChangeHolidayRequestStatusMutation,
-  useGetAllUsersQuery,
   namedOperations,
   useCreateHolidayRequestMutation,
   HolidayRequestStatus,
@@ -35,14 +34,13 @@ const applicationsTypes = Object.values(HolidayRequestType);
 
 export const ApplicationsView = (): JSX.Element => {
   const userInfo = useContext(UserContext);
-  const { data: usersData } = useGetAllUsersQuery();
-  const [supervisorId, setSupervisorId] = useState('');
   const [requestType, setRequestType] = useState('');
   const [startDate, setStartDate] = useState(Date);
   const [endDate, setEndDate] = useState(Date);
   const [userId, setUserId] = useState('');
   const [userRole, setUserRole] = useState<string[]>([]);
-  const [getHolidayRequests, { data: applicationData }] = useGetHolidayRequestsLazyQuery();
+  const [getUsersHolidayRequests, { data: usersApplicationData }] = useGetHolidayRequestsLazyQuery();
+  const [getUserHolidayRequests, { data: userApplicationData }] = useGetHolidayRequestsLazyQuery();
   const [createApplication] = useCreateHolidayRequestMutation({
     onCompleted(){ openNotificationWithIcon('success', 'tworzenia wniosku'); },
     onError() { openNotificationWithIcon('error', 'tworzenia wniosku'); }
@@ -51,10 +49,10 @@ export const ApplicationsView = (): JSX.Element => {
     onCompleted(){ openNotificationWithIcon('success', 'zmieniono status'); },
     onError() { openNotificationWithIcon('error', 'zmieniono status'); }
   });
-  const sendApplicationRequest = (supervisor, request, start, end) => {
+  const sendApplicationRequest = (id, request, start, end) => {
     createApplication({
       refetchQueries: [namedOperations.Query.GetHolidayRequests],
-      variables: { endDate: end, startDate: start, type: request, userId: supervisor }
+      variables: { endDate: end, startDate: start, type: request, userId: id }
     });
   };
   const changeApplicationRequestStatus = (appId, reqId) => {
@@ -64,35 +62,26 @@ export const ApplicationsView = (): JSX.Element => {
     });
   };
 
-  if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0) {
+  if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0
+    && userInfo.supervisor !== undefined && userInfo.subordinates){
     setUserId(userInfo.id || '');
-    setUserRole(userInfo.roles as any);
-    getHolidayRequests(
-      {
-        variables:
-        { requestStatuses, requestTypes: applicationsTypes }
-      }
-    );
-  }
+    const userR = userInfo.roles as any;
+    const subordinatesList: Array<string> = [];
 
-  const users = usersData?.users || [];
-  const applicationsData = applicationData?.holidayRequests || [];
-
-  const superVisors = [] as any;
-  const requestTypes = [] as any;
-
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].roles!.includes('manager')) {
-      superVisors.push(
-        <Select.Option
-          key={ users[i].id }
-          value={ users[i].id }
-        >
-          { users[i].name }
-        </Select.Option>
-      );
+    for (const user in userInfo.subordinates) {
+      subordinatesList.push(userInfo.subordinates[user].id);
     }
+    setUserRole(userInfo.roles as any);
+    if (userR.includes('manager')) {
+      getUsersHolidayRequests({ variables: { userList: subordinatesList } });
+    }
+    getUserHolidayRequests();
   }
+
+  const userApplications = userApplicationData?.holidayRequests || [];
+  const usersApplications = usersApplicationData?.holidayRequests || [];
+
+  const requestTypes = [] as any;
 
   for (let i = 0; i < applicationsTypes.length; i++) {
     requestTypes.push(
@@ -107,17 +96,12 @@ export const ApplicationsView = (): JSX.Element => {
 
   const formRef = useRef<FormInstance>(null);
 
-  const onSupervisorChange = (value: string) => {
-    setSupervisorId(value);
-  };
-
   const onRequestTypeChange = (value: string) => {
     setRequestType(value);
   };
 
   const onFinish = () => {
-    sendApplicationRequest(supervisorId, requestType, startDate, endDate);
-    setSupervisorId('');
+    sendApplicationRequest(userId, requestType, startDate, endDate);
     setRequestType('');
     setStartDate('');
     setEndDate('');
@@ -181,19 +165,15 @@ export const ApplicationsView = (): JSX.Element => {
     <Layout>
       <Content>
         <Form labelCol={{ span: 8 }} wrapperCol={{ span: 10 }}
-          ref={ formRef } name="control-ref" onFinish={ onFinish }>
-          <Form.Item
+          ref={ formRef } onFinish={ onFinish }>
+          { ( !userRole.includes('manager') && userInfo?.supervisor.name.length !== 0)
+          && (<Form.Item
             className="changeSupervisor"
-            name="Wybierz przełożonego"
-            label="Wybierz przełożonego"
-            rules={[{ required: true }]}
+            label="Przełożony"
           >
-            <Select
-              onSelect={ onSupervisorChange }
-            >
-              { superVisors }
-            </Select>
-          </Form.Item>
+            { userInfo?.supervisor.name }
+          </Form.Item>)
+          }
           <Form.Item name="Typ wniosku" label="Typ wniosku" rules={[{ required: true }]}>
             <Select
               onChange={ onRequestTypeChange }
@@ -234,11 +214,10 @@ export const ApplicationsView = (): JSX.Element => {
         </Form>
       </Content>
       <List
-        header={ <h1>Wnioski</h1> }
+        header={ <h1>Twoje wnioski</h1> }
         bordered
-        className="teamsList"
         itemLayout="horizontal"
-        dataSource={ [...applicationsData] }
+        dataSource={ [...userApplications] }
         pagination={{ pageSize: 10 }}
         renderItem={ (item: any) => (
           <List.Item
@@ -267,6 +246,41 @@ export const ApplicationsView = (): JSX.Element => {
           </List.Item>
         )}
       />
+      { userRole.includes('manager')
+      && (
+        <List
+          header={ <h1>Wnioski podwładnych</h1> }
+          bordered
+          itemLayout="horizontal"
+          dataSource={ [...usersApplications] }
+          pagination={{ pageSize: 10 }}
+          renderItem={ (item: any) => (
+            <List.Item
+              actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
+                ? userRole[0].toUpperCase()
+                : 'USER', item)
+              }
+            >
+              <List.Item.Meta
+                title={ <div>
+                  { item.type.replace('_', ' ') + ' - ' }
+                  { item.user.name }
+                </div> }
+                description={ <div>
+                  od
+                  { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
+                  do
+                  {' ' + moment(item.endDate).format('DD-MM-YYYY')}
+                </div> }
+                avatar={ <Avatar style={
+                  { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
+                size={ 64 } gap={ 1 } shape="square">
+                  { item.type }
+                </Avatar> }
+              />
+            </List.Item>
+          ) }
+        />) }
     </Layout>
   );
 };
