@@ -1,9 +1,9 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Calendar, Select, Layout, Avatar } from 'antd';
 import {
   useGetTeamInfoQuery,
   useGetHolidayRequestsQuery,
-  HolidayRequestType
+  useGetAllUsersQuery
 } from '../generated/graphql';
 import { colorHash } from '../utils/colorHash';
 import '../css/CalendarView.css';
@@ -30,19 +30,21 @@ const getListData = (value, userApplications) => {
   return listData || [];
 };
 
-const applicationsTypes = Object.values(HolidayRequestType);
-
 export const CalendarView = (): JSX.Element => {
   const userInfo = useContext(UserContext);
+  const { data: userData , loading, error } = useGetAllUsersQuery();
+  const [usersList, setUsersList] = useState<string[]>([]);
   const userId = userInfo?.id as any;
   const userRole = userInfo?.roles || ['user'] as any;
+  const users = userData?.users || [] as any;
   const { data: applicationData, refetch:refetchApplicationData } = useGetHolidayRequestsQuery(
     {
       fetchPolicy: 'no-cache',
       variables: {
         end: moment().clone().endOf('month')
-        , requestStatuses: ['ACCEPTED'], requestTypes: applicationsTypes,
-        start: moment().clone().startOf('month')
+        , requestStatuses: ['ACCEPTED']
+        , start: moment().clone().startOf('month')
+        , userList: usersList
       } as any
     }
   );
@@ -54,6 +56,23 @@ export const CalendarView = (): JSX.Element => {
   );
   const userApplications = applicationData?.holidayRequests || [];
   const userTeamsInfo = userTeamsData?.team || [];
+
+  useEffect(
+    () => {
+      const data: string[] = [];
+
+      if(!loading && !error) {
+        for (let i = 0; i < users.length; i++) {
+          data.push( users[i].id );
+        }
+
+        setUsersList(data);
+      }
+    },
+    [
+      loading,
+      error]
+  );
 
   const dateCellRender = (value) => {
     const listData = getListData(value, userApplications);
@@ -76,8 +95,9 @@ export const CalendarView = (): JSX.Element => {
   const changeDateCellRender = (value) => {
     refetchApplicationData({
       end:value.clone().endOf('month')
-      , requestStatuses: ['ACCEPTED'], requestTypes: applicationsTypes,
-      start: value.clone().startOf('month')
+      , requestStatuses: ['ACCEPTED']
+      , start: value.clone().startOf('month')
+      , userList: usersList
     } as any);
 
     const listData = getListData(value, userApplications);
