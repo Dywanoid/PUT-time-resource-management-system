@@ -117,6 +117,14 @@ def resolve_update_supervisor(user, input):
     return user
 
 
+@mutation.field("unassignSupervisor")
+@roles_required('manager')
+@mutate_item(User, 'user_id')
+def resolve_update_supervisor(user, input):
+    user.supervisor_id = None
+    return user
+
+
 @query.field("getAllSubordinates")
 @convert_kwargs_to_snake_case
 def resolve_get_all_subordinates(obj, info, user_id = None):
