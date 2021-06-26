@@ -138,9 +138,6 @@ class HolidayRequest(db.Model):
     user = db.relationship(User, lazy='joined', foreign_keys=[user_id])
     changed_by = db.relationship(User, lazy='joined', foreign_keys=[changed_by_id])
 
-    def get_all_subordinates(self):
-        pass
-
 
 class ProjectAssignment(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -322,6 +322,15 @@ input UnassignSupervisorInput{
     userId: ID!
 }
 
+input UpdateSupervisorBatchInput {
+    userList: [ID!]
+    supervisorId: ID!
+}
+
+input UnassignSupervisorBatchInput{
+    userList: [ID!]
+}
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     archiveClient(input: ArchiveClientInput!): Client!
@@ -351,5 +360,7 @@ type Mutation {
     createUpdateOrDeleteTimeLog(input: CreateUpdateOrDeleteTimeLogInput!): TimeLog!
     updateSupervisor(input: UpdateSupervisorInput!): User!
     unassignSupervisor(input: UnassignSupervisorInput!): User!
+    updateSupervisorBatch(input: UpdateSupervisorBatchInput!): [User!]
+    unassignSupervisorBatch(input: UnassignSupervisorBatchInput!): [User!]
     # TODO split this file into multiple files
 }

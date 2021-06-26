@@ -117,6 +117,28 @@ def resolve_update_supervisor(user, input):
     return user
 
 
+@mutation.field("updateSupervisorBatch")
+@roles_required('manager')
+@convert_kwargs_to_snake_case
+def resolve_update_supervisor(obj, info, input):
+    supervisor_id = int(input.get('supervisor_id'))
+    user_id_list = input.get('user_list')
+    user_list = []
+    for user_id in user_id_list:
+        user = find_item(User, user_id)
+        if(user.id == supervisor_id):
+            raise ValidationError(f"User {user_id} can't supervisor of himself")
+        subordinates = user.get_all_subordinates()
+        subordinates_id = {subordinate.id for subordinate in subordinates}
+        if(supervisor_id in subordinates_id):
+            raise ValidationError(f"User with ID: {supervisor_id} is subordinate of {user.id}.")
+        user.supervisor_id = supervisor_id
+        user_list.append(user)
+    db.session.add_all(user_list)
+    db.session.commit()
+    return user_list
+
+
 @mutation.field("unassignSupervisor")
 @roles_required('manager')
 @mutate_item(User, 'user_id')
@@ -124,6 +146,21 @@ def resolve_update_supervisor(user, input):
     user.supervisor_id = None
     return user
 
+
+@mutation.field("unassignSupervisorBatch")
+@roles_required('manager')
+@convert_kwargs_to_snake_case
+def resolve_update_supervisor(obj, info, input):
+    user_id_list = input.get('user_list')
+    user_list = []
+    for user_id in user_id_list:
+        user = find_item(User, user_id)
+        user.supervisor_id = None
+        user_list.append(user)
+    db.session.add_all(user_list)
+    db.session.commit()
+    return user_list
+    
 
 @query.field("getAllSubordinates")
 @convert_kwargs_to_snake_case
@@ -499,7 +536,7 @@ def resolve_create_team_member(obj, info, input):
             created_at=datetime.now()
         )
         team_members.append(team_member)
-    db.session.bulk_save_objects(team_members)
+    db.session.add_all(team_members)
     db.session.commit()
     return team_members
 
@@ -585,10 +622,10 @@ def resolve_change_holiday_request_status(holiday_request, input):
         raise ValidationError(f"Holiday request {holiday_request.id} is already {holiday_request.status}")
     if(holiday_request.user_id == current_user.id):
         if(holiday_request.status != HolidayRequestStatus.PENDING or status != HolidayRequestStatus.CANCELLED):
-            raise Unauthorized(f"You can not change status from {holiday_request.status} to {status}")
+            roles_check('manager')
     elif(user.is_supervisor_of(holiday_request.user_id)):
         if(holiday_request.status != HolidayRequestStatus.PENDING or status not in [HolidayRequestStatus.ACCEPTED, HolidayRequestStatus.REJECTED]):
-            raise Unauthorized(f"You can not change status from {holiday_request.status} to {status}")
+            roles_check('manager')
     else:
         roles_check('manager')
     holiday_request.status = status
