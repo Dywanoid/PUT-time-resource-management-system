@@ -349,7 +349,7 @@ type Mutation {
     updateProjectAssignment(input: UpdateProjectAssignmentInput!): ProjectAssignment!
     deleteProjectAssignment(input: DeleteProjectAssignmentInput!): ProjectAssignment!
     createUpdateOrDeleteTimeLog(input: CreateUpdateOrDeleteTimeLogInput!): TimeLog!
-    updateSupervisor(input: updateSupervisorInput!): User!
+    updateSupervisor(input: UpdateSupervisorInput!): User!
     unassignSupervisor(input: UnassignSupervisor!): User!
     # TODO split this file into multiple files
 }
