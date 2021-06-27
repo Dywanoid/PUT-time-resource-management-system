@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { injectIntl } from 'react-intl';
 import { Breadcrumb, List, Form, Button, Typography, Space } from 'antd';
 import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 import {
@@ -46,7 +47,7 @@ interface ProjectState {
   }
 }
 
-export const ProjectsView = () : JSX.Element => {
+export const ProjectsView = injectIntl(({ intl }) : JSX.Element => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isArchiveModalVisible, setIsArchiveModalVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -177,14 +178,19 @@ export const ProjectsView = () : JSX.Element => {
         <Breadcrumb>
           <Breadcrumb.Item>
             <Link to={{ pathname: '/clients' }}>
-            Klienci
+              { intl.formatMessage({ id: 'clients' }) }
             </Link>
           </Breadcrumb.Item>
-          <Breadcrumb.Item>{`Projekty klienta "${ clientName }"`}</Breadcrumb.Item>
+          <Breadcrumb.Item>{`${ intl.formatMessage({ id: 'client_projects' }) } "${ clientName }"`}</Breadcrumb.Item>
         </Breadcrumb>
-        <Button onClick={ newProjectHandler }><Text strong>Dodaj projekt ➕</Text></Button>
+        <Button onClick={ newProjectHandler }>
+          <Text strong>
+            { intl.formatMessage({ id: 'add_project' }) }
+            ➕
+          </Text>
+        </Button>
         <List
-          header={ <h1>{`Projekty klienta: "${ location.state.client.name }"`}</h1> }
+          header={ <h1>{`${ intl.formatMessage({ id: 'client_projects' }) }: "${ location.state.client.name }"`}</h1> }
           bordered
           itemLayout="vertical"
           dataSource={ projects }
@@ -198,7 +204,7 @@ export const ProjectsView = () : JSX.Element => {
                 >
                   <IconText
                     icon={ EditFilled }
-                    text="Edytuj"
+                    text={ intl.formatMessage({ id: 'edit' }) }
                     key="list-vertical-star-o"
                   />
                 </Button>,
@@ -209,7 +215,7 @@ export const ProjectsView = () : JSX.Element => {
                 >
                   <IconText
                     icon={ InboxOutlined }
-                    text="Archiwizuj"
+                    text={ intl.formatMessage({ id: 'archive' }) }
                     key="list-vertical-like-o"
                   />
                 </Button>,
@@ -220,7 +226,7 @@ export const ProjectsView = () : JSX.Element => {
                 >
                   <IconText
                     icon={ BarsOutlined }
-                    text="Przypisz pracowników"
+                    text={ intl.formatMessage({ id: 'assign_employees' }) }
                     key="list-vertical-message-2"
                   />
                 </Button>,
@@ -231,7 +237,7 @@ export const ProjectsView = () : JSX.Element => {
                 >
                   <IconText
                     icon={ BarsOutlined }
-                    text="Zarządzaj zadaniami"
+                    text={ intl.formatMessage({ id: 'manage_tasks' }) }
                     key="list-vertical-message"
                   />
                 </Button>
@@ -259,4 +265,5 @@ export const ProjectsView = () : JSX.Element => {
         />
       </Space>
     </>
-  );};
+  );
+});

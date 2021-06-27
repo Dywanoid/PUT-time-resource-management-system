@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import { Transfer, notification, List, Button } from 'antd';
+import { injectIntl } from 'react-intl';
 import {
   useGetAllUsersQuery,
   useUpdateSupervisorBatchMutation,
@@ -8,12 +9,12 @@ import {
 import { UserContext } from '../utils/auth';
 import '../css/SubordinatesView.css';
 
-const openNotificationWithIcon = (type, action) => {
+const openNotificationWithIcon = (type, action, intl) => {
   notification[type]({
     description: type === 'success'
-      ? `Pomyślnie wykonano akcję ${ action }.`
-      : `Akcja ${ action } nie została wykonana.`,
-    message: 'Powiadomienie'
+      ? `${ intl.formatMessage({ id: 'action_success' }) } ${ action }.`
+      : `${ intl.formatMessage({ id: 'action' }) } ${ action } ${ intl.formatMessage({ id: 'not_completed' }) }.`,
+    message: intl.formatMessage({ id: 'notification' })
   });
 };
 
@@ -21,7 +22,7 @@ const elementCompare = (a, b) =>
   a.length === b.length
     && a.every((v, i) => v === b[i]);
 
-export const SubordinatesView = () : JSX.Element => {
+export const SubordinatesView = injectIntl(({ intl }) : JSX.Element => {
   const userInfo = useContext(UserContext);
   const { data: userData , loading, error } = useGetAllUsersQuery();
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
@@ -32,13 +33,29 @@ export const SubordinatesView = () : JSX.Element => {
   const users = userData?.users || [] as any;
   const [createSubordinates] = useUpdateSupervisorBatchMutation({
     onCompleted(){
-      openNotificationWithIcon('success', 'przydzielania podwładnych');
+      openNotificationWithIcon(
+        'success',
+        intl.formatMessage({ id: 'assign_subordinates_notification' }),
+        intl
+      );
     },
-    onError() { openNotificationWithIcon('error', 'przydzielania podwładnych'); }
+    onError() { openNotificationWithIcon(
+      'error',
+      intl.formatMessage({ id: 'assign_subordinates_notification' }),
+      intl
+    ); }
   });
   const [deleteSubordinates] = useUnassignSupervisorBatchMutation({
-    onCompleted(){ openNotificationWithIcon('success', 'usuwania podwładnych'); },
-    onError() { openNotificationWithIcon('error', 'usuwania podwładnych'); }
+    onCompleted(){ openNotificationWithIcon(
+      'success',
+      intl.formatMessage({ id: 'remove_subordinates_notification' }),
+      intl
+    ); },
+    onError() { openNotificationWithIcon(
+      'error',
+      intl.formatMessage({ id: 'remove_subordinates_notification' }),
+      intl
+    ); }
   });
 
   const onElementChange = (nextTargetKeys) => {
@@ -119,14 +136,14 @@ export const SubordinatesView = () : JSX.Element => {
 
   return (
     <>
-      <h1>Przydziel podwładnych</h1>
+      <h1>{ intl.formatMessage({ id: 'assign_subordinates' }) }</h1>
       <Transfer
         dataSource={ mockData as any}
         listStyle={{
           height: 400,
           width: 700
         }}
-        titles={['Do przydzielenia', 'Przydzieleni']}
+        titles={[intl.formatMessage({ id: 'to_assign' }), intl.formatMessage({ id: 'assigned' })]}
         targetKeys={ targetKeys }
         selectedKeys={ selectedKeys }
         onChange={ onElementChange }
@@ -137,6 +154,11 @@ export const SubordinatesView = () : JSX.Element => {
         />)
         }
       />
-      <Button className="confirmButtton" onClick={ confirmSubordinates }>Zatwierdź</Button>
+      <Button
+        className="confirmButtton"
+        onClick={ confirmSubordinates }>
+        { intl.formatMessage({ id: 'confirm' }) }
+      </Button>
     </>
-  );};
+  );
+});

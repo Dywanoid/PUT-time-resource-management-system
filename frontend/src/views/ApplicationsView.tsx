@@ -1,6 +1,7 @@
 import { useRef, useState, useContext } from 'react';
+import { injectIntl } from 'react-intl';
 import {
-  Layout, Form, Input, Button,
+  Layout, Form, Button,
   List, Select, FormInstance, DatePicker, notification,
   Avatar
 } from 'antd';
@@ -20,19 +21,19 @@ import '../css/ApplicationView.css';
 const { Content } = Layout;
 const { RangePicker } = DatePicker;
 
-const openNotificationWithIcon = (type, action) => {
+const openNotificationWithIcon = (type, action, intl) => {
   notification[type]({
     description: type === 'success'
-      ? `Pomyślnie wykonano akcję ${ action }.`
-      : `Akcja ${ action } nie została wykonana.`,
-    message: 'Powiadomienie'
+      ? `${ intl.formatMessage({ id: 'action_success' }) } ${ action }.`
+      : `${ intl.formatMessage({ id: 'action' }) } ${ action } ${ intl.formatMessage({ id: 'not_completed' }) }.`,
+    message: intl.formatMessage({ id: 'notification' })
   });
 };
 
 const requestStatuses = Object.values(HolidayRequestStatus);
 const applicationsTypes = Object.values(HolidayRequestType);
 
-export const ApplicationsView = (): JSX.Element => {
+export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
   const userInfo = useContext(UserContext);
   const [requestType, setRequestType] = useState('');
   const [startDate, setStartDate] = useState(Date);
@@ -42,12 +43,28 @@ export const ApplicationsView = (): JSX.Element => {
   const [getUsersHolidayRequests, { data: usersApplicationData }] = useGetHolidayRequestsLazyQuery();
   const [getUserHolidayRequests, { data: userApplicationData }] = useGetHolidayRequestsLazyQuery();
   const [createApplication] = useCreateHolidayRequestMutation({
-    onCompleted(){ openNotificationWithIcon('success', 'tworzenia wniosku'); },
-    onError() { openNotificationWithIcon('error', 'tworzenia wniosku'); }
+    onCompleted(){ openNotificationWithIcon(
+      'success',
+      `${ intl.formatMessage({ id: 'create_application' }) }`,
+      intl
+    ); },
+    onError() { openNotificationWithIcon(
+      'error',
+      `${ intl.formatMessage({ id: 'create_application' }) }`,
+      intl
+    ); }
   });
   const [changeApplicationRequest] = useChangeHolidayRequestStatusMutation({
-    onCompleted(){ openNotificationWithIcon('success', 'zmieniono status'); },
-    onError() { openNotificationWithIcon('error', 'zmieniono status'); }
+    onCompleted(){openNotificationWithIcon(
+      'success',
+      `${ intl.formatMessage({ id: 'status_changed' }) }`,
+      intl
+    ); },
+    onError() { openNotificationWithIcon(
+      'error',
+      `${ intl.formatMessage({ id: 'status_changed' }) }`,
+      intl
+    ); }
   });
   const sendApplicationRequest = (id, request, start, end) => {
     createApplication({
@@ -135,26 +152,26 @@ export const ApplicationsView = (): JSX.Element => {
         );
       case 'MANAGER_CANCELLED':
       case 'USER_CANCELLED':
-        return [<div key="2">Cancelled</div>];
+        return [<div key="2">{ intl.formatMessage({ id: 'cancelled' }) }</div>];
       case 'MANAGER_REJECTED':
       case 'USER_REJECTED':
-        return [<div key="2">Rejected</div>];
+        return [<div key="2">{ intl.formatMessage({ id: 'rejected' }) }</div>];
       case 'MANAGER_ACCEPTED':
       case 'USER_ACCEPTED':
-        return [<div key="3">Accepted</div>];
+        return [<div key="3">{ intl.formatMessage({ id: 'accepted' }) }</div>];
       case 'MANAGER_PENDING':
-        if (userInfo?.supervisor === null) {
+        if (userInfo?.supervisor.name.length === 0) {
           return (
             [<a key="3"
               onClick={() => handleEventChange(requestStatuses[2],item.id)}
             >
-              { requestStatuses[2].substr(0, requestStatuses[2].length - 2) }
+              { intl.formatMessage({ id: 'reject' }) }
             </a>
             ,
             <a key="4"
               onClick={() => handleEventChange(requestStatuses[1],item.id)}
             >
-              { requestStatuses[1].substr(0, requestStatuses[1].length - 2) }
+              { intl.formatMessage({ id: 'accept' }) }
             </a>]
           );
         } else {
@@ -162,7 +179,7 @@ export const ApplicationsView = (): JSX.Element => {
             [<a key="1"
               onClick={() => handleEventChange(requestStatuses[3],item.id)}
             >
-              { requestStatuses[3].substr(0, requestStatuses[3].length - 2) }
+              { intl.formatMessage({ id: 'cancell' }) }
             </a>]
           );
         }
@@ -180,12 +197,16 @@ export const ApplicationsView = (): JSX.Element => {
           { (userInfo?.supervisor.name.length !== 0)
           && (<Form.Item
             className="changeSupervisor"
-            label="Przełożony"
+            label={ intl.formatMessage({ id: 'supervisor' }) }
           >
             { userInfo?.supervisor.name }
           </Form.Item>)
           }
-          <Form.Item name="Typ wniosku" label="Typ wniosku" rules={[{ required: true }]}>
+          <Form.Item
+            name="Typ wniosku"
+            label={ intl.formatMessage({ id: 'application_type' }) }
+            rules={[{ required: true }]}
+          >
             <Select
               onChange={ onRequestTypeChange }
               allowClear
@@ -193,39 +214,21 @@ export const ApplicationsView = (): JSX.Element => {
               { requestTypes }
             </Select>
           </Form.Item>
-          <Form.Item name="Data" label="Data" rules={[{ required: true }]}>
+          <Form.Item name="Data" label={ intl.formatMessage({ id: 'date' }) } rules={[{ required: true }]}>
             <RangePicker onChange={ onRangePickerChange }/>
-          </Form.Item>
-          <Form.Item
-            noStyle
-            shouldUpdate={(prevValues, currentValues) => prevValues.gender !== currentValues.gender}
-          >
-            {({ getFieldValue }) =>
-              getFieldValue('gender') === 'other'
-                ? (
-                  <Form.Item
-                    name="customizeGender"
-                    label="Customize Gender"
-                    rules={[{ required: true }]}
-                  >
-                    <Input/>
-                  </Form.Item>
-                )
-                : null
-            }
           </Form.Item>
           <Form.Item  wrapperCol={{ offset: 8, span: 16 }}>
             <Button htmlType="button" onClick={ onReset }>
-              Wyczyść
+              { intl.formatMessage({ id: 'clear' }) }
             </Button>
             <Button type="primary" htmlType="submit">
-              Wyślij
+              { intl.formatMessage({ id: 'send' }) }
             </Button>
           </Form.Item>
         </Form>
       </Content>
       <List
-        header={ <h1>Twoje wnioski</h1> }
+        header={ <h1>{ intl.formatMessage({ id: 'ur_applications' }) }</h1> }
         bordered
         itemLayout="horizontal"
         dataSource={ [...userApplications] }
@@ -243,9 +246,9 @@ export const ApplicationsView = (): JSX.Element => {
                 { item.user.name }
               </div> }
               description={ <div>
-                od
+                { intl.formatMessage({ id: 'from' }) }
                 { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
-                do
+                { intl.formatMessage({ id: 'to' }) }
                 {' ' + moment(item.endDate).format('DD-MM-YYYY')}
               </div> }
               avatar={ <Avatar style={
@@ -260,7 +263,7 @@ export const ApplicationsView = (): JSX.Element => {
       { userRole.includes('manager')
       && (
         <List
-          header={ <h1>Wnioski podwładnych</h1> }
+          header={ <h1>{ intl.formatMessage({ id: 'subbordinates_applications' }) }</h1> }
           bordered
           itemLayout="horizontal"
           dataSource={ [...usersApplications] }
@@ -278,9 +281,9 @@ export const ApplicationsView = (): JSX.Element => {
                   { item.user.name }
                 </div> }
                 description={ <div>
-                  od
+                  { intl.formatMessage({ id: 'from' }) }
                   { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
-                  do
+                  { intl.formatMessage({ id: 'to' }) }
                   { ' ' + moment(item.endDate).format('DD-MM-YYYY') }
                 </div> }
                 avatar={ <Avatar style={
@@ -294,4 +297,4 @@ export const ApplicationsView = (): JSX.Element => {
         />) }
     </Layout>
   );
-};
+});

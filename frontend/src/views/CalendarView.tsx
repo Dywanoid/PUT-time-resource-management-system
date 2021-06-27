@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
+import { injectIntl } from 'react-intl';
 import { Calendar, Select, Layout, Avatar } from 'antd';
 import {
   useGetAllTeamsQuery,
@@ -53,7 +54,7 @@ const getListData = (value, userApplications, currentFilter) => {
   return listData || [];
 };
 
-export const CalendarView = (): JSX.Element => {
+export const CalendarView = injectIntl(({ intl }): JSX.Element => {
   const userInfo = useContext(UserContext);
   const { data: userData , loading, error } = useGetAllUsersQuery();
   const [usersList, setUsersList] = useState<string[]>([]);
@@ -102,7 +103,7 @@ export const CalendarView = (): JSX.Element => {
             value={ '' }
             key={ 'wszyscy' }
           >
-            Wszyscy
+            { intl.formatMessage({ id: 'all_users' }) }
           </Option>
         );
         setUsersList(data);
@@ -180,14 +181,14 @@ export const CalendarView = (): JSX.Element => {
         <Select
           showSearch
           style={{ float:'right', padding: 12, width: 240 }}
-          placeholder="Wybierz Filtr"
+          placeholder={ intl.formatMessage({ id: 'choose_filter' }) }
           optionFilterProp="children"
           onSelect={ selectedFilter }
         >
-          <OptGroup label="Zespoły">
+          <OptGroup label={ intl.formatMessage({ id: 'teams' }) }>
             { teamsListHtml }
           </OptGroup>
-          <OptGroup label="Użytkownicy">
+          <OptGroup label={ intl.formatMessage({ id: 'users' }) }>
             { usersListHtml }
           </OptGroup>
         </Select>
@@ -198,4 +199,4 @@ export const CalendarView = (): JSX.Element => {
       </Content>
     </Layout>
   );
-};
+});

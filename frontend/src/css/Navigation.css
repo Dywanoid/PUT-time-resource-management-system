@@ -20,3 +20,22 @@
 #SubMenu3\$Menu > li {
   text-align: center;
 }
+
+.flagButton {
+  float:right;
+  background-color: transparent;
+  background: transparent;
+  display: none;
+  color: transparent;
+}
+
+.lang {
+  width: 50px;
+  height: 30px;
+  margin-top: 14px;
+}
+#root > section > div > header > button {
+  background: transparent;
+  color: transparent;
+  border-color: transparent !important;
+}

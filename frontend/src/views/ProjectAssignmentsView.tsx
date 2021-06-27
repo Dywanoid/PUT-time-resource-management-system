@@ -99,18 +99,18 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: any) => (
 const leftTableColumns = [
   {
     dataIndex: 'name',
-    title: 'Imie i nazwisko'
+    title: localStorage.getItem('lang') === 'pl' ? 'Imię i nazwisko' : 'Name and surname'
   }
 ];
 
 const rightTableColumns = [
   {
     dataIndex: 'name',
-    title: 'Imie i nazwisko'
+    title: localStorage.getItem('lang') === 'pl' ? 'Imię i nazwisko' : 'Name and surname'
   },
   {
     dataIndex: 'hourlyRate',
-    title: 'Stawka godzinowa (zł/h)'
+    title: localStorage.getItem('lang') === 'pl' ? 'Stawka godzinowa (zł/h)' : 'Hourly rate (PLN/h)'
   }
 ];
 
@@ -260,11 +260,13 @@ export const ProjectAssignmentsView = () : JSX.Element => {
               state: location.state
             }}
           >
-            { `Projekty klienta "${ clientName }"` }
+            { `${ localStorage.getItem('lang') === 'pl' ? 'Projekty klienta' : 'Client projects' } "${ clientName }"` }
           </Link>
         </Breadcrumb.Item>
         <Breadcrumb.Item>
-          { `Przypisz pracowników do projektu: "${ projectName }"` }
+          { `${ localStorage.getItem('lang') === 'pl'
+            ? 'Przypisz pracowników do projektu'
+            : 'Assign employees to project' }: "${ projectName }"` }
         </Breadcrumb.Item>
       </Breadcrumb>
 

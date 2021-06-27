@@ -1,7 +1,6 @@
+import React, { useContext, useEffect, useMemo, useReducer, useState } from 'react';
 import { Button, DatePicker, Table, Typography, Space, notification } from 'antd';
 import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
-
-import React, { useContext, useEffect, useMemo, useReducer, useState } from 'react';
 import moment, { Moment } from 'moment';
 import 'moment/locale/pl';
 import locale from 'antd/es/date-picker/locale/pl_PL';
@@ -110,24 +109,24 @@ function reducer(state, action: Action) {
 const dataColumns : TableColumn[] = [{
   dataIndex: 'client',
   responsive: ['md'],
-  title: 'Client'
+  title: localStorage.getItem('lang') === 'pl' ? 'Klienci' : 'Clients'
 },
 {
   dataIndex: 'project',
   responsive: ['md'],
-  title: 'Project'
+  title: localStorage.getItem('lang') === 'pl' ? 'Projekt' : 'Project'
 },
 {
   dataIndex: 'task',
   responsive: ['md'],
-  title: 'Task'
+  title: localStorage.getItem('lang') === 'pl' ? 'Zadanie' : 'Task'
 }];
 
 const sumColumn: TableColumn = {
   align: 'center',
   dataIndex: 'sum',
   responsive: ['md'],
-  title: 'Suma'
+  title: localStorage.getItem('lang') === 'pl' ? 'Suma' : 'Sum'
 };
 
 const getWeekEnds = (week: Moment) => {
