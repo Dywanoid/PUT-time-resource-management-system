@@ -143,19 +143,30 @@ export const ApplicationsView = (): JSX.Element => {
       case 'USER_ACCEPTED':
         return [<div key="3">Accepted</div>];
       case 'MANAGER_PENDING':
-        return (
-          [<a key="3"
-            onClick={() => handleEventChange(requestStatuses[2],item.id)}
-          >
-            { requestStatuses[2].substr(0, requestStatuses[2].length - 2) }
-          </a>
-          ,
-          <a key="4"
-            onClick={() => handleEventChange(requestStatuses[1],item.id)}
-          >
-            { requestStatuses[1].substr(0, requestStatuses[1].length - 2) }
-          </a>]
-        );
+        if (userInfo?.supervisor === null) {
+          return (
+            [<a key="3"
+              onClick={() => handleEventChange(requestStatuses[2],item.id)}
+            >
+              { requestStatuses[2].substr(0, requestStatuses[2].length - 2) }
+            </a>
+            ,
+            <a key="4"
+              onClick={() => handleEventChange(requestStatuses[1],item.id)}
+            >
+              { requestStatuses[1].substr(0, requestStatuses[1].length - 2) }
+            </a>]
+          );
+        } else {
+          return (
+            [<a key="1"
+              onClick={() => handleEventChange(requestStatuses[3],item.id)}
+            >
+              { requestStatuses[3].substr(0, requestStatuses[3].length - 2) }
+            </a>]
+          );
+        }
+
       default:
         return [];
     }
@@ -166,7 +177,7 @@ export const ApplicationsView = (): JSX.Element => {
       <Content>
         <Form labelCol={{ span: 8 }} wrapperCol={{ span: 10 }}
           ref={ formRef } onFinish={ onFinish }>
-          { ( !userRole.includes('manager') && userInfo?.supervisor.name.length !== 0)
+          { (userInfo?.supervisor.name.length !== 0)
           && (<Form.Item
             className="changeSupervisor"
             label="Przełożony"
@@ -253,7 +264,7 @@ export const ApplicationsView = (): JSX.Element => {
           bordered
           itemLayout="horizontal"
           dataSource={ [...usersApplications] }
-          pagination={{ pageSize: 10 }}
+          pagination={ { pageSize: 10 } }
           renderItem={ (item: any) => (
             <List.Item
               actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
@@ -270,7 +281,7 @@ export const ApplicationsView = (): JSX.Element => {
                   od
                   { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
                   do
-                  {' ' + moment(item.endDate).format('DD-MM-YYYY')}
+                  { ' ' + moment(item.endDate).format('DD-MM-YYYY') }
                 </div> }
                 avatar={ <Avatar style={
                   { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
