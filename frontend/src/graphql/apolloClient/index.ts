@@ -18,6 +18,15 @@ const client = new ApolloClient({
             }
           }
         }
+      },
+      User : {
+        fields: {
+          subordinates : {
+            merge(existing, incoming) {
+              return incoming;
+            }
+          }
+        }
       }
     }
   }),

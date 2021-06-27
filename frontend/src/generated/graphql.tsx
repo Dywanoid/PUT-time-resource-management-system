@@ -209,6 +209,9 @@ export type Mutation = {
   deleteProjectAssignment: ProjectAssignment;
   createUpdateOrDeleteTimeLog: TimeLog;
   updateSupervisor: User;
+  unassignSupervisor: User;
+  updateSupervisorBatch?: Maybe<Array<User>>;
+  unassignSupervisorBatch?: Maybe<Array<User>>;
 };
 
 
@@ -344,6 +347,21 @@ export type MutationCreateUpdateOrDeleteTimeLogArgs = {
 
 export type MutationUpdateSupervisorArgs = {
   input: UpdateSupervisorInput;
+};
+
+
+export type MutationUnassignSupervisorArgs = {
+  input: UnassignSupervisorInput;
+};
+
+
+export type MutationUpdateSupervisorBatchArgs = {
+  input: UpdateSupervisorBatchInput;
+};
+
+
+export type MutationUnassignSupervisorBatchArgs = {
+  input: UnassignSupervisorBatchInput;
 };
 
 export type Project = {
@@ -555,6 +573,14 @@ export type UnarchiveTeamInput = {
   teamId: Scalars['ID'];
 };
 
+export type UnassignSupervisorBatchInput = {
+  userList?: Maybe<Array<Scalars['ID']>>;
+};
+
+export type UnassignSupervisorInput = {
+  userId: Scalars['ID'];
+};
+
 export type UpdateClientInput = {
   clientId: Scalars['ID'];
   name: Scalars['String'];
@@ -577,6 +603,16 @@ export type UpdateProjectInput = {
   name: Scalars['String'];
 };
 
+export type UpdateSupervisorBatchInput = {
+  userList?: Maybe<Array<Scalars['ID']>>;
+  supervisorId: Scalars['ID'];
+};
+
+export type UpdateSupervisorInput = {
+  userId: Scalars['ID'];
+  supervisorId: Scalars['ID'];
+};
+
 export type UpdateTaskInput = {
   taskId: Scalars['ID'];
   name: Scalars['String'];
@@ -596,11 +632,6 @@ export type User = {
   teams?: Maybe<Array<Team>>;
   supervisor?: Maybe<Supervisor>;
   subordinates?: Maybe<Array<User>>;
-};
-
-export type UpdateSupervisorInput = {
-  userId: Scalars['ID'];
-  supervisorId: Scalars['ID'];
 };
 
 export type CreateHolidayRequestMutationVariables = Exact<{
@@ -798,6 +829,33 @@ export type ArchiveProjectMutation = (
     { __typename?: 'Project' }
     & Pick<Project, 'id'>
   ) }
+);
+
+export type UpdateSupervisorBatchMutationVariables = Exact<{
+  userList?: Maybe<Array<Scalars['ID']> | Scalars['ID']>;
+  supervisorId: Scalars['ID'];
+}>;
+
+
+export type UpdateSupervisorBatchMutation = (
+  { __typename?: 'Mutation' }
+  & { updateSupervisorBatch?: Maybe<Array<(
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'name'>
+  )>> }
+);
+
+export type UnassignSupervisorBatchMutationVariables = Exact<{
+  userList?: Maybe<Array<Scalars['ID']> | Scalars['ID']>;
+}>;
+
+
+export type UnassignSupervisorBatchMutation = (
+  { __typename?: 'Mutation' }
+  & { unassignSupervisorBatch?: Maybe<Array<(
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'name'>
+  )>> }
 );
 
 export type AddTaskMutationVariables = Exact<{
@@ -1647,6 +1705,75 @@ export function useArchiveProjectMutation(baseOptions?: Apollo.MutationHookOptio
 export type ArchiveProjectMutationHookResult = ReturnType<typeof useArchiveProjectMutation>;
 export type ArchiveProjectMutationResult = Apollo.MutationResult<ArchiveProjectMutation>;
 export type ArchiveProjectMutationOptions = Apollo.BaseMutationOptions<ArchiveProjectMutation, ArchiveProjectMutationVariables>;
+export const UpdateSupervisorBatchDocument = gql`
+    mutation updateSupervisorBatch($userList: [ID!], $supervisorId: ID!) {
+  updateSupervisorBatch(input: {userList: $userList, supervisorId: $supervisorId}) {
+    id
+    name
+  }
+}
+    `;
+export type UpdateSupervisorBatchMutationFn = Apollo.MutationFunction<UpdateSupervisorBatchMutation, UpdateSupervisorBatchMutationVariables>;
+
+/**
+ * __useUpdateSupervisorBatchMutation__
+ *
+ * To run a mutation, you first call `useUpdateSupervisorBatchMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSupervisorBatchMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSupervisorBatchMutation, { data, loading, error }] = useUpdateSupervisorBatchMutation({
+ *   variables: {
+ *      userList: // value for 'userList'
+ *      supervisorId: // value for 'supervisorId'
+ *   },
+ * });
+ */
+export function useUpdateSupervisorBatchMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSupervisorBatchMutation, UpdateSupervisorBatchMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSupervisorBatchMutation, UpdateSupervisorBatchMutationVariables>(UpdateSupervisorBatchDocument, options);
+      }
+export type UpdateSupervisorBatchMutationHookResult = ReturnType<typeof useUpdateSupervisorBatchMutation>;
+export type UpdateSupervisorBatchMutationResult = Apollo.MutationResult<UpdateSupervisorBatchMutation>;
+export type UpdateSupervisorBatchMutationOptions = Apollo.BaseMutationOptions<UpdateSupervisorBatchMutation, UpdateSupervisorBatchMutationVariables>;
+export const UnassignSupervisorBatchDocument = gql`
+    mutation unassignSupervisorBatch($userList: [ID!]) {
+  unassignSupervisorBatch(input: {userList: $userList}) {
+    id
+    name
+  }
+}
+    `;
+export type UnassignSupervisorBatchMutationFn = Apollo.MutationFunction<UnassignSupervisorBatchMutation, UnassignSupervisorBatchMutationVariables>;
+
+/**
+ * __useUnassignSupervisorBatchMutation__
+ *
+ * To run a mutation, you first call `useUnassignSupervisorBatchMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnassignSupervisorBatchMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unassignSupervisorBatchMutation, { data, loading, error }] = useUnassignSupervisorBatchMutation({
+ *   variables: {
+ *      userList: // value for 'userList'
+ *   },
+ * });
+ */
+export function useUnassignSupervisorBatchMutation(baseOptions?: Apollo.MutationHookOptions<UnassignSupervisorBatchMutation, UnassignSupervisorBatchMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnassignSupervisorBatchMutation, UnassignSupervisorBatchMutationVariables>(UnassignSupervisorBatchDocument, options);
+      }
+export type UnassignSupervisorBatchMutationHookResult = ReturnType<typeof useUnassignSupervisorBatchMutation>;
+export type UnassignSupervisorBatchMutationResult = Apollo.MutationResult<UnassignSupervisorBatchMutation>;
+export type UnassignSupervisorBatchMutationOptions = Apollo.BaseMutationOptions<UnassignSupervisorBatchMutation, UnassignSupervisorBatchMutationVariables>;
 export const AddTaskDocument = gql`
     mutation AddTask($projectId: ID!, $name: String!) {
   addTask(input: {projectId: $projectId, name: $name}) {
@@ -2563,6 +2690,8 @@ export const namedOperations = {
     AddProject: 'AddProject',
     UpdateProject: 'UpdateProject',
     ArchiveProject: 'ArchiveProject',
+    updateSupervisorBatch: 'updateSupervisorBatch',
+    unassignSupervisorBatch: 'unassignSupervisorBatch',
     AddTask: 'AddTask',
     UpdateTask: 'UpdateTask',
     ArchiveTask: 'ArchiveTask',
