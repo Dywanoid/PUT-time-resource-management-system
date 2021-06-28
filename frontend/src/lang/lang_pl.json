@@ -77,5 +77,11 @@
     "child_care": "Opieka nad dzieckiem",
     "compassionate_leave": "Urlop okolicznościowy",
     "sick_leave": "Urlop chorobowy",
+    "on_demand_avatar": "Na żądanie",
+    "holiday_avatar": "Wypoczynkowy",
+    "unpaid_avatar": "Bezpłatny",
+    "child_care_avatar": "Opieka",
+    "compassionate_leave_avatar": "Okolicznościowy",
+    "sick_leave_avatar": "Chorobowy",
     "choice_of_week": "Wybór tygodnia"
 }

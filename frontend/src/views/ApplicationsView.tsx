@@ -254,7 +254,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
               avatar={ <Avatar style={
                 { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
               size={ 64 } gap={ 1 } shape="square">
-                { item.type }
+                { intl.formatMessage({ id: `${ item.type.toLowerCase() }_avatar` }) }
               </Avatar> }
             />
           </List.Item>
@@ -289,7 +289,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
                 avatar={ <Avatar style={
                   { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
                 size={ 64 } gap={ 1 } shape="square">
-                  { item.type }
+                  { intl.formatMessage({ id: `${ item.type.toLowerCase() }_avatar` }) }
                 </Avatar> }
               />
             </List.Item>
