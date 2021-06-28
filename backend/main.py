@@ -8,5 +8,6 @@ from app import app
 from database import db
 import handler
 import auth
+import formatting
 
 migrate = Migrate(app, db)

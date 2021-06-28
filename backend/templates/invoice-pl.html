@@ -1,0 +1,97 @@
+<html>
+
+<body>
+    <div class="paper-wrap paper-corner">
+        <header class="paper-wrap--header">
+            <div class="paper-header">
+                <h3>Faktura 
+                    <form>
+                        <label for="invoice_no">Numer faktury</label>
+                        <input id="invoice_no" name="invoice_no" />
+                    </form> 1/05/2021
+                </h3>
+            </div>
+        </header>
+
+        <div>
+            <div>
+                <h4>Sprzedawca</h4>
+                <!-- TODO replace with owner data -->
+                <p>{{ cr.client.name }}</p>
+                <p>{{ cr.client.street_with_number}}</p>
+                <p>{{ cr.client.zip_code }}</p>
+                <p>NIP: {{ cr.client.tax_id }}</p>
+            </div>
+
+            <div>
+                <h4>Nabywca</h4>
+                <p>{{ cr.client.name }}</p>
+                <p>{{ cr.client.street_with_number}}</p>
+                <p>{{ cr.client.zip_code }}</p>
+                <p>NIP: {{ cr.client.tax_id }}</p>
+            </div>
+
+        </div>
+
+
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nazwa towaru lub usługi</th>
+                    <!-- <th class="nowrap width-85 hide">PKWiU / CN / PKOB</th> -->
+                    <th>J.m.</th>
+                    <th>Ilość</th>
+                    <th>Cena netto</th>
+                    <th>Wartość netto</th>
+                    <th>Stawka VAT</th>
+                    <th>Kwota VAT</th>
+                    <th>Wartość brutto</th>
+                </tr>
+            </thead>
+
+            {% for pr in cr.project_reports %}
+            {% for ur in pr.user_reports %}
+            {% for par in ur.project_assignment_reports %}
+
+            <tr>
+                <td>
+                    <p>{{ pr.project.name }} - {{ ur.user.name }}</p>
+                </td>
+                <!-- <td data-header='PKWiU / CN / PKOB' class="hide"></td> -->
+                <td>h</td>
+                <td>{{ par.duration | hours | rounded_decimal }}</td>
+                <td>{{ par.project_assignment.hourly_rate | rounded_decimal }}</td>
+                <td >{{ par.total_cost | rounded_decimal }}</td>
+                <td>23%</td>
+                <td>{{ par.total_cost | vat_amount | rounded_decimal }}</td>
+                <td>{{ par.total_cost | gross_amount | rounded_decimal }}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+            {% endfor %}
+
+            <tfoot>
+
+
+
+                <tr>
+                    <td colspan="7">Razem:</td>
+                    <td><strong>{{ cr.total_cost | gross_amount | rounded_decimal }}</strong></td>
+                </tr>
+            </tfoot>
+
+        </table>
+
+
+        <div>
+            <h4>Podsumowanie</h4>
+            <div>
+                <p>Razem do zapłaty: <strong>... PLN</strong></p>
+                <p>Zapłacono: <strong>... PLN</strong></p>
+                <p>Pozostało do zapłaty: <strong>... PLN</strong></p>
+            </div>
+        </div>
+</body>
+
+</html>
