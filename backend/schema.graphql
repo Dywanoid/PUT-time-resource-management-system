@@ -133,41 +133,43 @@ type TimeLogInfo {
     totalCount: Int
 }
 
-type Report {
-    fromDate: Date!
-    toDate: Date!
-    clientReports: [ClientReport!]
+interface Report {
+    totalCost: Float!
 }
 
-type ClientReport {
+type ClientReport implements Report {
     client: Client!
     projectReports: [ProjectReport!]
-    summary: ReportSummary!
+    userReports: [UserReport!]
     invoiceUrl: String!
+    totalCost: Float!
 }
 
-type ProjectReport {
+type ProjectReport implements Report {
     project: Project!
     taskReports: [TaskReport!]
-    summary: ReportSummary!
-}
-
-type TaskReport {
-    task: Task!
-    summary: ReportSummary!
-}
-
-type ReportSummary {
+    userReports: [UserReport!]
     totalCost: Float!
-    timeLogCosts: [TimeLogCost!]
 }
 
-type TimeLogCost {
-    user: User!
-    duration: Interval!
-    hourlyRate: Float!
-    cost: Float!
+type TaskReport implements Report {
+    task: Task!
+    userReports: [UserReport!]
+    totalCost: Float!
 }
+
+type UserReport implements Report {
+    user: User
+    projectAssignmentReports: [ProjectAssignmentReport!]
+    totalCost: Float!
+}
+
+type ProjectAssignmentReport implements Report {
+    projectAssignment: ProjectAssignment!
+    duration: Interval!
+    totalCost: Float!
+}
+
 
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
@@ -196,11 +198,11 @@ type Query {
         limit: Int = 10
         ): [ProjectAssignment!]
     getAllSubordinates(userId: ID): [User!]
-    report(
-        projectIds: [ID!]
+    clientReports(
+        clientIds: [ID!],
         fromDate: Date!,
         toDate: Date!
-    ): Report!
+    ): [ClientReport!]
 }
 
 input CreateClientInput {

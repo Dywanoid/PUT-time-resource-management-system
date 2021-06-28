@@ -5,11 +5,11 @@ from graphql import default_field_resolver
 from sqlalchemy import desc, func
 from sqlalchemy.orm import contains_eager
 from database import Client, Currency, Project, Task, Team, TimeLog, TeamMember, User, ProjectAssignment, HolidayRequest, HolidayRequestStatus, HolidayRequestType, db
-from datetime import datetime, date, timedelta
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
 from error import NotFound, ValidationError, ActiveHolidayRequestError, Unauthorized
 from auth import roles_required, roles_check
+from reporting import get_client_reports
 
 query = QueryType()
 mutation = MutationType()
@@ -23,9 +23,9 @@ holiday_request_status_enum = EnumType("HolidayRequestStatus", HolidayRequestSta
 
 @dataclass
 class TimeLogInfo:
-    earliest_date: date = None
-    latest_date: date = None
-    total_count: int = 0
+    earliest_date: date
+    latest_date: date
+    total_count: int
 
 
 def find_item(item_type, id):
@@ -339,6 +339,12 @@ def resolve_create_update_or_delete_time_log(obj, info, input):
 
     db.session.commit()
     return time_log
+
+
+@query.field("clientReports")
+@convert_kwargs_to_snake_case
+def resolve_client_reports(obj, info, client_ids, from_date, to_date):
+    return get_client_reports(client_ids, from_date, to_date)
 
 
 @mutation.field("createClient")
