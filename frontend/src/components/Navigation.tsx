@@ -16,8 +16,6 @@ export const Navigation = injectIntl(({ intl }): JSX.Element => {
   const userInfo = useContext(UserContext);
   const [lang, setLang] = useState('');
 
-  console.log(lang);
-
   const user = userInfo?.name || '';
   const userRoles = userInfo?.roles || '';
 

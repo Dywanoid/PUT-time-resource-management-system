@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { injectIntl } from 'react-intl';
+import { UserContext } from '../utils/auth';
 import { Calendar, Select, Layout, Avatar } from 'antd';
+import moment from 'moment';
 import {
   useGetAllTeamsQuery,
   useGetHolidayRequestsQuery,
+  useGetUsersDayOffQuery,
   useGetAllUsersQuery
 } from '../generated/graphql';
 import { colorHash } from '../utils/colorHash';
 import '../css/CalendarView.css';
-
-import moment from 'moment';
 
 const { Option, OptGroup } = Select;
 const { Content } = Layout;
@@ -54,6 +55,8 @@ const getListData = (value, userApplications, currentFilter) => {
 };
 
 export const CalendarView = injectIntl(({ intl }): JSX.Element => {
+  const userInfo = useContext(UserContext);
+  const user = userInfo as any;
   const { data: userData , loading, error } = useGetAllUsersQuery();
   const [usersList, setUsersList] = useState<string[]>([]);
   const [currentFilter, setFilter] = useState(' ');
@@ -71,9 +74,25 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
       } as any
     }
   );
+  const { data: dayOffsData, refetch:refetchDayOffsData } = useGetUsersDayOffQuery(
+    {
+      fetchPolicy: 'no-cache',
+      variables: {
+        end: moment().clone().endOf('month')
+        , start: moment().clone().startOf('month')
+      } as any
+    }
+  );
   const { data: userTeamsData, loading: teamsLoading, error: teamsError }
   = useGetAllTeamsQuery({ fetchPolicy: 'no-cache' });
-  const userApplications = applicationData?.holidayRequests || [];
+  let userApplications = [] as any;
+
+  if (user?.roles.includes('manager')) {
+    userApplications = applicationData?.holidayRequests || [];
+  } else {
+    userApplications = dayOffsData?.daysOff || [];
+  }
+
   const userTeamsInfo = userTeamsData?.teams || [];
 
   useEffect(
@@ -83,14 +102,59 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
       const data: string[] = [];
 
       if(!loading && !error) {
-        for (let i = 0; i < users.length; i++) {
-          data.push( users[i].id );
-          usersHtml.push(
+        if (user?.roles.includes('manager')) {
+          for (let i = 0; i < users.length; i++) {
+            data.push( users[i].id );
+            usersHtml.push(
+              <Option
+                value={ `user-${ users[i].id }` }
+                key={ `user-${ users[i].id }` }
+              >
+                { users[i].name }
+              </Option>
+            );
+          }
+        }
+        usersHtml.push(
+          <Option
+            value={ '' }
+            key={ 'wszyscy' }
+          >
+            { intl.formatMessage({ id: 'all_users' }) }
+          </Option>
+        );
+        for (let i = 0; i < userTeamsInfo.length; i++) {
+          teamsHtml.push(
             <Option
-              value={ `user-${ users[i].id }` }
-              key={ `user-${ users[i].id }` }
+              value={ `team-${ userTeamsInfo[i].id }` }
+              key={ `team-${ userTeamsInfo[i].id }` }
             >
-              { users[i].name }
+              { userTeamsInfo[i].name }
+            </Option>
+          );
+        }
+        setUsersList(data);
+      } else {
+        for (let i = 0; i < userApplications.length; i++) {
+          if (!data.includes(userApplications[i].user.id)) {
+            data.push( userApplications[i].user.id );
+            usersHtml.push(
+              <Option
+                value={ `user-${ userApplications[i].user.id }` }
+                key={ `user-${ userApplications[i].user.id }` }
+              >
+                { userApplications[i].user.name }
+              </Option>
+            );
+          }
+        }
+        for (let i = 0; i < user.teams.length; i++) {
+          teamsHtml.push(
+            <Option
+              value={ `team-${ user.teams[i].id }` }
+              key={ `team-${ user.teams[i].id }` }
+            >
+              { user.teams[i].name }
             </Option>
           );
         }
@@ -105,16 +169,6 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
         setUsersList(data);
       }
 
-      for (let i = 0; i < userTeamsInfo.length; i++) {
-        teamsHtml.push(
-          <Option
-            value={ `team-${ userTeamsInfo[i].id }` }
-            key={ `team-${ userTeamsInfo[i].id }` }
-          >
-            { userTeamsInfo[i].name }
-          </Option>
-        );
-      }
       setTeamsListHtml(teamsHtml);
       setUsersListHtml(usersHtml);
     },
@@ -136,7 +190,11 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
               size={ 21 } gap={ 4 } shape="square">
               { item.name.match(/\b(\w)/g) }
             </Avatar>
-            { ' ' + intl.formatMessage({ id: item.content.toLowerCase() }) }
+            { ' ' }
+            { user.roles.includes('manager')
+              ? intl.formatMessage({ id: item.content.toLowerCase() })
+              : intl.formatMessage({ id: item.name })
+            }
           </li>
         ))}
       </ul>
@@ -144,12 +202,19 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
   };
 
   const changeDateCellRender = (value) => {
-    refetchApplicationData({
-      end:value.clone().endOf('month')
-      , requestStatuses: ['ACCEPTED']
-      , start: value.clone().startOf('month')
-      , userList: usersList
-    } as any);
+    if (user?.roles.includes('manager')) {
+      refetchApplicationData({
+        end:value.clone().endOf('month')
+        , requestStatuses: ['ACCEPTED']
+        , start: value.clone().startOf('month')
+        , userList: usersList
+      } as any);
+    } else {
+      refetchDayOffsData({
+        end:value.clone().endOf('month')
+        , start: value.clone().startOf('month')
+      } as any);
+    }
 
     const listData = getListData(value, userApplications, currentFilter);
 
@@ -162,7 +227,10 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
               { item.name.match(/\b(\w)/g) }
             </Avatar>
             { ' ' }
-            { intl.formatMessage({ id: item.content.toLowerCase() }) }
+            { user.roles.includes('manager')
+              ? intl.formatMessage({ id: item.content.toLowerCase() })
+              : intl.formatMessage({ id: item.name })
+            }
           </li>
         ))}
       </ul>

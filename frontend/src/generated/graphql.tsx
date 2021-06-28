@@ -1029,9 +1029,9 @@ export type GetUsersDayOffQueryVariables = Exact<{
 
 export type GetUsersDayOffQuery = (
   { __typename?: 'Query' }
-  & { holidayRequests?: Maybe<Array<(
-    { __typename?: 'HolidayRequest' }
-    & Pick<HolidayRequest, 'startDate' | 'endDate'>
+  & { daysOff?: Maybe<Array<(
+    { __typename?: 'DayOff' }
+    & Pick<DayOff, 'startDate' | 'endDate'>
     & { user: (
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name' | 'roles'>
@@ -2163,7 +2163,7 @@ export type GetHolidayRequestsLazyQueryHookResult = ReturnType<typeof useGetHoli
 export type GetHolidayRequestsQueryResult = Apollo.QueryResult<GetHolidayRequestsQuery, GetHolidayRequestsQueryVariables>;
 export const GetUsersDayOffDocument = gql`
     query GetUsersDayOff($startDate: DateTime, $userList: [ID], $teamList: [ID], $endDate: DateTime) {
-  holidayRequests(
+  daysOff(
     startDate: $startDate
     endDate: $endDate
     userList: $userList
