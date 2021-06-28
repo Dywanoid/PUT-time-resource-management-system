@@ -193,7 +193,7 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
             { ' ' }
             { user.roles.includes('manager')
               ? intl.formatMessage({ id: item.content.toLowerCase() })
-              : intl.formatMessage({ id: item.name })
+              : item.name
             }
           </li>
         ))}
@@ -229,7 +229,7 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
             { ' ' }
             { user.roles.includes('manager')
               ? intl.formatMessage({ id: item.content.toLowerCase() })
-              : intl.formatMessage({ id: item.name })
+              : item.name
             }
           </li>
         ))}
