@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useMemo, useReducer, useState } from 'react';
+import { injectIntl } from 'react-intl';
 import { Button, DatePicker, Table, Typography, Space, notification } from 'antd';
 import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 import moment, { Moment } from 'moment';
@@ -252,17 +253,20 @@ const TimeComponent = ({
 
     if(!isMultipleOf15) {
       notification.warning({
-        description: 'Zły format!',
+        description: localStorage.getItem('lang') === 'pl' ? 'Zły format!' : 'Bad format!',
         duration: 5,
-        message: 'Wpisuj tylko wielokrotności 15 min!'
+        message:
+          localStorage.getItem('lang') === 'pl'
+            ? 'Wpisuj tylko wielokrotności 15 min!'
+            : 'Enter only multiples of 15 min!'
       });
     }
 
     if(isTooMuch) {
       notification.error({
-        description: 'Dzień ma tylko 24 godziny!',
+        description: localStorage.getItem('lang') === 'pl' ? 'Dzień ma tylko 24 godziny!' : 'A day has only 24 hours!',
         duration: 5,
-        message: 'Za dużo godzin!'
+        message: localStorage.getItem('lang') === 'pl' ? 'Za dużo godzin!' : 'Too many hours!'
       });
     }
     const correctedTime = isTooMuch  || !isMultipleOf15 ? 0 : time;
@@ -424,7 +428,7 @@ const getTimeColumns = (weekDates): TableColumn[] =>
 
 const currentMomentGetter = () => moment();
 
-export const TimesheetTable: React.FC = () => {
+export const TimesheetTable: React.FC = injectIntl(({ intl }) => {
   const user = useContext(UserContext);
   const userId = user?.id as string;
 
@@ -475,7 +479,10 @@ export const TimesheetTable: React.FC = () => {
   return (
     <>
       <Space direction="vertical" size="middle">
-        <Text strong>Wybór tygodnia:</Text>
+        <Text strong>
+          { intl.formatMessage({ id: 'choice_of_week' }) }
+          :
+        </Text>
         <div>
           <Button
             type="ghost"
@@ -555,4 +562,4 @@ export const TimesheetTable: React.FC = () => {
       </Space>
     </>
   );
-};
+});

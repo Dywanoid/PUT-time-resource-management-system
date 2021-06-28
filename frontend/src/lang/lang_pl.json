@@ -5,6 +5,7 @@
     "client": "Klient",
     "add_client": "Dodaj klienta",
     "assign_employees": "Przypisz pracowników",
+    "assign_employees_to_project": "Przypisz pracowników do projektu",
     "calendar": "Kalendarz",
     "calendar_and_applications": "Kalendarz i wnioski",
     "applications": "Wnioski",
@@ -19,7 +20,8 @@
     "archive": "Archiwizuj",
     "manage_projects": "Zarządzaj projektami",
     "archive_decison": "Czy na pewno chcesz archiwizować klienta",
-    "archive_decison_project": "Czy na pewno chcesz archiwizować projekt",
+    "archive_decison_project": "Czy na pewno chcesz archiwizować projekt?",
+    "archive_project": "Czy na pewno chcesz archiwizować projekt",
     "client_projects": "Projekty klienta",
     "add_project": "Dodaj projekt",
     "add_task": "Dodaj zadanie",
@@ -69,5 +71,11 @@
     "notification": "Powiadomienie",
     "team_management": "Zarządzanie zespołem",
     "assign_subordinates_notification": "przydzielania podwładnych",
-    "remove_subordinates_notification": "usuwania podwładnych"
+    "on_demand": "Urlop na żądanie",
+    "holiday": "Urlop wypoczynkowy",
+    "unpaid": "Urlop bezpłatny",
+    "child_care": "Opieka nad dzieckiem",
+    "compassionate_leave": "Urlop okolicznościowy",
+    "sick_leave": "Urlop chorobowy",
+    "choice_of_week": "Wybór tygodnia"
 }

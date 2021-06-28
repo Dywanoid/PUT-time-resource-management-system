@@ -106,7 +106,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
         key={ applicationsTypes[i] }
         value={ applicationsTypes[i] }
       >
-        { applicationsTypes[i] }
+        { intl.formatMessage({ id: applicationsTypes[i].toLowerCase() }) }
       </Select.Option>
     );
   }
@@ -242,7 +242,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
           >
             <List.Item.Meta
               title={ <div>
-                { item.type.replace('_', ' ') + ' - ' }
+                { intl.formatMessage({ id: item.type.toLowerCase() }) + ' - ' }
                 { item.user.name }
               </div> }
               description={ <div>
@@ -277,7 +277,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
             >
               <List.Item.Meta
                 title={ <div>
-                  { item.type.replace('_', ' ') + ' - ' }
+                  { intl.formatMessage({ id: item.type.toLowerCase() }) + ' - ' }
                   { item.user.name }
                 </div> }
                 description={ <div>

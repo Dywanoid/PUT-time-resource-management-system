@@ -440,7 +440,7 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
         cancelText={ intl.formatMessage({ id: 'return' }) }
         visible={ isArchiveModalVisible }
       >
-        { intl.formatMessage({ id: 'from' }) }
+        { intl.formatMessage({ id: 'archive_team' }) }
       </Modal>
       <Modal
         title={ intl.formatMessage({ id: 'team' }) }

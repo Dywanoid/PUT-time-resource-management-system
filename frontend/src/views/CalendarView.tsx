@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { injectIntl } from 'react-intl';
 import { Calendar, Select, Layout, Avatar } from 'antd';
 import {
@@ -8,7 +8,6 @@ import {
 } from '../generated/graphql';
 import { colorHash } from '../utils/colorHash';
 import '../css/CalendarView.css';
-import { UserContext } from '../utils/auth';
 
 import moment from 'moment';
 
@@ -55,14 +54,11 @@ const getListData = (value, userApplications, currentFilter) => {
 };
 
 export const CalendarView = injectIntl(({ intl }): JSX.Element => {
-  const userInfo = useContext(UserContext);
   const { data: userData , loading, error } = useGetAllUsersQuery();
   const [usersList, setUsersList] = useState<string[]>([]);
   const [currentFilter, setFilter] = useState(' ');
   const [teamsListHtml, setTeamsListHtml] = useState() as any;
   const [usersListHtml, setUsersListHtml] = useState() as any;
-  const userId = userInfo?.id as any;
-  const userRole = userInfo?.roles || ['user'] as any;
   const users = userData?.users || [] as any;
   const { data: applicationData, refetch:refetchApplicationData } = useGetHolidayRequestsQuery(
     {
@@ -140,7 +136,7 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
               size={ 21 } gap={ 4 } shape="square">
               { item.name.match(/\b(\w)/g) }
             </Avatar>
-            { ' ' + item.content.replace('_', ' ') }
+            { ' ' + intl.formatMessage({ id: item.content.toLowerCase() }) }
           </li>
         ))}
       </ul>
@@ -166,7 +162,7 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
               { item.name.match(/\b(\w)/g) }
             </Avatar>
             { ' ' }
-            { item.content.replace('_', ' ') }
+            { intl.formatMessage({ id: item.content.toLowerCase() }) }
           </li>
         ))}
       </ul>

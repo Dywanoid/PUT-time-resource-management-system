@@ -22,12 +22,13 @@ import { IntlProvider } from 'react-intl';
 import pl from './lang/lang_pl.json';
 import en from './lang/lang_en.json';
 import plPL from 'antd/lib/locale/pl_PL';
+import enEN from 'antd/lib/locale/en_US';
 import 'antd/dist/antd.css';
 
 ReactDOM.render(
   <IntlProvider locale={ localStorage.getItem('lang') as any }
     defaultLocale="pl" messages={ localStorage.getItem('lang') === 'pl' ? pl : en as any }>
-    <ConfigProvider locale={ plPL }>
+    <ConfigProvider locale={ localStorage.getItem('lang') === 'pl' ? plPL : enEN as any}>
       <ApolloProvider client={ client }>
         <ProvideAuth>
           <Router>
@@ -39,7 +40,7 @@ ReactDOM.render(
               <PrivateRoute component={ TeamsView as any } path='/teams'/>
               <PrivateRoute component={ ProjectsView as any } path='/projects'/>
               <PrivateRoute component={ TaskView as any} path='/tasks'/>
-              <PrivateRoute component={ ProjectAssignmentsView } path='/projectAssignments'/>
+              <PrivateRoute component={ ProjectAssignmentsView  as any } path='/projectAssignments'/>
               <PrivateRoute component={ SubordinatesView as any } path='/subordinate'/>
             </Switch>
           </Router>

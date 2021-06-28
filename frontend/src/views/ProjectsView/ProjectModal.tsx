@@ -17,7 +17,7 @@ export const ProjectModal = ({
   onFinish,
   onFinishFailed
 }: ProjectModalInput) : JSX.Element => ( <Modal
-  title="Dodaj projekt"
+  title={ localStorage.getItem('lang') === 'pl' ? 'Dodaj projekt' : 'Add project' }
   onCancel={ handleCancel }
   visible={ isModalVisible }
   footer={ null }>

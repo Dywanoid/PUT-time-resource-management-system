@@ -260,8 +260,8 @@ export const ProjectsView = injectIntl(({ intl }) : JSX.Element => {
           isModalVisible={ isArchiveModalVisible }
           handleCancel={ hideArchiveModal }
           handleOk={ () => handleArchive(projectToBeArchived) }
-          title={ `Archiwizuj ${ projectToBeArchived?.name }` }
-          modalText={ `Czy na pewno chcesz archiwizować projekt ${ projectToBeArchived?.name }?` }
+          title={ `${ intl.formatMessage({ id: 'archive' }) } ${ projectToBeArchived?.name }` }
+          modalText={ `${ intl.formatMessage({ id: 'archive_project' }) } ${ projectToBeArchived?.name }?` }
         />
       </Space>
     </>
