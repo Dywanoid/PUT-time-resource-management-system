@@ -941,6 +941,19 @@ export type ArchiveTeamMutation = (
   ) }
 );
 
+export type UnarchiveTeamMutationVariables = Exact<{
+  teamId: Scalars['ID'];
+}>;
+
+
+export type UnarchiveTeamMutation = (
+  { __typename?: 'Mutation' }
+  & { unarchiveTeam: (
+    { __typename?: 'Team' }
+    & Pick<Team, 'id'>
+  ) }
+);
+
 export type CreateTeamMembersMutationVariables = Exact<{
   teamId: Scalars['ID'];
   userIdList?: Maybe<Array<Scalars['ID']> | Scalars['ID']>;
@@ -1981,6 +1994,39 @@ export function useArchiveTeamMutation(baseOptions?: Apollo.MutationHookOptions<
 export type ArchiveTeamMutationHookResult = ReturnType<typeof useArchiveTeamMutation>;
 export type ArchiveTeamMutationResult = Apollo.MutationResult<ArchiveTeamMutation>;
 export type ArchiveTeamMutationOptions = Apollo.BaseMutationOptions<ArchiveTeamMutation, ArchiveTeamMutationVariables>;
+export const UnarchiveTeamDocument = gql`
+    mutation UnarchiveTeam($teamId: ID!) {
+  unarchiveTeam(input: {teamId: $teamId}) {
+    id
+  }
+}
+    `;
+export type UnarchiveTeamMutationFn = Apollo.MutationFunction<UnarchiveTeamMutation, UnarchiveTeamMutationVariables>;
+
+/**
+ * __useUnarchiveTeamMutation__
+ *
+ * To run a mutation, you first call `useUnarchiveTeamMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnarchiveTeamMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unarchiveTeamMutation, { data, loading, error }] = useUnarchiveTeamMutation({
+ *   variables: {
+ *      teamId: // value for 'teamId'
+ *   },
+ * });
+ */
+export function useUnarchiveTeamMutation(baseOptions?: Apollo.MutationHookOptions<UnarchiveTeamMutation, UnarchiveTeamMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnarchiveTeamMutation, UnarchiveTeamMutationVariables>(UnarchiveTeamDocument, options);
+      }
+export type UnarchiveTeamMutationHookResult = ReturnType<typeof useUnarchiveTeamMutation>;
+export type UnarchiveTeamMutationResult = Apollo.MutationResult<UnarchiveTeamMutation>;
+export type UnarchiveTeamMutationOptions = Apollo.BaseMutationOptions<UnarchiveTeamMutation, UnarchiveTeamMutationVariables>;
 export const CreateTeamMembersDocument = gql`
     mutation CreateTeamMembers($teamId: ID!, $userIdList: [ID!]) {
   createTeamMemberBatch(input: {teamId: $teamId, userIdList: $userIdList}) {
@@ -2698,6 +2744,7 @@ export const namedOperations = {
     CreateTeam: 'CreateTeam',
     UpdateTeam: 'UpdateTeam',
     ArchiveTeam: 'ArchiveTeam',
+    UnarchiveTeam: 'UnarchiveTeam',
     CreateTeamMembers: 'CreateTeamMembers',
     DeleteTeamMembers: 'DeleteTeamMembers',
     TimeLog: 'TimeLog'
