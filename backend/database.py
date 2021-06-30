@@ -43,7 +43,8 @@ class Client(db.Model):
     currency = db.Column(db.Enum(Currency), nullable=False)
     archived = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False)
-    projects = db.relationship("Project", order_by="desc(Project.created_at)")
+
+    projects = db.relationship("Project", order_by="desc(Project.created_at)", back_populates="client")
 
 
 class Project(db.Model):
@@ -52,9 +53,10 @@ class Project(db.Model):
     name = db.Column(db.String, nullable=False)
     archived = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False)
-    client = db.relationship(Client, lazy='joined')
-    tasks = db.relationship("Task", order_by="desc(Task.created_at)")
-    assignments = db.relationship("ProjectAssignment", order_by="desc(ProjectAssignment.created_at)")
+
+    client = db.relationship(Client, back_populates="projects")
+    tasks = db.relationship("Task", order_by="desc(Task.created_at)", back_populates="project")
+    assignments = db.relationship("ProjectAssignment", order_by="desc(ProjectAssignment.created_at)", back_populates="project")
 
 
 class Task(db.Model):
@@ -63,7 +65,8 @@ class Task(db.Model):
     name = db.Column(db.String, nullable=False)
     archived = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False)
-    project = db.relationship(Project, lazy='joined')
+
+    project = db.relationship(Project, back_populates="tasks")
 
 
 class Team(db.Model):
@@ -132,8 +135,8 @@ class ProjectAssignment(db.Model):
     end_date = db.Column(db.Date, nullable=False, index=True)
     hourly_rate = db.Column(db.Numeric, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
-    project = db.relationship(Project, lazy='joined')
-    user = db.relationship(User, lazy='joined')
+    project = db.relationship(Project, back_populates="assignments")
+    user = db.relationship(User)
 
     def date_range(self):
         return (self.begin_date, self.end_date)
@@ -145,8 +148,8 @@ class TimeLog(db.Model):
     date = db.Column(db.Date, nullable=False, index=True, primary_key=True)
     duration = db.Column(db.Interval, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
-    project_assignment = db.relationship(ProjectAssignment, lazy='joined')
-    task = db.relationship(Task, lazy='joined')
+    project_assignment = db.relationship(ProjectAssignment)
+    task = db.relationship(Task)
 
     @classmethod
     def pk(cls, project_assignment_id, task_id, date):
