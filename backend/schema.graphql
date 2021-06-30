@@ -73,17 +73,12 @@ type Team {
     members: [User!]
 }
 
-type Supervisor {
-    id: ID!
-    name: String!
-}
-
 type User {
     id: ID!
     name: String!
     roles: [String!]
     teams: [Team!]
-    supervisor: Supervisor
+    supervisor: User
     subordinates: [User!]
 }
 

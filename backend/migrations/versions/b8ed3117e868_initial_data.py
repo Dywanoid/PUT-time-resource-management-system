@@ -136,31 +136,31 @@ def upgrade():
     )).fetchone()
 
     [u2] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Piotr Nowak', 'supervisor_id': 1, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Piotr Nowak', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u3] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Anna Wiśniewska', 'supervisor_id': 1, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Anna Wiśniewska', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u4] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Krzysztof Wójcik', 'supervisor_id': 2, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Krzysztof Wójcik', 'supervisor_id': u2, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u5] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Maria Kamińska', 'supervisor_id': 2, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Maria Kamińska', 'supervisor_id': u2, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u6] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Paweł Lewandowski', 'supervisor_id': 4, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Paweł Lewandowski', 'supervisor_id': u4, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u7] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Małgorzata Zielińska', 'supervisor_id': 4, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Małgorzata Zielińska', 'supervisor_id': u4, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u8] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Agnieszka Szymańska', 'supervisor_id': 6, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Agnieszka Szymańska', 'supervisor_id': u6, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     op.bulk_insert(oauth, [
