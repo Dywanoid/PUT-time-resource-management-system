@@ -147,7 +147,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
           [<a key="1"
             onClick={() => handleEventChange(requestStatuses[3],item.id)}
           >
-            { requestStatuses[3].substr(0, requestStatuses[3].length - 2) }
+            { intl.formatMessage({ id: 'cancell' }) }
           </a>]
         );
       case 'MANAGER_CANCELLED':

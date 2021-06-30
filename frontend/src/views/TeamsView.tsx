@@ -7,6 +7,7 @@ import {
   useCreateTeamMutation,
   useCreateTeamMembersMutation,
   useDeleteTeamMembersMutation,
+  useUnarchiveTeamMutation,
   useUpdateTeamMutation,
   useArchiveTeamMutation,
   namedOperations
@@ -66,6 +67,10 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
     onCompleted(){ openNotificationWithIcon('success', intl.formatMessage({ id: 'archiving_team' }), intl); },
     onError() { openNotificationWithIcon('error', intl.formatMessage({ id: 'archiving_team' }), intl); }
   });
+  const [unarchiveTeam] = useUnarchiveTeamMutation({
+    onCompleted(){ openNotificationWithIcon('success', intl.formatMessage({ id: 'unarchiving_team' }), intl); },
+    onError() { openNotificationWithIcon('error', intl.formatMessage({ id: 'unarchiving_team' }), intl); }
+  });
   const [createTeamMembers] = useCreateTeamMembersMutation({
     onCompleted(){
       openNotificationWithIcon('success', intl.formatMessage({ id: 'assigning_users_to_a_team' }), intl);
@@ -87,6 +92,7 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
   const [teamIdentify, setTeamId] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [isArchivedModal, setIsArchivedModal] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isTeamManagementModalVisible, setIsTeamManagementVisible] = useState(false);
   const [isTeamViewModalVisible, setIsTeamViewVisible] = useState(false);
@@ -124,6 +130,13 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
 
   const hideTeam = (archiveId) => {
     archiveTeam({
+      refetchQueries:[namedOperations.Query.GetAllTeams],
+      variables: { teamId: archiveId }
+    });
+  };
+
+  const unhideTeam = (archiveId) => {
+    unarchiveTeam({
       refetchQueries:[namedOperations.Query.GetAllTeams],
       variables: { teamId: archiveId }
     });
@@ -179,13 +192,19 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
     setIsTeamViewVisible(true);
   };
 
-  const showArchiveModal = async (teamId) => {
+  const showArchiveModal = async (teamId, type) => {
+    setIsArchivedModal(type);
     setTeamId(teamId);
     setIsArchiveModalVisible(true);
   };
 
   const handleArchiveModalConfirm = () => {
     hideTeam(teamIdentify);
+    setIsArchiveModalVisible(false);
+  };
+
+  const handleUnarchiveModalConfirm = () => {
+    unhideTeam(teamIdentify);
     setIsArchiveModalVisible(false);
   };
 
@@ -330,25 +349,32 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
                         <IconText icon={ EditFilled } text={ intl.formatMessage({ id: 'edit' }) }
                           key="list-vertical-star-o"/>
                       </Button>,
-                      <Button key="2" size='small' onClick={ () => showArchiveModal(item.id) }>
+                      <Button key="2" size='small' onClick={ () => showArchiveModal(item.id, true) }>
                         <IconText icon={ InboxOutlined }
                           text={ intl.formatMessage({ id: 'archive' }) } key="list-vertical-like-o"/>
                       </Button>,
-                      <Button size='small' key="3" onClick={ () => showTeamManagementModal(item.id) }>
+                      <Button size='small' key="4" onClick={ () => showTeamManagementModal(item.id) }>
                         <IconText icon={ FormOutlined }
                           text={ intl.formatMessage({ id: 'manage_team' }) } key="list-vertical-like-o"/>
                       </Button>,
-                      <Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
+                      <Button size='small' key="5" onClick={ () => showTeamViewModal(item.id) }>
                         <IconText icon={ FormOutlined } text={ intl.formatMessage({ id: 'show_team' }) }
                           key="list-vertical-like-o"/>
                       </Button>
                     ])
-                    : (!item.archived && !userRole.includes('manager'))
-                      ? ([<Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
+                    : (item.archived && userRole.includes('manager'))
+                      ? ([<Button key="3" size='small' onClick={ () => showArchiveModal(item.id, false) }>
+                        <IconText icon={ InboxOutlined }
+                          text={ intl.formatMessage({ id: 'unarchive' }) } key="list-vertical-like-o"/>
+                      </Button>,
+                      <Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
                         <IconText icon={ FormOutlined } text={ intl.formatMessage({ id: 'show_team' }) }
                           key="list-vertical-like-o"/>
                       </Button>])
-                      : undefined
+                      : ([<Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
+                        <IconText icon={ FormOutlined } text={ intl.formatMessage({ id: 'show_team' }) }
+                          key="list-vertical-like-o"/>
+                      </Button>])
                 }
               >
                 <List.Item.Meta
@@ -433,14 +459,22 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
         />
       </Modal>
       <Modal
-        title={ intl.formatMessage({ id: 'archive' }) }
+        title={ isArchivedModal
+          ? intl.formatMessage({ id: 'archive' })
+          : intl.formatMessage({ id: 'unarchive' })}
         onCancel={ handleArchiveModalCancel }
-        onOk={ handleArchiveModalConfirm }
-        okText={ intl.formatMessage({ id: 'archive' }) }
+        onOk={ isArchivedModal
+          ? handleArchiveModalConfirm
+          : handleUnarchiveModalConfirm }
+        okText={ isArchivedModal
+          ? intl.formatMessage({ id: 'archive' })
+          : intl.formatMessage({ id: 'unarchive' }) }
         cancelText={ intl.formatMessage({ id: 'return' }) }
         visible={ isArchiveModalVisible }
       >
-        { intl.formatMessage({ id: 'archive_team' }) }
+        { isArchivedModal
+          ? intl.formatMessage({ id: 'archive_team' })
+          : intl.formatMessage({ id: 'unarchive_team' }) }
       </Modal>
       <Modal
         title={ intl.formatMessage({ id: 'team' }) }
