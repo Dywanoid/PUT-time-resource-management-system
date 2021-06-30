@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Layout, Menu, Avatar } from 'antd';
 import { Link } from 'react-router-dom';
-import pracujta from '../resources/pracujta.png';
+import logo from '../resources/pracujtime.png';
 import { UserContext } from '../utils/auth';
 import { colorHash } from '../utils/colorHash';
 import '../css/Navigation.css';
@@ -17,7 +17,7 @@ export const Navigation = (): JSX.Element => {
 
   return(
     <Header className="header">
-      <img className="logo" src={ pracujta } alt="pracujta"/>
+      <img className="logo" src={ logo } alt="pracujta"/>
       <Menu theme="dark" mode="horizontal" defaultSelectedKeys={ ['1'] } className="buttons">
         <Menu.Item key="1">
           <Link to="/" className="nav-text">Logowanie czasu</Link>
