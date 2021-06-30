@@ -187,7 +187,25 @@ const ClientsView = () : JSX.Element => {
                 </Button>
               ]}
             >
-              { `${ client.name }` }
+              <List.Item.Meta
+                title={ <div>{ client.name }</div> }
+                description={ <div>
+                  <ul className="adressList">
+                    <li>
+                      { client.streetWithNumber || '' }
+                    </li>
+                    <li>
+                      { `${ client.city || '' } ${ client.zipCode || '' }` }
+                    </li>
+                    <li>
+                      {client.taxId ? `NIP: ${ client.taxId }` : ''}
+                    </li>
+                    <li>
+                      {`Waluta: ${ client.currency }`}
+                    </li>
+                  </ul>
+                </div> }
+              />
             </List.Item>
           )}
         />
