@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { injectIntl } from 'react-intl';
 import { Transfer, Table, Breadcrumb } from 'antd';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
@@ -99,22 +100,22 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: any) => (
 const leftTableColumns = [
   {
     dataIndex: 'name',
-    title: 'Imie i nazwisko'
+    title: localStorage.getItem('lang') === 'pl' ? 'Imię i nazwisko' : 'Name and surname'
   }
 ];
 
 const rightTableColumns = [
   {
     dataIndex: 'name',
-    title: 'Imie i nazwisko'
+    title: localStorage.getItem('lang') === 'pl' ? 'Imię i nazwisko' : 'Name and surname'
   },
   {
     dataIndex: 'hourlyRate',
-    title: 'Stawka godzinowa (zł/h)'
+    title: localStorage.getItem('lang') === 'pl' ? 'Stawka godzinowa (zł/h)' : 'Hourly rate (PLN/h)'
   }
 ];
 
-export const ProjectAssignmentsView = () : JSX.Element => {
+export const ProjectAssignmentsView = injectIntl(({ intl }): JSX.Element => {
   const location = useLocation<AssignmentLocation>();
   const {
     client: { name: clientName },
@@ -250,7 +251,7 @@ export const ProjectAssignmentsView = () : JSX.Element => {
       <Breadcrumb>
         <Breadcrumb.Item>
           <Link to={{ pathname: '/clients' }}>
-            Klienci
+            { intl.formatMessage({ id: 'clients' }) }
           </Link>
         </Breadcrumb.Item>
         <Breadcrumb.Item>
@@ -260,11 +261,11 @@ export const ProjectAssignmentsView = () : JSX.Element => {
               state: location.state
             }}
           >
-            { `Projekty klienta "${ clientName }"` }
+            { `${ intl.formatMessage({ id: 'client_projects' }) } "${ clientName }"` }
           </Link>
         </Breadcrumb.Item>
         <Breadcrumb.Item>
-          { `Przypisz pracowników do projektu: "${ projectName }"` }
+          { `${ intl.formatMessage({ id: 'assign_employees_to_project' }) }: "${ projectName }"` }
         </Breadcrumb.Item>
       </Breadcrumb>
 
@@ -279,4 +280,4 @@ export const ProjectAssignmentsView = () : JSX.Element => {
       />
     </>
   );
-};
+});

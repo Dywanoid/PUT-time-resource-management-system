@@ -3,28 +3,16 @@ query GetAllTeams {
         id, 
         name, 
         description, 
-        archived 
+        archived,
+        members {
+            id,
+            name,
+            roles,
+            supervisor{ id, name }
+            subordinates{ id, name, roles }
+          }
         } 
     }
-
-query GetAllUsersInTeam($teamId: ID!) {
-    teamMembers(teamId: $teamId) {
-        userId,
-        user { id, name, roles },
-        team { id, name, description, archived, createdAt },
-        teamId
-    }
-}
-
-query GetUserTeams($userId: ID!) {
-    userTeams(userId: $userId) {
-        userId,
-        teamId,
-        user { id, name, roles },
-        team { id, name, description, archived, createdAt },
-        createdAt
-    }
-}
 
 query GetTeamInfo($id: ID!) {
     team(id: $id) {

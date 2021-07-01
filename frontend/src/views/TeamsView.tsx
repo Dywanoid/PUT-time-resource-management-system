@@ -1,17 +1,16 @@
 import React, { useState, useContext } from 'react';
+import { injectIntl } from 'react-intl';
 import { List, Modal, Form, Input, Button, Space, Transfer, notification, Avatar } from 'antd';
-import { useApolloClient } from '@apollo/client';
 import {
   useGetAllTeamsQuery,
   useGetAllUsersQuery,
   useCreateTeamMutation,
   useCreateTeamMembersMutation,
   useDeleteTeamMembersMutation,
+  useUnarchiveTeamMutation,
   useUpdateTeamMutation,
   useArchiveTeamMutation,
-  namedOperations,
-  GetAllUsersInTeamDocument,
-  useGetUserTeamsQuery
+  namedOperations
 } from '../generated/graphql';
 import PropTypes from 'prop-types';
 import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
@@ -38,12 +37,12 @@ IconText.propTypes = {
   text: PropTypes.string
 };
 
-const openNotificationWithIcon = (type, action) => {
+const openNotificationWithIcon = (type, action, intl) => {
   notification[type]({
     description: type === 'success'
-      ? `Pomyślnie wykonano akcję ${ action }.`
-      : `Akcja ${ action } nie została wykonana.`,
-    message: 'Powiadomienie'
+      ? `${ intl.formatMessage({ id: 'action_success' }) } ${ action }.`
+      : `${ intl.formatMessage({ id: 'action' }) } ${ action } ${ intl.formatMessage({ id: 'not_completed' }) }.`,
+    message: intl.formatMessage({ id: 'notification' })
   });
 };
 
@@ -51,39 +50,40 @@ const elementCompare = (a, b) =>
   a.length === b.length
   && a.every((v, i) => v === b[i]);
 
-export const TeamsView = () : JSX.Element => {
+export const TeamsView = injectIntl(({ intl }): JSX.Element => {
   const userInfo = useContext(UserContext);
   const userRole = userInfo?.roles || ['user'];
-  const userId = userInfo?.id || '0';
-  const { data: userTeamsData } = useGetUserTeamsQuery(
-    {
-      fetchPolicy: 'no-cache',
-      skip: !userId, variables:{ userId: userId }
-    }
-  );
   const { data } = useGetAllTeamsQuery();
-  const { data: userData } = useGetAllUsersQuery();
+  const { data: usersData } = useGetAllUsersQuery();
   const [createTeam] = useCreateTeamMutation({
-    onCompleted(){ openNotificationWithIcon('success', 'tworzenia zespołu'); },
-    onError() { openNotificationWithIcon('error', 'tworzenia zespołu'); }
+    onCompleted(){ openNotificationWithIcon('success', intl.formatMessage({ id: 'creating_team' }), intl); },
+    onError() { openNotificationWithIcon('error',  intl.formatMessage({ id: 'creating_team' }), intl); }
   });
   const [updateTeam] = useUpdateTeamMutation({
-    onCompleted(){ openNotificationWithIcon('success', 'edycji zespołu'); },
-    onError() { openNotificationWithIcon('error', 'edycji zespołu'); }
+    onCompleted(){ openNotificationWithIcon('success', intl.formatMessage({ id: 'editing_team' }), intl); },
+    onError() { openNotificationWithIcon('error', intl.formatMessage({ id: 'editing_team' }), intl); }
   });
   const [archiveTeam] = useArchiveTeamMutation({
-    onCompleted(){ openNotificationWithIcon('success', 'archiwizacji zespołu'); },
-    onError() { openNotificationWithIcon('error', 'archiwizacji zespołu'); }
+    onCompleted(){ openNotificationWithIcon('success', intl.formatMessage({ id: 'archiving_team' }), intl); },
+    onError() { openNotificationWithIcon('error', intl.formatMessage({ id: 'archiving_team' }), intl); }
+  });
+  const [unarchiveTeam] = useUnarchiveTeamMutation({
+    onCompleted(){ openNotificationWithIcon('success', intl.formatMessage({ id: 'unarchiving_team' }), intl); },
+    onError() { openNotificationWithIcon('error', intl.formatMessage({ id: 'unarchiving_team' }), intl); }
   });
   const [createTeamMembers] = useCreateTeamMembersMutation({
     onCompleted(){
-      openNotificationWithIcon('success', 'przydzielania użytkowników do zespołu');
+      openNotificationWithIcon('success', intl.formatMessage({ id: 'assigning_users_to_a_team' }), intl);
     },
-    onError() { openNotificationWithIcon('error', 'przydzielania użytkowników do zespołu'); }
+    onError() { openNotificationWithIcon('error', intl.formatMessage({ id: 'assigning_users_to_a_team' }), intl); }
   });
   const [deleteTeamMembers] = useDeleteTeamMembersMutation({
-    onCompleted(){ openNotificationWithIcon('success', 'usuwania użytkowników z zespołu'); },
-    onError() { openNotificationWithIcon('error', 'usuwania użytkowników z zespołu'); }
+    onCompleted(){ openNotificationWithIcon(
+      'success',
+      intl.formatMessage({ id: 'deleting_users_from_a_team' }),
+      intl
+    ); },
+    onError() { openNotificationWithIcon('error', intl.formatMessage({ id: 'deleting_users_from_a_team' }), intl); }
   });
   const [name, setName] = useState('');
   const [initialName, setInitialName] = useState('');
@@ -92,6 +92,7 @@ export const TeamsView = () : JSX.Element => {
   const [teamIdentify, setTeamId] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [isArchivedModal, setIsArchivedModal] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isTeamManagementModalVisible, setIsTeamManagementVisible] = useState(false);
   const [isTeamViewModalVisible, setIsTeamViewVisible] = useState(false);
@@ -102,7 +103,6 @@ export const TeamsView = () : JSX.Element => {
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [usersInTeamArr, setUseresInTeamArr] = useState([{ key: '0',name: 'lol' }]);
   const [form] = Form.useForm();
-  const client = useApolloClient();
 
   const addTeam = () => {
     createTeam({
@@ -135,32 +135,40 @@ export const TeamsView = () : JSX.Element => {
     });
   };
 
+  const unhideTeam = (archiveId) => {
+    unarchiveTeam({
+      refetchQueries:[namedOperations.Query.GetAllTeams],
+      variables: { teamId: archiveId }
+    });
+  };
+
   const addTeamMembers = (teamId, teamList) => {
     createTeamMembers({
-      refetchQueries: [{ query: GetAllUsersInTeamDocument, variables: { teamId: teamIdentify } }],
+      refetchQueries: [namedOperations.Query.GetAllTeams],
       variables: { teamId: teamId, userIdList: teamList }
     });
   };
 
   const removeTeamMembers = (teamId, teamList) => {
     deleteTeamMembers({
-      refetchQueries: [{ query: GetAllUsersInTeamDocument, variables: { teamId: teamIdentify } }],
+      refetchQueries: [namedOperations.Query.GetAllTeams],
       variables: { teamId: teamId, userIdList: teamList }
     });
   };
 
   const showTeamManagementModal = async (teamId) => {
     setTeamId(teamId);
-    const { data:usersInTeamData } = await client.query({
-      query: GetAllUsersInTeamDocument,
-      variables: { teamId }
-    });
 
-    const usersInTeam = await usersInTeamData?.teamMembers || [];
+    const usersInTeam = data?.teams || [] as any;
+
     const rightColumn: string[] = [];
 
     for (let i = 0; i < usersInTeam.length; i++) {
-      rightColumn.push(usersInTeam[i].userId);
+      if (usersInTeam[i].id !== undefined && usersInTeam[i].id === teamId) {
+        for (let j = 0; j < usersInTeam[i].members.length; j++) {
+          rightColumn.push(usersInTeam[i].members[j].id);
+        }
+      }
     }
     setTargetKeysInitial(rightColumn);
     setTargetKeys(rightColumn);
@@ -169,28 +177,34 @@ export const TeamsView = () : JSX.Element => {
 
   const showTeamViewModal = async (teamId) => {
     setTeamId(teamId);
-    const { data:usersInTeamData } = await client.query({
-      query: GetAllUsersInTeamDocument,
-      variables: { teamId }
-    });
 
-    const usersInTeam = await usersInTeamData?.teamMembers || [];
+    const usersInTeam = await data?.teams || [] as any;
     const usersList: Array<{ key: string, name: string }> = [];
 
     for (let i = 0; i < usersInTeam.length; i++) {
-      usersList.push({ key: usersInTeam[i].userId, name: usersInTeam[i].user.name });
+      if (usersInTeam[i].id === teamId) {
+        for (let j = 0; j < usersInTeam[i].members.length; j++) {
+          usersList.push({ key: usersInTeam[i].members[j].id, name: usersInTeam[i].members[j].name });
+        }
+      }
     }
     setUseresInTeamArr(usersList);
     setIsTeamViewVisible(true);
   };
 
-  const showArchiveModal = async (teamId) => {
+  const showArchiveModal = async (teamId, type) => {
+    setIsArchivedModal(type);
     setTeamId(teamId);
     setIsArchiveModalVisible(true);
   };
 
   const handleArchiveModalConfirm = () => {
     hideTeam(teamIdentify);
+    setIsArchiveModalVisible(false);
+  };
+
+  const handleUnarchiveModalConfirm = () => {
+    unhideTeam(teamIdentify);
     setIsArchiveModalVisible(false);
   };
 
@@ -259,18 +273,18 @@ export const TeamsView = () : JSX.Element => {
   };
 
   let teams = data?.teams || [];
-  const userTeams = userTeamsData?.userTeams || [];
-  const users = userData?.users || [];
+  const userTeams = userInfo?.teams as any || [];
+  const users = usersData?.users || [];
 
   if (!userRole.includes('manager')) {
     const teamsArr: Array<{ id: string, name: string, description: any, archived: boolean }> = [];
 
     for (let i = 0; i < userTeams.length; i++) {
       teamsArr.push({
-        archived: userTeams[i].team.archived,
-        description: userTeams[i].team.description,
-        id: userTeams[i].team.id,
-        name: userTeams[i].team.name
+        archived: userTeams[i].archived,
+        description: userTeams[i].description,
+        id: userTeams[i].id,
+        name: userTeams[i].name
       });
     }
     teams = teamsArr;
@@ -296,19 +310,24 @@ export const TeamsView = () : JSX.Element => {
   return (
     <>
       {userRole.includes('manager')
-      && <Button onClick={ newTeamHandler } className="addTeam">Dodaj zespół ➕</Button>
+      && <Button onClick={ newTeamHandler } className="addTeam">
+        {intl.formatMessage({ id: 'add_team' })}
+        ➕
+      </Button>
       }
       <Search
         className="searchInput"
-        placeholder="Szukaj zespołu"
+        placeholder={ intl.formatMessage({ id: 'search_team' }) }
         onSearch={(value) => setSearchValue(value.toLowerCase())}
         enterButton
       />
       <List
         header={ <div>
-          <h1>Zespoły</h1>
+          <h1>{ intl.formatMessage({ id: 'teams' }) }</h1>
           <a onClick={ () => setShowArchived(!showArchived) } className="showArchivedLink">
-            { showArchived ? 'Ukryj zarchiwizowane zespoły' : 'Pokaż zarchiwizowane zespoły' }
+            { showArchived
+              ? intl.formatMessage({ id: 'hide_archived_teams' })
+              : intl.formatMessage({ id: 'show_archived_teams' }) }
           </a>
         </div> }
         bordered
@@ -327,23 +346,35 @@ export const TeamsView = () : JSX.Element => {
                       <Button key="1" size='small' onClick={
                         () => editTeamButton(item.id, item.name, item.description) }
                       >
-                        <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
+                        <IconText icon={ EditFilled } text={ intl.formatMessage({ id: 'edit' }) }
+                          key="list-vertical-star-o"/>
                       </Button>,
-                      <Button key="2" size='small' onClick={ () => showArchiveModal(item.id) }>
-                        <IconText icon={ InboxOutlined } text="Zarchiwizuj" key="list-vertical-like-o"/>
+                      <Button key="2" size='small' onClick={ () => showArchiveModal(item.id, true) }>
+                        <IconText icon={ InboxOutlined }
+                          text={ intl.formatMessage({ id: 'archive' }) } key="list-vertical-like-o"/>
                       </Button>,
-                      <Button size='small' key="3" onClick={ () => showTeamManagementModal(item.id) }>
-                        <IconText icon={ FormOutlined } text="Zarządzaj zespołem" key="list-vertical-like-o"/>
+                      <Button size='small' key="4" onClick={ () => showTeamManagementModal(item.id) }>
+                        <IconText icon={ FormOutlined }
+                          text={ intl.formatMessage({ id: 'manage_team' }) } key="list-vertical-like-o"/>
                       </Button>,
-                      <Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
-                        <IconText icon={ FormOutlined } text="Pokaż zespół" key="list-vertical-like-o"/>
+                      <Button size='small' key="5" onClick={ () => showTeamViewModal(item.id) }>
+                        <IconText icon={ FormOutlined } text={ intl.formatMessage({ id: 'show_team' }) }
+                          key="list-vertical-like-o"/>
                       </Button>
                     ])
-                    : (!item.archived && !userRole.includes('manager'))
-                      ? ([<Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
-                        <IconText icon={ FormOutlined } text="Pokaż zespół" key="list-vertical-like-o"/>
+                    : (item.archived && userRole.includes('manager'))
+                      ? ([<Button key="3" size='small' onClick={ () => showArchiveModal(item.id, false) }>
+                        <IconText icon={ InboxOutlined }
+                          text={ intl.formatMessage({ id: 'unarchive' }) } key="list-vertical-like-o"/>
+                      </Button>,
+                      <Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
+                        <IconText icon={ FormOutlined } text={ intl.formatMessage({ id: 'show_team' }) }
+                          key="list-vertical-like-o"/>
                       </Button>])
-                      : undefined
+                      : ([<Button size='small' key="4" onClick={ () => showTeamViewModal(item.id) }>
+                        <IconText icon={ FormOutlined } text={ intl.formatMessage({ id: 'show_team' }) }
+                          key="list-vertical-like-o"/>
+                      </Button>])
                 }
               >
                 <List.Item.Meta
@@ -359,10 +390,14 @@ export const TeamsView = () : JSX.Element => {
       />
       <Modal
         destroyOnClose={ true }
-        title={ isCreateTeamModal ? 'Dodaj Zespół' : 'Edytuj Zespół' }
+        title={ isCreateTeamModal
+          ? `${ intl.formatMessage({ id: 'add_team' }) }`
+          : `${ intl.formatMessage({ id: 'edit_team' }) }` }
         onCancel={ handleCancel }
         visible={ isModalVisible }
-        okText={ isCreateTeamModal ? 'Dodaj' : 'Edytuj' }
+        okText={ isCreateTeamModal
+          ? `${ intl.formatMessage({ id: 'add' }) }`
+          : `${ intl.formatMessage({ id: 'edit' }) }` }
         onOk={ isCreateTeamModal ? addTeam : editTeam }
         cancelText="Wróć"
         okButtonProps={{
@@ -379,15 +414,15 @@ export const TeamsView = () : JSX.Element => {
           name="basic"
         >
           <Form.Item
-            label="Nazwa"
+            label={ intl.formatMessage({ id: 'name' }) }
             name="name"
             initialValue={ name }
-            rules={ [{ message: 'Wpisz nazwę zespołu!', required: true }] }
+            rules={ [{ message: intl.formatMessage({ id: 'enter_team_name' }), required: true }] }
           >
             <Input onChange={ (e) => { setName(e.target.value); } }/>
           </Form.Item>
           <Form.Item
-            label="Opis"
+            label={ intl.formatMessage({ id: 'description' }) }
             name="description"
             initialValue={ description }
           >
@@ -396,12 +431,12 @@ export const TeamsView = () : JSX.Element => {
         </Form>
       </Modal>
       <Modal
-        title="Zarządzanie zespołem"
+        title={ intl.formatMessage({ id: 'team_management' }) }
         className="teamManagementModal"
         onCancel={ handleTeamManagementModalCancel }
         onOk={ handleTeamManagementModalConfirm }
-        okText="Zatwierdź"
-        cancelText="Wróć"
+        okText={ intl.formatMessage({ id: 'confirm' }) }
+        cancelText={ intl.formatMessage({ id: 'return' }) }
         visible={ isTeamManagementModalVisible }
         destroyOnClose
       >
@@ -411,7 +446,7 @@ export const TeamsView = () : JSX.Element => {
             height: 400,
             width: 600
           }}
-          titles={['Do przydzielenia', 'Przydzieleni']}
+          titles={[intl.formatMessage({ id: 'to_assign' }), intl.formatMessage({ id: 'assigned' })]}
           targetKeys={ targetKeys }
           selectedKeys={ selectedKeys }
           onChange={ onElementChange }
@@ -424,19 +459,27 @@ export const TeamsView = () : JSX.Element => {
         />
       </Modal>
       <Modal
-        title="Archiwizacja"
+        title={ isArchivedModal
+          ? intl.formatMessage({ id: 'archive' })
+          : intl.formatMessage({ id: 'unarchive' })}
         onCancel={ handleArchiveModalCancel }
-        onOk={ handleArchiveModalConfirm }
-        okText="Archiwizuj"
-        cancelText="Wróć"
+        onOk={ isArchivedModal
+          ? handleArchiveModalConfirm
+          : handleUnarchiveModalConfirm }
+        okText={ isArchivedModal
+          ? intl.formatMessage({ id: 'archive' })
+          : intl.formatMessage({ id: 'unarchive' }) }
+        cancelText={ intl.formatMessage({ id: 'return' }) }
         visible={ isArchiveModalVisible }
       >
-         Czy na pewno chcesz zarchiwizować zespół ?
+        { isArchivedModal
+          ? intl.formatMessage({ id: 'archive_team' })
+          : intl.formatMessage({ id: 'unarchive_team' }) }
       </Modal>
       <Modal
-        title="Zespół"
+        title={ intl.formatMessage({ id: 'team' }) }
         onCancel={ handleTeamViewModalCancel }
-        cancelText="Wróć"
+        cancelText={ intl.formatMessage({ id: 'return' }) }
         visible={ isTeamViewModalVisible }
         okButtonProps={{ style: { display: 'none' } }}
       >
@@ -458,4 +501,5 @@ export const TeamsView = () : JSX.Element => {
         />
       </Modal>
     </>
-  );};
+  );
+});

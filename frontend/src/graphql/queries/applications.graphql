@@ -26,7 +26,7 @@ query GetHolidayRequests($requestStatuses: [HolidayRequestStatus], $requestTypes
 }
 
 query GetUsersDayOff($startDate: DateTime, $userList: [ID], $teamList: [ID], $endDate: DateTime) {
-  holidayRequests(startDate: $startDate, endDate: $endDate, userList: $userList, teamList: $teamList) {
+  daysOff(startDate: $startDate, endDate: $endDate, userList: $userList, teamList: $teamList) {
       startDate,
       endDate,
       user {

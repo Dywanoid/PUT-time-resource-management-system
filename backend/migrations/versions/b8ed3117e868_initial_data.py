@@ -51,6 +51,7 @@ def upgrade():
     user = table('user',
                  column('id', Integer),
                  column('name', String),
+                 column('supervisor_id', Integer),
                  column('roles', sa.JSON()),
                  column('created_at', DateTime)
                  )
@@ -131,35 +132,35 @@ def upgrade():
 
     # ### users ###
     [u1] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Jan Kowalski', 'roles': ['manager'], 'created_at': datetime.now()}
+        {'name': 'Jan Kowalski', 'supervisor_id': None, 'roles': ['manager'], 'created_at': datetime.now()}
     )).fetchone()
 
     [u2] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Piotr Nowak', 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Piotr Nowak', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u3] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Anna Wiśniewska', 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Anna Wiśniewska', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u4] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Krzysztof Wójcik', 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Krzysztof Wójcik', 'supervisor_id': u2, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u5] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Maria Kamińska', 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Maria Kamińska', 'supervisor_id': u2, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u6] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Paweł Lewandowski', 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Paweł Lewandowski', 'supervisor_id': u4, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u7] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Małgorzata Zielińska', 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Małgorzata Zielińska', 'supervisor_id': u4, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u8] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Agnieszka Szymańska', 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Agnieszka Szymańska', 'supervisor_id': u6, 'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     op.bulk_insert(oauth, [

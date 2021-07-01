@@ -1,7 +1,7 @@
+import React, { useContext, useEffect, useMemo, useReducer, useState } from 'react';
+import { injectIntl } from 'react-intl';
 import { Button, DatePicker, Table, Typography, Space, notification } from 'antd';
 import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
-
-import React, { useContext, useEffect, useMemo, useReducer, useState } from 'react';
 import moment, { Moment } from 'moment';
 import 'moment/locale/pl';
 import locale from 'antd/es/date-picker/locale/pl_PL';
@@ -110,24 +110,24 @@ function reducer(state, action: Action) {
 const dataColumns : TableColumn[] = [{
   dataIndex: 'client',
   responsive: ['md'],
-  title: 'Client'
+  title: localStorage.getItem('lang') === 'pl' ? 'Klienci' : 'Clients'
 },
 {
   dataIndex: 'project',
   responsive: ['md'],
-  title: 'Project'
+  title: localStorage.getItem('lang') === 'pl' ? 'Projekt' : 'Project'
 },
 {
   dataIndex: 'task',
   responsive: ['md'],
-  title: 'Task'
+  title: localStorage.getItem('lang') === 'pl' ? 'Zadanie' : 'Task'
 }];
 
 const sumColumn: TableColumn = {
   align: 'center',
   dataIndex: 'sum',
   responsive: ['md'],
-  title: 'Suma'
+  title: localStorage.getItem('lang') === 'pl' ? 'Suma' : 'Sum'
 };
 
 const getWeekEnds = (week: Moment) => {
@@ -253,17 +253,20 @@ const TimeComponent = ({
 
     if(!isMultipleOf15) {
       notification.warning({
-        description: 'Zły format!',
+        description: localStorage.getItem('lang') === 'pl' ? 'Zły format!' : 'Bad format!',
         duration: 5,
-        message: 'Wpisuj tylko wielokrotności 15 min!'
+        message:
+          localStorage.getItem('lang') === 'pl'
+            ? 'Wpisuj tylko wielokrotności 15 min!'
+            : 'Enter only multiples of 15 min!'
       });
     }
 
     if(isTooMuch) {
       notification.error({
-        description: 'Dzień ma tylko 24 godziny!',
+        description: localStorage.getItem('lang') === 'pl' ? 'Dzień ma tylko 24 godziny!' : 'A day has only 24 hours!',
         duration: 5,
-        message: 'Za dużo godzin!'
+        message: localStorage.getItem('lang') === 'pl' ? 'Za dużo godzin!' : 'Too many hours!'
       });
     }
     const correctedTime = isTooMuch  || !isMultipleOf15 ? 0 : time;
@@ -425,7 +428,7 @@ const getTimeColumns = (weekDates): TableColumn[] =>
 
 const currentMomentGetter = () => moment();
 
-export const TimesheetTable: React.FC = () => {
+export const TimesheetTable: React.FC = injectIntl(({ intl }) => {
   const user = useContext(UserContext);
   const userId = user?.id as string;
 
@@ -476,7 +479,10 @@ export const TimesheetTable: React.FC = () => {
   return (
     <>
       <Space direction="vertical" size="middle">
-        <Text strong>Wybór tygodnia:</Text>
+        <Text strong>
+          { intl.formatMessage({ id: 'choice_of_week' }) }
+          :
+        </Text>
         <div>
           <Button
             type="ghost"
@@ -556,4 +562,4 @@ export const TimesheetTable: React.FC = () => {
       </Space>
     </>
   );
-};
+});

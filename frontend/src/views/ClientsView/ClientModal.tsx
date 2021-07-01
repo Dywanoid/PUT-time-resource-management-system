@@ -1,4 +1,3 @@
-import React from 'react';
 import { Modal, Form, Input, Button, Select, FormInstance } from 'antd';
 import { Currency } from '../../generated/graphql';
 import { currencies } from './ClientsView';
@@ -25,7 +24,7 @@ export const ClientModal = ({
   onFinish,
   onFinishFailed
 }: ClientModalInput) : JSX.Element => ( <Modal
-  title="Dodaj klienta"
+  title={ localStorage.getItem('lang') === 'pl' ? 'Dodaj klienta' : 'Add client' }
   onCancel={ handleCancel }
   visible={ isModalVisible }
   footer={ null }>
@@ -33,8 +32,8 @@ export const ClientModal = ({
     labelCol= {{ span: 4 }}
     wrapperCol= {{ span: 20 }}
     form={ form }
-    initialValues={initialValues}
-    name="basic"
+    initialValues={ initialValues }
+    name={ localStorage.getItem('lang') === 'pl' ? 'podstawowe' : 'basic' }
     onFinish={ onFinish }
     onFinishFailed={ onFinishFailed }
   >
@@ -46,7 +45,7 @@ export const ClientModal = ({
       <Input/>
     </Form.Item>
     <Form.Item
-      label="Nazwa"
+      label={ localStorage.getItem('lang') === 'pl' ? 'Nazwa' : 'Name' }
       name="name"
       rules={[{ message: 'Wpisz nazwę!', required: true }]}
     >
@@ -60,25 +59,25 @@ export const ClientModal = ({
     </Form.Item>
 
     <Form.Item
-      label="Ulica i numer"
+      label={ localStorage.getItem('lang') === 'pl' ? 'Ulica i numer' : 'Street and number' }
       name="streetWithNumber"
     >
       <Input/>
     </Form.Item>
     <Form.Item
-      label="Kod pocztowy"
+      label={ localStorage.getItem('lang') === 'pl' ? 'Kod pocztowy' : 'Zip code' }
       name="zipCode"
     >
       <Input/>
     </Form.Item>
     <Form.Item
-      label="Miasto"
+      label={ localStorage.getItem('lang') === 'pl' ? 'Miasto' : 'City' }
       name="city"
     >
       <Input/>
     </Form.Item>
     <Form.Item
-      label="Waluta"
+      label={ localStorage.getItem('lang') === 'pl' ? 'Waluta' : 'Currency' }
       name="currency"
     >
       <Select style={{ width: 120 }}>
@@ -95,7 +94,9 @@ export const ClientModal = ({
         type="primary"
         htmlType="submit"
       >
-        { isEditMode ? 'Edytuj' : 'Dodaj' }
+        { isEditMode
+          ? localStorage.getItem('lang') === 'pl' ? 'Edytuj' : 'Edit'
+          : localStorage.getItem('lang') === 'pl' ? 'Dodaj' : 'Add' }
       </Button>
     </Form.Item>
   </Form>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { injectIntl } from 'react-intl';
 import { List, Form, Button, Typography, Space, Breadcrumb } from 'antd';
 import { BarsOutlined, InboxOutlined, EditFilled } from '@ant-design/icons';
 import {
@@ -29,7 +30,7 @@ const IconText = ({ icon: Icon, text }: any) : JSX.Element => (
 
 const currencies = Object.values(Currency);
 
-const ClientsView = () : JSX.Element => {
+const ClientsView = injectIntl(({ intl }) : JSX.Element => {
   const [isClientModalVisible, setIsClientModalVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [clientStateForRedirect, setClientStateForRedirect] = useState(null);
@@ -141,11 +142,16 @@ const ClientsView = () : JSX.Element => {
     <>
       <Space direction="vertical" size="middle">
         <Breadcrumb>
-          <Breadcrumb.Item>Wszyscy klienci</Breadcrumb.Item>
+          <Breadcrumb.Item>{ intl.formatMessage({ id: 'all_clients' }) }</Breadcrumb.Item>
         </Breadcrumb>
-        <Button onClick={ newClientHandler }><Text strong>Dodaj klienta ➕</Text></Button>
+        <Button onClick={ newClientHandler }>
+          <Text strong>
+            { intl.formatMessage({ id: 'add_client' }) }
+            ➕
+          </Text>
+        </Button>
         <List
-          header={ <h1>Klienci</h1> }
+          header={ <h1>{ intl.formatMessage({ id: 'clients' }) }</h1> }
           bordered
           itemLayout="vertical"
           dataSource={ clients }
@@ -159,7 +165,7 @@ const ClientsView = () : JSX.Element => {
                 >
                   <IconText
                     icon={ EditFilled }
-                    text="Edytuj"
+                    text={ intl.formatMessage({ id: 'edit' }) }
                     key="list-vertical-star-o"
                   />
                 </Button>,
@@ -170,7 +176,7 @@ const ClientsView = () : JSX.Element => {
                 >
                   <IconText
                     icon={ InboxOutlined }
-                    text="Archiwizuj"
+                    text={ intl.formatMessage({ id: 'archive' }) }
                     key="list-vertical-like-o"
                   />
                 </Button>,
@@ -181,7 +187,7 @@ const ClientsView = () : JSX.Element => {
                 >
                   <IconText
                     icon={ BarsOutlined }
-                    text="Zarządzaj projektami"
+                    text={ intl.formatMessage({ id: 'manage_projects' }) }
                     key="list-vertical-message"
                   />
                 </Button>
@@ -206,12 +212,13 @@ const ClientsView = () : JSX.Element => {
           isModalVisible={ isArchiveModalVisible }
           handleCancel={ hideArchiveModal }
           handleOk={ () => handleArchive(clientToBeArchived) }
-          title={ `Archiwizuj ${ clientToBeArchived?.name }` }
-          modalText={ `Czy na pewno chcesz archiwizować klienta ${ clientToBeArchived?.name }?` }
+          title={ `${ intl.formatMessage({ id: 'archive' }) } ${ clientToBeArchived?.name }` }
+          modalText={ `${ intl.formatMessage({ id: 'archive_decison' }) } ${ clientToBeArchived?.name }?` }
         />
       </Space>
     </>
-  );};
+  );
+});
 
 export {
   ClientsView,

@@ -27,6 +27,14 @@ mutation ArchiveTeam($teamId: ID!) {
     }
 }
 
+mutation UnarchiveTeam($teamId: ID!) {
+    unarchiveTeam(input: {
+        teamId: $teamId
+    }) {
+        id 
+    }
+}
+
 
 mutation CreateTeamMembers($teamId: ID!, $userIdList: [ID!]) {
     createTeamMemberBatch(input:{
