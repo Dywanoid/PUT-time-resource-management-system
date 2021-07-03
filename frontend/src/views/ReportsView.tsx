@@ -14,6 +14,7 @@ import {
 } from '../generated/graphql';
 import { Loader } from '../components';
 import { formatDateForBackend } from '../utils/utils';
+import { injectIntl, IntlShape } from 'react-intl';
 const { Text } = Typography;
 
 interface PickerOption {
@@ -44,7 +45,7 @@ interface TableRow {
 interface TableColumn {
   dataIndex: string;
   render?: (value: string, row: TableRow) => {
-    children: string;
+    children: string | JSX.Element;
     props: {
       className: string;
       rowSpan: number;
@@ -60,50 +61,73 @@ const getTableCellProps = (rowSpan: number) => {
   };
 };
 
-const dataColumns : TableColumn[] = [
-  {
-    dataIndex: 'client',
-    render: (value, row) => {
-      return {
-        children: value,
-        props: getTableCellProps(row.clientRowSpan)
-      };
+const INVOCIE_URL_SEPARATOR = '@@@';
+
+const getDataColumns = (intl: IntlShape) => {
+  // .map((column) => {
+  //   return { ...column, title:  };
+  // })
+  const dataColumns : TableColumn[] = [
+    {
+      dataIndex: 'client',
+      render: (value, row) => {
+        let children: JSX.Element = (<span>{value}</span>);
+
+        if(value.includes(INVOCIE_URL_SEPARATOR)) {
+          const [name, url] = value.split(INVOCIE_URL_SEPARATOR);
+
+          // TODO: REMOVE REPLACE!!!
+          children = (<>
+            <Text style={{ padding: '3px' }}>{name}</Text>
+            <a href={url.replace('pdf', 'html')}>
+              {intl.formatMessage({ id: 'download_invoice' })}
+            </a>
+          </>);
+        }
+
+        return {
+          children,
+          props: getTableCellProps(row.clientRowSpan)
+        };
+      },
+      title: intl.formatMessage({ id: 'client' })
     },
-    title: 'Klient'
-  },
-  {
-    dataIndex: 'project',
-    render: (value, row) => {
-      return {
-        children: value,
-        props: getTableCellProps(row.projectRowSpan)
-      };
+    {
+      dataIndex: 'project',
+      render: (value, row) => {
+        return {
+          children: value,
+          props: getTableCellProps(row.projectRowSpan)
+        };
+      },
+      title: intl.formatMessage({ id: 'project' })
     },
-    title: 'Projekt'
-  },
-  // {
-  //   dataIndex: 'team',
-  //   render: (value, row) => {
-  //     return {
-  //       children: value,
-  //       props: getTableCellProps(row.teamRowSpan)
-  //     };
-  //   },
-  //   title: 'Zespół'
-  // },
-  {
-    dataIndex: 'task',
-    title: 'Zadanie'
-  },
-  {
-    dataIndex: 'time',
-    title: 'Godziny'
-  },
-  {
-    dataIndex: 'cost',
-    title: 'Koszt'
-  }
-];
+    // {
+    //   dataIndex: 'team',
+    //   render: (value, row) => {
+    //     return {
+    //       children: value,
+    //       props: getTableCellProps(row.teamRowSpan)
+    //     };
+    //   },
+    //   title: 'Zespół'
+    // },
+    {
+      dataIndex: 'task',
+      title: intl.formatMessage({ id: 'task' })
+    },
+    {
+      dataIndex: 'time',
+      title: intl.formatMessage({ id: 'hours' })
+    },
+    {
+      dataIndex: 'cost',
+      title: intl.formatMessage({ id: 'cost' })
+    }
+  ];
+
+  return dataColumns;
+};
 
 const Picker = (props: PickerProps): JSX.Element => {
   const {
@@ -146,7 +170,7 @@ const getHandlerForCollection = (
 
 const currentMomentGetter = () => moment();
 
-const customDateFormat = (value) => value.format('MMMM YYYY');
+const customDateFormat = (value: Moment) => value.format('MM/YYYY');
 
 const getMonthEnds = (date: Moment) => {
 
@@ -156,7 +180,7 @@ const getMonthEnds = (date: Moment) => {
   };
 };
 
-export const ReportsView = () : JSX.Element => {
+export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
   const [clientOptions, setClientOptions] = useState<PickerOption[]>([]);
   const [projectOptions, setProjectOptions] = useState<PickerOption[]>([]);
   // const [teamOptions, setTeamOptions] = useState<PickerOption[]>([]);
@@ -172,6 +196,7 @@ export const ReportsView = () : JSX.Element => {
   const teamsQuery = useGetAllTeamsQuery();
   const clientsProjectsQuery = useGetAllClientsAndProjectsWithTasksQuery();
 
+  const dataColumns = getDataColumns(intl);
   const reportsQuery = useGetClientReportsQuery(
     {
       fetchPolicy: 'no-cache',
@@ -183,28 +208,56 @@ export const ReportsView = () : JSX.Element => {
     }
   );
 
-  const costMap = reportsQuery?.data?.clientReports?.reduce((acc, currentClientReport) => {
-    const { client } = currentClientReport;
+  const costHoursMap = reportsQuery?.data?.clientReports?.reduce((acc, currentClientReport) => {
+    const { client, invoiceUrl } = currentClientReport;
     const clientId = `client_${ client.id }`;
+    let clientHourSum = 0;
 
-    acc[clientId] = currentClientReport.totalCost;
+    currentClientReport.userReports?.forEach(
+      (currentUserReport) => {
+        currentUserReport.projectAssignmentReports?.forEach((
+          currentProjectAssignmentReport
+        ) => {
+          clientHourSum += currentProjectAssignmentReport.duration;
+        });}
+    );
+
+    acc[clientId] = { cost: currentClientReport.totalCost, hours: clientHourSum, invoiceUrl };
     currentClientReport.projectReports?.forEach((currentProjectReport) => {
       const { project } = currentProjectReport;
       const projectId = `project_${ project.id }`;
+      let projectHourSum = 0;
 
-      acc[projectId] = currentProjectReport.totalCost;
+      currentClientReport.userReports?.forEach(
+        (currentUserReport) => {
+          currentUserReport.projectAssignmentReports?.forEach((
+            currentProjectAssignmentReport
+          ) => {
+            projectHourSum += currentProjectAssignmentReport.duration;
+          });}
+      );
+
+      acc[projectId] = { cost: currentProjectReport.totalCost, hours: projectHourSum };
       currentProjectReport.taskReports?.forEach((currentTaskReport) => {
         const { task } = currentTaskReport;
         const taskId = `task_${ task.id }`;
+        let taskHourSum = 0;
 
-        acc[taskId] = currentTaskReport.totalCost;
+        currentClientReport.userReports?.forEach(
+          (currentUserReport) => {
+            currentUserReport.projectAssignmentReports?.forEach((
+              currentProjectAssignmentReport
+            ) => {
+              taskHourSum += currentProjectAssignmentReport.duration;
+            });}
+        );
+
+        acc[taskId] = { cost: currentTaskReport.totalCost, hours: taskHourSum };
       });
     });
 
     return acc;
   }, {}) || {};
-
-  console.log(costMap);
 
   useEffect(
     () => {
@@ -385,9 +438,11 @@ export const ReportsView = () : JSX.Element => {
         // let teamRowSpan = 0;
 
         const taskId = `task_${ task.id }`;
-        const taskCost = costMap[taskId];
+        const taskCost = costHoursMap[taskId]?.cost;
+        const taskHours = costHoursMap[taskId]?.hours;
+        const invoiceUrl = costHoursMap[clientId]?.invoiceUrl;
 
-        // if(!taskCost) {return taskAcc;}
+        if(!taskCost) {return taskAcc;}
 
         if(!rowSpansUsedMap[clientId]) {
           rowSpansUsedMap[clientId] = true;
@@ -404,19 +459,17 @@ export const ReportsView = () : JSX.Element => {
         //   teamRowSpan = rowSpanMap[teamId];
         // }
 
-        const randomTime = Math.floor(Math.random() * 100 + 10);
-
         const row: TableRow = {
-          client: client.name,
+          client: `${ client.name }${ INVOCIE_URL_SEPARATOR }${ invoiceUrl }`,
           clientRowSpan,
           cost: `${ taskCost || 0 } ${ currencyMap[client.id] }`,
-          key: `${ Math.random() }`,
+          key: `${ client.id }-${ project.id }-${ task.id }`,
           project: project.name,
           projectRowSpan,
           task: task.name,
           // team: team.name,
           // teamRowSpan,
-          time: `${ randomTime }h`
+          time: `${ (taskHours/60) } h`
         };
 
         taskAcc.push(row);
@@ -444,7 +497,7 @@ export const ReportsView = () : JSX.Element => {
           >
             <Picker
               defaultValue={selectedClients}
-              label="Klienci"
+              label={intl.formatMessage({ id: 'clients' })}
               onChange={handleClientChange}
               options={clientOptions}
               selected={selectedClients}
@@ -452,7 +505,8 @@ export const ReportsView = () : JSX.Element => {
 
             <Picker
               defaultValue={selectedProjects}
-              label="Projekty"
+              label={intl.formatMessage({ id: 'projects' })}
+
               onChange={handleProjectChange}
               options={projectOptions}
               selected={selectedProjects}
@@ -505,4 +559,4 @@ export const ReportsView = () : JSX.Element => {
 
     </>
   );
-};
+});

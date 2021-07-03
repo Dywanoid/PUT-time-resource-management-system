@@ -34,7 +34,7 @@ ReactDOM.render(
         <ProvideAuth>
           <Router>
             <Switch>
-              <PrivateRoute exact component={ HomeView } path='/'/>
+              <PrivateRoute exact component={ HomeView as any } path='/'/>
               <PrivateRoute component={ CalendarView as any } path='/calendar'/>
               <PrivateRoute component={ ClientsView as any } path='/clients'/>
               <PrivateRoute component={ ApplicationsView as any } path='/applications'/>
@@ -42,8 +42,8 @@ ReactDOM.render(
               <PrivateRoute component={ ProjectsView as any } path='/projects'/>
               <PrivateRoute component={ TaskView as any} path='/tasks'/>
               <PrivateRoute component={ ProjectAssignmentsView  as any } path='/projectAssignments'/>
-              <PrivateRoute component={ SubordinatesView } path='/subordinate'/>
-              <PrivateRoute component={ ReportsView } path='/reports'/>
+              <PrivateRoute component={ SubordinatesView as any} path='/subordinate'/>
+              <PrivateRoute component={ ReportsView as any} path='/reports'/>
             </Switch>
           </Router>
         </ProvideAuth>

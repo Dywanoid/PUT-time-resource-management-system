@@ -1194,7 +1194,25 @@ export type GetClientReportsQuery = (
         & { task: (
           { __typename?: 'Task' }
           & Pick<Task, 'id' | 'name'>
-        ) }
+        ), userReports?: Maybe<Array<(
+          { __typename?: 'UserReport' }
+          & { projectAssignmentReports?: Maybe<Array<(
+            { __typename?: 'ProjectAssignmentReport' }
+            & Pick<ProjectAssignmentReport, 'duration'>
+          )>> }
+        )>> }
+      )>>, userReports?: Maybe<Array<(
+        { __typename?: 'UserReport' }
+        & { projectAssignmentReports?: Maybe<Array<(
+          { __typename?: 'ProjectAssignmentReport' }
+          & Pick<ProjectAssignmentReport, 'duration'>
+        )>> }
+      )>> }
+    )>>, userReports?: Maybe<Array<(
+      { __typename?: 'UserReport' }
+      & { projectAssignmentReports?: Maybe<Array<(
+        { __typename?: 'ProjectAssignmentReport' }
+        & Pick<ProjectAssignmentReport, 'duration'>
       )>> }
     )>> }
   )>> }
@@ -2543,11 +2561,26 @@ export const GetClientReportsDocument = gql`
           name
         }
         totalCost
+        userReports {
+          projectAssignmentReports {
+            duration
+          }
+        }
       }
       totalCost
+      userReports {
+        projectAssignmentReports {
+          duration
+        }
+      }
     }
     invoiceUrl
     totalCost
+    userReports {
+      projectAssignmentReports {
+        duration
+      }
+    }
   }
 }
     `;

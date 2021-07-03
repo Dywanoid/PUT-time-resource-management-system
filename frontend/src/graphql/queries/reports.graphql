@@ -21,24 +21,39 @@ query GetClientReports($clientIds: [ID!], $fromDate: Date!, $toDate: Date!) {
     toDate: $toDate
   ) {
     client {
-        id,
-        name
+    	id,
+      name
     },
     projectReports {
-        project {
-            id, 
-            name
-        },
+    	project {
+        id, 
+        name
+      },
       taskReports {
       	task {
           id, 
           name
         },
-        totalCost
+        totalCost,
+        userReports {
+			projectAssignmentReports {
+        duration
+      }
+    }	
       },
-      totalCost
+      totalCost,
+      userReports {
+			projectAssignmentReports {
+        duration
+      }
+    }	
     },
     invoiceUrl
-    totalCost
+    totalCost,
+    userReports {
+			projectAssignmentReports {
+        duration
+      }
+    }	
   }
 }
