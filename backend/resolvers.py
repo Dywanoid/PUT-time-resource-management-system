@@ -343,8 +343,8 @@ def resolve_create_update_or_delete_time_log(obj, info, input):
 
 @query.field("clientReports")
 @convert_kwargs_to_snake_case
-def resolve_client_reports(obj, info, client_ids, from_date, to_date):
-    return get_client_reports(client_ids, from_date, to_date)
+def resolve_client_reports(obj, info, client_ids, team_ids, from_date, to_date):
+    return get_client_reports(client_ids, team_ids, from_date, to_date)
 
 
 @mutation.field("createClient")

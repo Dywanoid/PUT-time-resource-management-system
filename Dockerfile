@@ -14,11 +14,8 @@ FROM python:3.8-alpine
 
 WORKDIR /app/backend
 
-
-RUN apk add --no-cache postgresql-libs wkhtmltopdf \
-    libgcc libstdc++ libx11 glib libxrender libxext libintl \
-    ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family && \
-apk add --no-cache --virtual .build-deps gcc g++ musl-dev postgresql-dev
+RUN apk add --no-cache postgresql-libs && \
+    apk add --no-cache --virtual .build-deps gcc g++ musl-dev postgresql-dev
 
 COPY ./backend/requirements.txt .
 

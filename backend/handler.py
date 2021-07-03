@@ -10,8 +10,7 @@ from flask_login import login_required, logout_user
 from auth import oidc_blueprint
 from werkzeug.urls import url_encode
 from datetime import date
-from database import Client, db
-import pdfkit
+from database import Client, Settings, db
 import reporting
 
 @app.route('/', defaults={'path': ''})
@@ -64,29 +63,15 @@ def client_invoice_html(client_id):
     return response
 
 
-@app.route('/client/<client_id>/invoice.pdf', methods=["GET"])
-def client_invoice_pdf(client_id):
-    html_string = create_invoice_html(client_id, request)
-
-    pdf_options = {
-        'encoding': 'UTF-8',
-        'enable-forms': True
-    }
-    pdf_string = pdfkit.from_string(html_string, False, pdf_options)
-
-    response = make_response(pdf_string)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'attachment; filename=invoice.pdf'
-    return response
-
-
 def create_invoice_html(client_id, request):
     client = Client.query.get(client_id)
+    team_ids = get_team_ids(request)
     [from_date, to_date] = parse_date_range(request)
     lang = get_language(request)
+    settings = Settings.get()
 
-    [client_report] = reporting.get_client_reports([client.id], from_date, to_date)
-    html_string = render_template(f'invoice-{lang}.html', cr=client_report)
+    [client_report] = reporting.get_client_reports([client.id], team_ids, from_date, to_date)
+    html_string = render_template(f'invoice-{lang}.html', cr=client_report, v=settings.vendor)
     html_string.encode('UTF-8')
 
     return html_string
@@ -104,6 +89,10 @@ def parse_date_range(request):
         return (from_date, to_date)
     except Exception:
         abort(400, description=f"Invalid or missing parameter from_date or to_date")
+
+
+def get_team_ids(request):
+    return request.args.getlist('team_ids') or []
 
 
 def get_language(request):

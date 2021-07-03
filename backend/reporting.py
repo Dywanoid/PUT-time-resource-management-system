@@ -1,5 +1,5 @@
 from flask import url_for
-from database import Client, Currency, Project, Task, TimeLog, User, ProjectAssignment, db
+from database import Client, Currency, Project, Task, Team, TeamMember, TimeLog, User, ProjectAssignment, db
 from datetime import datetime, date, timedelta
 from dataclasses import dataclass, field
 from typing import Dict
@@ -7,6 +7,7 @@ from decimal import *
 from sqlalchemy import func
 from sqlalchemy.orm import contains_eager, joinedload
 from formatting import rounded_decimal, hours
+from app import app
 
 
 @dataclass
@@ -31,17 +32,18 @@ class Report:
 @dataclass
 class ProjectAssignmentReport(Report):
     project_assignment: ProjectAssignment = None
-    duration: timedelta = timedelta(seconds=0)
+    total_duration: timedelta = timedelta(seconds=0)
 
     def add_tls(self, tls):
         self.total_cost += tls.cost
-        self.duration += tls.duration
+        self.total_duration += tls.duration
 
 
 @dataclass
 class UserReport(Report):
     user: User = None
-    project_assignment_reports_by_id: Dict[int, ProjectAssignmentReport] = field(default_factory=dict)
+    project_assignment_reports_by_id: Dict[int, ProjectAssignmentReport] = field(
+        default_factory=dict)
 
     @property
     def project_assignment_reports(self):
@@ -49,7 +51,8 @@ class UserReport(Report):
 
     def add_tls(self, tls):
         self.total_cost += tls.cost
-        project_assignment_report = self.project_assignment_reports_by_id.setdefault(tls.project_assignment.id, ProjectAssignmentReport(project_assignment=tls.project_assignment))
+        project_assignment_report = self.project_assignment_reports_by_id.setdefault(
+            tls.project_assignment.id, ProjectAssignmentReport(project_assignment=tls.project_assignment))
         project_assignment_report.add_tls(tls)
 
 
@@ -64,7 +67,8 @@ class TaskReport(Report):
 
     def add_tls(self, tls):
         self.total_cost += tls.cost
-        user_report = self.user_reports_by_id.setdefault(tls.user.id, UserReport(user=tls.user))
+        user_report = self.user_reports_by_id.setdefault(
+            tls.user.id, UserReport(user=tls.user))
         user_report.add_tls(tls)
 
 
@@ -84,16 +88,19 @@ class ProjectReport(Report):
 
     def add_tls(self, tls):
         self.total_cost += tls.cost
-        task_report = self.task_reports_by_id.setdefault(tls.task.id, TaskReport(task=tls.task))
+        task_report = self.task_reports_by_id.setdefault(
+            tls.task.id, TaskReport(task=tls.task))
         task_report.add_tls(tls)
-        user_report = self.user_reports_by_id.setdefault(tls.user.id, UserReport(user=tls.user))
+        user_report = self.user_reports_by_id.setdefault(
+            tls.user.id, UserReport(user=tls.user))
         user_report.add_tls(tls)
 
 
 @dataclass
 class ClientReport(Report):
     client: Client = None
-    project_reports_by_id: Dict[int, ProjectReport] = field(default_factory=dict)
+    project_reports_by_id: Dict[int, ProjectReport] = field(
+        default_factory=dict)
     user_reports_by_id: Dict[int, UserReport] = field(default_factory=dict)
     invoice_url: str = ""
 
@@ -107,39 +114,52 @@ class ClientReport(Report):
 
     def add_tls(self, tls):
         self.total_cost += tls.cost
-        project_report = self.project_reports_by_id.setdefault(tls.project.id, ProjectReport(project=tls.project))
+        project_report = self.project_reports_by_id.setdefault(
+            tls.project.id, ProjectReport(project=tls.project))
         project_report.add_tls(tls)
-        user_report = self.user_reports_by_id.setdefault(tls.user.id, UserReport(user=tls.user))
+        user_report = self.user_reports_by_id.setdefault(
+            tls.user.id, UserReport(user=tls.user))
         user_report.add_tls(tls)
 
-def get_client_reports(client_ids, from_date, to_date):
+
+def get_client_reports(client_ids, team_ids, from_date, to_date):
+    filters = []
+    if client_ids:
+        filters.append(Client.id.in_(client_ids))
+
+    if team_ids:
+        users = (User.query
+                 .outerjoin(User.team_memberships, TeamMember.team)
+                 .options(contains_eager(User.team_memberships, TeamMember.team))
+                 .filter(Team.id.in_(team_ids))
+                 .all())
+        filters.append(User.id.in_(map(lambda u: u.id, users)))
+
     clients = (Client.query
-        .outerjoin(Client.projects, Project.assignments, ProjectAssignment.user)
-        .options(contains_eager(Client.projects, Project.assignments, ProjectAssignment.user))
-        .options(joinedload(Client.projects, Project.tasks))
-        .filter(ProjectAssignment.end_date >= from_date)
-        .filter(ProjectAssignment.begin_date <= to_date)
-        .filter(Client.id.in_(client_ids))
-        .all()
-        # TODO filter out archived projects?
-    )
+               .outerjoin(Client.projects, Project.assignments, ProjectAssignment.user)
+               .options(contains_eager(Client.projects, Project.assignments, ProjectAssignment.user))
+               .options(joinedload(Client.projects, Project.tasks))
+               .filter(ProjectAssignment.end_date >= from_date)
+               .filter(ProjectAssignment.begin_date <= to_date)
+               .filter(db.and_(*filters))
+               .all())
 
-    client_reports_by_id = {client.id: ClientReport(client=client, invoice_url=url_for('client_invoice_pdf', _external=True, client_id=client.id, from_date=from_date.isoformat(), to_date=to_date.isoformat())) for client in clients}
-    project_assignments_by_id = {project_assignment.id: project_assignment for client in clients for project in client.projects for project_assignment in project.assignments}
-    tasks_by_id = {task.id: task for client in clients for project in client.projects for task in project.tasks}
-
+    client_reports_by_id = {client.id: ClientReport(client=client, invoice_url=url_for(
+        'client_invoice_html', _external=True, client_id=client.id, from_date=from_date.isoformat(), to_date=to_date.isoformat(), team_ids=team_ids)) for client in clients}
+    project_assignments_by_id = {
+        project_assignment.id: project_assignment for client in clients for project in client.projects for project_assignment in project.assignments}
+    tasks_by_id = {
+        task.id: task for client in clients for project in client.projects for task in project.tasks}
 
     tls_source = (db.session
-        .query(TimeLog.task_id, TimeLog.project_assignment_id, func.sum(TimeLog.duration))
-        .filter(TimeLog.date >= from_date, TimeLog.date <= to_date)
-        .group_by(TimeLog.task_id, TimeLog.project_assignment_id)
-        .all()
-    )
+                  .query(TimeLog.task_id, TimeLog.project_assignment_id, func.sum(TimeLog.duration))
+                  .filter(TimeLog.date >= from_date, TimeLog.date <= to_date)
+                  .group_by(TimeLog.task_id, TimeLog.project_assignment_id)
+                  .all())
 
     for [task_id, project_assignment_id, duration] in tls_source:
         if task_id not in tasks_by_id or project_assignment_id not in project_assignments_by_id:
-            # TODO warn
-            print()
+            app.logger.warning(f"Time logged for task with id {task_id} outside of it's project assignment date range")
             continue
         task = tasks_by_id[task_id]
         project_assignment = project_assignments_by_id[project_assignment_id]
@@ -152,13 +172,11 @@ def get_client_reports(client_ids, from_date, to_date):
             user=project_assignment.user,
             duration=duration,
             cost=cost
-            )
+        )
 
         client_reports_by_id[tls.client.id].add_tls(tls)
 
     return client_reports_by_id.values()
-
-
 
 
 def calculate_cost(hourly_rate, duration):
