@@ -1,0 +1,97 @@
+<html>
+
+<body>
+    <div>
+        <header>
+            <div>
+                <h3>Invoice
+                    <form>
+                        <label for="invoice_no">No</label>
+                        <input id="invoice_no" name="invoice_no" />
+                    </form>
+                </h3>
+            </div>
+        </header>
+
+        <div>
+            <div>
+                <h4>Seller</h4>
+                <p>{{ v.name }}</p>
+                <p>{{ v.street_with_number}}</p>
+                <p>{{ v.zip_code }} {{ v.city }}</p>
+                <p>Tax ID: {{ v.tax_id }}</p>
+            </div>
+
+            <div>
+                <h4>Buyer</h4>
+                <p>{{ cr.client.name }}</p>
+                <p>{{ cr.client.street_with_number}}</p>
+                <p>{{ cr.client.zip_code }} {{ cr.client.city }}</p>
+                <p>Tax ID: {{ cr.client.tax_id }}</p>
+            </div>
+
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Name of service</th>
+                    <th>Unit</th>
+                    <th>Qty</th>
+                    <th>Unit net price</th>
+                    <th>Total net price</th>
+                    <th>VAT rate</th>
+                    <th>VAT amount</th>
+                    <th>Total gross price</th>
+                </tr>
+            </thead>
+
+            {% set count = namespace(value=0) %}
+
+            {% for pr in cr.project_reports %}
+            {% for ur in pr.user_reports %}
+            {% for par in ur.project_assignment_reports %}
+
+            {% set count.value = count.value + 1 %}
+            <tr>
+                <td>{{ count.value }}</td>
+                <td>
+                    <p>{{ ur.user.name }}</p>
+                </td>
+                <td>hours</td>
+                <td>{{ par.total_duration | hours | rounded_decimal }}</td>
+                <td>{{ par.project_assignment.hourly_rate | rounded_decimal }}</td>
+                <td >{{ par.total_cost | rounded_decimal }}</td>
+                <td>{{ (v.vat_rate * 100) | rounded_integer}}%</td>
+                <td>{{ (par.total_cost * v.vat_rate) | rounded_decimal }}</td>
+                <td>{{ (par.total_cost * v.vat_rate + par.total_cost) | rounded_decimal }}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+            <tr>
+                <td colspan="8">Total for project {{ pr.project.name }}:</td>
+                <td>{{ (pr.total_cost * v.vat_rate + pr.total_cost) | rounded_decimal }}</td>
+            </tr>
+            {% endfor %}
+
+            <tfoot>
+                <tr>
+                    <td colspan="8"><strong>Total:</strong></td>
+                    <td><strong>{{ (cr.total_cost * v.vat_rate + cr.total_cost) | rounded_decimal }} {{cr.client.currency | currency }}</strong></td>
+                </tr>
+            </tfoot>
+
+        </table>
+
+        <div>
+            <h4>Summary</h4>
+            <div>
+                <p>Total due: <strong>{{ (cr.total_cost * v.vat_rate + cr.total_cost) | rounded_decimal }} {{cr.client.currency | currency }}</strong></p>
+                <p>Paid: <strong>{{ 0 | rounded_decimal }} {{cr.client.currency | currency }}</strong></p>
+                <p>Outstanding: <strong>{{ (cr.total_cost * v.vat_rate + cr.total_cost) | rounded_decimal }} {{cr.client.currency | currency }}</strong></p>
+            </div>
+        </div>
+</body>
+
+</html>

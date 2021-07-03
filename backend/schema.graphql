@@ -133,6 +133,44 @@ type TimeLogInfo {
     totalCount: Int
 }
 
+interface Report {
+    totalCost: Float!
+}
+
+type ClientReport implements Report {
+    client: Client!
+    projectReports: [ProjectReport!]
+    userReports: [UserReport!]
+    invoiceUrl: String!
+    totalCost: Float!
+}
+
+type ProjectReport implements Report {
+    project: Project!
+    taskReports: [TaskReport!]
+    userReports: [UserReport!]
+    totalCost: Float!
+}
+
+type TaskReport implements Report {
+    task: Task!
+    userReports: [UserReport!]
+    totalCost: Float!
+}
+
+type UserReport implements Report {
+    user: User
+    projectAssignmentReports: [ProjectAssignmentReport!]
+    totalCost: Float!
+}
+
+type ProjectAssignmentReport implements Report {
+    projectAssignment: ProjectAssignment!
+    totalDuration: Interval!
+    totalCost: Float!
+}
+
+
 type Query {
     clients(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 10): [Client!]
     client(id: ID!): Client!
@@ -152,14 +190,20 @@ type Query {
     teamMembers(teamId: ID!): [TeamMember!] @deprecated(reason: "use team(id) { members { ... } }")
     userTeams(userId: ID!): [TeamMember!] @deprecated(reason: "use user(id) { teams { ... } }")
     projectAssignments(
-        userId: ID, 
-        projectId: ID, 
-        fromDate: Date @defaultmin,
-        toDate: Date @defaultmax,
+        userId: ID, # filter
+        projectId: ID, # filter
+        fromDate: Date @defaultmin, # filter
+        toDate: Date @defaultmax, # filter
         offset: Int = 0, 
         limit: Int = 10
         ): [ProjectAssignment!]
     getAllSubordinates(userId: ID): [User!]
+    clientReports(
+        clientIds: [ID!] = [], # filter
+        teamIds: [ID!] = [], # filter
+        fromDate: Date!,
+        toDate: Date!
+    ): [ClientReport!]
 }
 
 input CreateClientInput {
