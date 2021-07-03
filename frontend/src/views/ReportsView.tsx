@@ -6,9 +6,14 @@ import moment, { Moment } from 'moment';
 import { Button, Select,Table, Typography, DatePicker, Space } from 'antd';
 import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 
-import React, { useEffect, useState } from 'react';
-import { useGetAllClientsAndProjectsWithTasksQuery, useGetAllTeamsQuery } from '../generated/graphql';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  useGetAllClientsAndProjectsWithTasksQuery,
+  useGetAllTeamsQuery,
+  useGetClientReportsQuery
+} from '../generated/graphql';
 import { Loader } from '../components';
+import { formatDateForBackend } from '../utils/utils';
 const { Text } = Typography;
 
 interface PickerOption {
@@ -32,8 +37,8 @@ interface TableRow {
   project: string;
   projectRowSpan: number;
   task: string;
-  team: string;
-  teamRowSpan: number;
+  // team: string;
+  // teamRowSpan: number;
   time: string;
 }
 interface TableColumn {
@@ -76,16 +81,16 @@ const dataColumns : TableColumn[] = [
     },
     title: 'Projekt'
   },
-  {
-    dataIndex: 'team',
-    render: (value, row) => {
-      return {
-        children: value,
-        props: getTableCellProps(row.teamRowSpan)
-      };
-    },
-    title: 'Zespół'
-  },
+  // {
+  //   dataIndex: 'team',
+  //   render: (value, row) => {
+  //     return {
+  //       children: value,
+  //       props: getTableCellProps(row.teamRowSpan)
+  //     };
+  //   },
+  //   title: 'Zespół'
+  // },
   {
     dataIndex: 'task',
     title: 'Zadanie'
@@ -143,45 +148,94 @@ const currentMomentGetter = () => moment();
 
 const customDateFormat = (value) => value.format('MMMM YYYY');
 
+const getMonthEnds = (date: Moment) => {
+
+  return {
+    end: formatDateForBackend(date.clone().endOf('month')),
+    start: formatDateForBackend(date.clone().startOf('month'))
+  };
+};
+
 export const ReportsView = () : JSX.Element => {
   const [clientOptions, setClientOptions] = useState<PickerOption[]>([]);
   const [projectOptions, setProjectOptions] = useState<PickerOption[]>([]);
-  const [teamOptions, setTeamOptions] = useState<PickerOption[]>([]);
+  // const [teamOptions, setTeamOptions] = useState<PickerOption[]>([]);
 
   const [selectedClients, setSelectedClients] = useState<PickerOption[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<PickerOption[]>([]);
-  const [selectedTeams, setSelectedTeams] = useState<PickerOption[]>([]);
+  // const [selectedTeams, setSelectedTeams] = useState<PickerOption[]>([]);
 
+  const [currencyMap, setCurrencyMap] = useState({});
   const [date, setDate] = useState<Moment>(currentMomentGetter);
+  const monthRange = useMemo(() => getMonthEnds(date), [date]);
 
   const teamsQuery = useGetAllTeamsQuery();
   const clientsProjectsQuery = useGetAllClientsAndProjectsWithTasksQuery();
+
+  const reportsQuery = useGetClientReportsQuery(
+    {
+      fetchPolicy: 'no-cache',
+      variables: {
+        clientIds: selectedClients.map((selectedClient) => selectedClient.value),
+        fromDate: monthRange.start,
+        toDate: monthRange.end
+      }
+    }
+  );
+
+  const costMap = reportsQuery?.data?.clientReports?.reduce((acc, currentClientReport) => {
+    const { client } = currentClientReport;
+    const clientId = `client_${ client.id }`;
+
+    acc[clientId] = currentClientReport.totalCost;
+    currentClientReport.projectReports?.forEach((currentProjectReport) => {
+      const { project } = currentProjectReport;
+      const projectId = `project_${ project.id }`;
+
+      acc[projectId] = currentProjectReport.totalCost;
+      currentProjectReport.taskReports?.forEach((currentTaskReport) => {
+        const { task } = currentTaskReport;
+        const taskId = `task_${ task.id }`;
+
+        acc[taskId] = currentTaskReport.totalCost;
+      });
+    });
+
+    return acc;
+  }, {}) || {};
+
+  console.log(costMap);
 
   useEffect(
     () => {
       if(teamsQuery.error || clientsProjectsQuery.error || teamsQuery.loading || clientsProjectsQuery.loading) {
         return;
       }
+      const clientToCurrencyMap = {};
+
       const newClients = clientsProjectsQuery?.data?.clients || [];
       const newClientOptions = newClients.map(
         (client) => {
+          clientToCurrencyMap[client.id] = client.currency;
+
           return { label: client.name, value: client.id };
         }
       ) || [];
 
+      setCurrencyMap(clientToCurrencyMap);
       setClientOptions(newClientOptions);
       setSelectedClients(newClientOptions);
       handleProjects(newClients, newClientOptions);
 
-      const newTeams = teamsQuery.data?.teams || [];
-      const newTeamOptions = newTeams.map(
-        (team) => {
-          return { label: team.name, value: team.id };
-        }
-      );
+      // const newTeams = teamsQuery.data?.teams || [];
+      // const newTeamOptions = newTeams.map(
+      //   (team) => {
+      //     return { label: team.name, value: team.id };
+      //   }
+      // );
 
-      setTeamOptions(newTeamOptions);
-      setSelectedTeams(newTeamOptions);
+      // setTeamOptions(newTeamOptions);
+      // setSelectedTeams(newTeamOptions);
     },
     [
       teamsQuery,
@@ -223,7 +277,7 @@ export const ReportsView = () : JSX.Element => {
 
   const handleClientChange = getHandlerForCollection(clientOptions, setSelectedClients);
   const handleProjectChange = getHandlerForCollection(projectOptions, setSelectedProjects);
-  const handleTeamChange = getHandlerForCollection(teamOptions, setSelectedTeams);
+  // const handleTeamChange = getHandlerForCollection(teamOptions, setSelectedTeams);
 
   const changeMonth = (forwardDirection: boolean): void => {
     const months = forwardDirection ? 1 : -1;
@@ -243,7 +297,8 @@ export const ReportsView = () : JSX.Element => {
   if(teamsQuery.loading || clientsProjectsQuery.loading) {return (<Loader/>);}
   if(!selectedClients.length
     || !selectedProjects.length
-    || !selectedTeams.length) {
+    // || !selectedTeams.length
+  ) {
     return (<p>Selektory sie zepsuly</p>);
   }
 
@@ -256,7 +311,7 @@ export const ReportsView = () : JSX.Element => {
   const selectedClientsMap = getUsedValuesMap(selectedClients);
 
   const selectedProjectsMap = getUsedValuesMap(selectedProjects);
-  const selectedTeamsMap = getUsedValuesMap(selectedTeams);
+  // const selectedTeamsMap = getUsedValuesMap(selectedTeams);
 
   const rowSpanMap: {[id: string]: number} = {};
 
@@ -275,29 +330,29 @@ export const ReportsView = () : JSX.Element => {
       const projectId = `project_${ project.id }_${ clientId }`;
       const taskCount = project?.tasks?.length || 0;
 
-      teamsQuery?.data?.teams?.forEach((team) => {
-        if(!selectedTeamsMap[team.id]) {
-          return;
-        }
+      // teamsQuery?.data?.teams?.forEach((team) => {
+      //   if(!selectedTeamsMap[team.id]) {
+      //     return;
+      //   }
 
-        const teamId = `team_${ team.id }_${ projectId }`;
+      // const teamId = `team_${ team.id }_${ projectId }`;
 
-        if(!rowSpanMap[clientId]) {
-          rowSpanMap[clientId] = 0;
-        }
+      if(!rowSpanMap[clientId]) {
+        rowSpanMap[clientId] = 0;
+      }
 
-        if(!rowSpanMap[projectId]) {
-          rowSpanMap[projectId] = 0;
-        }
+      if(!rowSpanMap[projectId]) {
+        rowSpanMap[projectId] = 0;
+      }
 
-        if(!rowSpanMap[teamId]) {
-          rowSpanMap[teamId] = 0;
-        }
+      // if(!rowSpanMap[teamId]) {
+      //   rowSpanMap[teamId] = 0;
+      // }
 
-        rowSpanMap[clientId] += taskCount;
-        rowSpanMap[projectId] += taskCount;
-        rowSpanMap[teamId] = taskCount;
-      });
+      rowSpanMap[clientId] += taskCount;
+      rowSpanMap[projectId] += taskCount;
+      // rowSpanMap[teamId] = taskCount;
+      // });
     });
   });
 
@@ -317,53 +372,59 @@ export const ReportsView = () : JSX.Element => {
 
       const projectId = `project_${ project.id }_${ clientId }`;
 
-      teamsQuery?.data?.teams?.forEach((team) => {
-        if(!selectedTeamsMap[team.id]) {
-          return;
+      // teamsQuery?.data?.teams?.forEach((team) => {
+      //   if(!selectedTeamsMap[team.id]) {
+      //     return;
+      //   }
+
+      // const teamId = `team_${ team.id }_${ projectId }`;
+
+      acc.push(...project?.tasks?.reduce((taskAcc: TableRow[], task) => {
+        let clientRowSpan = 0;
+        let projectRowSpan = 0;
+        // let teamRowSpan = 0;
+
+        const taskId = `task_${ task.id }`;
+        const taskCost = costMap[taskId];
+
+        // if(!taskCost) {return taskAcc;}
+
+        if(!rowSpansUsedMap[clientId]) {
+          rowSpansUsedMap[clientId] = true;
+          clientRowSpan = rowSpanMap[clientId];
         }
 
-        const teamId = `team_${ team.id }_${ projectId }`;
+        if(!rowSpansUsedMap[projectId]) {
+          rowSpansUsedMap[projectId] = true;
+          projectRowSpan = rowSpanMap[projectId];
+        }
 
-        acc.push(...project?.tasks?.map((task) => {
-          let clientRowSpan = 0;
-          let projectRowSpan = 0;
-          let teamRowSpan = 0;
+        // if(!rowSpansUsedMap[teamId]) {
+        //   rowSpansUsedMap[teamId] = true;
+        //   teamRowSpan = rowSpanMap[teamId];
+        // }
 
-          if(!rowSpansUsedMap[clientId]) {
-            rowSpansUsedMap[clientId] = true;
-            clientRowSpan = rowSpanMap[clientId];
-          }
+        const randomTime = Math.floor(Math.random() * 100 + 10);
 
-          if(!rowSpansUsedMap[projectId]) {
-            rowSpansUsedMap[projectId] = true;
-            projectRowSpan = rowSpanMap[projectId];
-          }
+        const row: TableRow = {
+          client: client.name,
+          clientRowSpan,
+          cost: `${ taskCost || 0 } ${ currencyMap[client.id] }`,
+          key: `${ Math.random() }`,
+          project: project.name,
+          projectRowSpan,
+          task: task.name,
+          // team: team.name,
+          // teamRowSpan,
+          time: `${ randomTime }h`
+        };
 
-          if(!rowSpansUsedMap[teamId]) {
-            rowSpansUsedMap[teamId] = true;
-            teamRowSpan = rowSpanMap[teamId];
-          }
+        taskAcc.push(row);
 
-          const randomTime = Math.floor(Math.random() * 100 + 10);
-          const randomCost = Math.floor(Math.random() * 50 + 20);
+        return taskAcc;
+      }, []) || []);
 
-          const row: TableRow = {
-            client: client.name,
-            clientRowSpan,
-            cost: `${ randomCost * randomTime } zł`,
-            key: `${ Math.random() }`,
-            project: project.name,
-            projectRowSpan,
-            task: task.name,
-            team: team.name,
-            teamRowSpan,
-            time: `${ randomTime }h`
-          };
-
-          return row;
-        }) || []);
-
-      });
+      // });
     });
 
     return acc;
@@ -397,13 +458,13 @@ export const ReportsView = () : JSX.Element => {
               selected={selectedProjects}
             />
 
-            <Picker
+            {/* <Picker
               defaultValue={selectedTeams}
               label="Zespoły"
               onChange={handleTeamChange}
               options={teamOptions}
               selected={selectedTeams}
-            />
+            /> */}
 
           </Space>
           <div
