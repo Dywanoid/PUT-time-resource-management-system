@@ -2,6 +2,7 @@ query GetAllClientsAndProjectsWithTasks {
     clients {
         id,
         name,
+        currency,
         projects {
             id, 
             name,
@@ -11,4 +12,33 @@ query GetAllClientsAndProjectsWithTasks {
             }
         }
     }
+}
+
+query GetClientReports($clientIds: [ID!], $fromDate: Date!, $toDate: Date!) {
+  clientReports(
+    clientIds: $clientIds,
+    fromDate: $fromDate,
+    toDate: $toDate
+  ) {
+    client {
+        id,
+        name
+    },
+    projectReports {
+        project {
+            id, 
+            name
+        },
+      taskReports {
+      	task {
+          id, 
+          name
+        },
+        totalCost
+      },
+      totalCost
+    },
+    invoiceUrl
+    totalCost
+  }
 }
