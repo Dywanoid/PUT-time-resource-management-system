@@ -15,6 +15,7 @@ import {
   TimeLogMutationFn
 } from '../generated/graphql';
 import { UserContext } from '../utils/auth';
+import { formatDateForBackend } from '../utils/utils';
 const { Text } = Typography;
 
 const NUMBER_OF_MINUTES_IN_A_DAY = 24 * 60;
@@ -147,8 +148,6 @@ const customDateFormat = (value) => {
 
   return `${ firstDayOfWeek } - ${ lastDayOfWeek }`;
 };
-
-const formatDateForBackend = (date: Moment): string => date.format('YYYY-MM-DD');
 
 const getIdsFromKey = (key:string): {[id: string] : string} => {
   const [clientId, projectId, taskId, projectAssignmentId] = key.split('+');
