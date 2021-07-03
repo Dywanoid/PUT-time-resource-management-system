@@ -1,12 +1,12 @@
-import React, { useRef, useState, useContext } from 'react';
+import { useRef, useState, useContext } from 'react';
+import { injectIntl } from 'react-intl';
 import {
-  Layout, Form, Input, Button,
+  Layout, Form, Button,
   List, Select, FormInstance, DatePicker, notification,
   Avatar
 } from 'antd';
 import {
   useChangeHolidayRequestStatusMutation,
-  useGetAllUsersQuery,
   namedOperations,
   useCreateHolidayRequestMutation,
   HolidayRequestStatus,
@@ -21,40 +21,55 @@ import '../css/ApplicationView.css';
 const { Content } = Layout;
 const { RangePicker } = DatePicker;
 
-const openNotificationWithIcon = (type, action) => {
+const openNotificationWithIcon = (type, action, intl) => {
   notification[type]({
     description: type === 'success'
-      ? `Pomyślnie wykonano akcję ${ action }.`
-      : `Akcja ${ action } nie została wykonana.`,
-    message: 'Powiadomienie'
+      ? `${ intl.formatMessage({ id: 'action_success' }) } ${ action }.`
+      : `${ intl.formatMessage({ id: 'action' }) } ${ action } ${ intl.formatMessage({ id: 'not_completed' }) }.`,
+    message: intl.formatMessage({ id: 'notification' })
   });
 };
 
 const requestStatuses = Object.values(HolidayRequestStatus);
 const applicationsTypes = Object.values(HolidayRequestType);
 
-export const ApplicationsView = (): JSX.Element => {
+export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
   const userInfo = useContext(UserContext);
-  const { data: usersData } = useGetAllUsersQuery();
-  const [supervisorId, setSupervisorId] = useState('');
   const [requestType, setRequestType] = useState('');
   const [startDate, setStartDate] = useState(Date);
   const [endDate, setEndDate] = useState(Date);
   const [userId, setUserId] = useState('');
   const [userRole, setUserRole] = useState<string[]>([]);
-  const [getHolidayRequests, { data: applicationData }] = useGetHolidayRequestsLazyQuery();
+  const [getUsersHolidayRequests, { data: usersApplicationData }] = useGetHolidayRequestsLazyQuery();
+  const [getUserHolidayRequests, { data: userApplicationData }] = useGetHolidayRequestsLazyQuery();
   const [createApplication] = useCreateHolidayRequestMutation({
-    onCompleted(){ openNotificationWithIcon('success', 'tworzenia wniosku'); },
-    onError() { openNotificationWithIcon('error', 'tworzenia wniosku'); }
+    onCompleted(){ openNotificationWithIcon(
+      'success',
+      `${ intl.formatMessage({ id: 'create_application' }) }`,
+      intl
+    ); },
+    onError() { openNotificationWithIcon(
+      'error',
+      `${ intl.formatMessage({ id: 'create_application' }) }`,
+      intl
+    ); }
   });
   const [changeApplicationRequest] = useChangeHolidayRequestStatusMutation({
-    onCompleted(){ openNotificationWithIcon('success', 'zmieniono status'); },
-    onError() { openNotificationWithIcon('error', 'zmieniono status'); }
+    onCompleted(){openNotificationWithIcon(
+      'success',
+      `${ intl.formatMessage({ id: 'status_changed' }) }`,
+      intl
+    ); },
+    onError() { openNotificationWithIcon(
+      'error',
+      `${ intl.formatMessage({ id: 'status_changed' }) }`,
+      intl
+    ); }
   });
-  const sendApplicationRequest = (supervisor, request, start, end) => {
+  const sendApplicationRequest = (id, request, start, end) => {
     createApplication({
       refetchQueries: [namedOperations.Query.GetHolidayRequests],
-      variables: { endDate: end, startDate: start, type: request, userId: supervisor }
+      variables: { endDate: end, startDate: start, type: request, userId: id }
     });
   };
   const changeApplicationRequestStatus = (appId, reqId) => {
@@ -64,35 +79,26 @@ export const ApplicationsView = (): JSX.Element => {
     });
   };
 
-  if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0) {
+  if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0
+    && userInfo.supervisor !== undefined && userInfo.subordinates){
     setUserId(userInfo.id || '');
-    setUserRole(userInfo.roles as any);
-    getHolidayRequests(
-      {
-        variables:
-        { requestStatuses, requestTypes: applicationsTypes }
-      }
-    );
-  }
+    const userR = userInfo.roles as any;
+    const subordinatesList: Array<string> = [];
 
-  const users = usersData?.users || [];
-  const applicationsData = applicationData?.holidayRequests || [];
-
-  const superVisors = [] as any;
-  const requestTypes = [] as any;
-
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].roles!.includes('manager')) {
-      superVisors.push(
-        <Select.Option
-          key={ users[i].id }
-          value={ users[i].id }
-        >
-          { users[i].name }
-        </Select.Option>
-      );
+    for (const user in userInfo.subordinates) {
+      subordinatesList.push(userInfo.subordinates[user].id);
     }
+    setUserRole(userInfo.roles as any);
+    if (userR.includes('manager')) {
+      getUsersHolidayRequests({ variables: { userList: subordinatesList } });
+    }
+    getUserHolidayRequests();
   }
+
+  const userApplications = userApplicationData?.holidayRequests || [];
+  const usersApplications = usersApplicationData?.holidayRequests || [];
+
+  const requestTypes = [] as any;
 
   for (let i = 0; i < applicationsTypes.length; i++) {
     requestTypes.push(
@@ -100,24 +106,19 @@ export const ApplicationsView = (): JSX.Element => {
         key={ applicationsTypes[i] }
         value={ applicationsTypes[i] }
       >
-        { applicationsTypes[i] }
+        { intl.formatMessage({ id: applicationsTypes[i].toLowerCase() }) }
       </Select.Option>
     );
   }
 
   const formRef = useRef<FormInstance>(null);
 
-  const onSupervisorChange = (value: string) => {
-    setSupervisorId(value);
-  };
-
   const onRequestTypeChange = (value: string) => {
     setRequestType(value);
   };
 
   const onFinish = () => {
-    sendApplicationRequest(supervisorId, requestType, startDate, endDate);
-    setSupervisorId('');
+    sendApplicationRequest(userId, requestType, startDate, endDate);
     setRequestType('');
     setStartDate('');
     setEndDate('');
@@ -137,24 +138,75 @@ export const ApplicationsView = (): JSX.Element => {
     changeApplicationRequestStatus(itemId, buttonType);
   };
 
+  const switchCase = (role, item) => {
+    const concatStr = `${ role }_${ item.status }`;
+
+    switch(concatStr) {
+      case 'USER_PENDING':
+        return (
+          [<a key="1"
+            onClick={() => handleEventChange(requestStatuses[3],item.id)}
+          >
+            { intl.formatMessage({ id: 'cancell' }) }
+          </a>]
+        );
+      case 'MANAGER_CANCELLED':
+      case 'USER_CANCELLED':
+        return [<div key="2">{ intl.formatMessage({ id: 'cancelled' }) }</div>];
+      case 'MANAGER_REJECTED':
+      case 'USER_REJECTED':
+        return [<div key="2">{ intl.formatMessage({ id: 'rejected' }) }</div>];
+      case 'MANAGER_ACCEPTED':
+      case 'USER_ACCEPTED':
+        return [<div key="3">{ intl.formatMessage({ id: 'accepted' }) }</div>];
+      case 'MANAGER_PENDING':
+        if (userInfo?.supervisor.name.length === 0) {
+          return (
+            [<a key="3"
+              onClick={() => handleEventChange(requestStatuses[2],item.id)}
+            >
+              { intl.formatMessage({ id: 'reject' }) }
+            </a>
+            ,
+            <a key="4"
+              onClick={() => handleEventChange(requestStatuses[1],item.id)}
+            >
+              { intl.formatMessage({ id: 'accept' }) }
+            </a>]
+          );
+        } else {
+          return (
+            [<a key="1"
+              onClick={() => handleEventChange(requestStatuses[3],item.id)}
+            >
+              { intl.formatMessage({ id: 'cancell' }) }
+            </a>]
+          );
+        }
+
+      default:
+        return [];
+    }
+  };
+
   return (
     <Layout>
       <Content>
         <Form labelCol={{ span: 8 }} wrapperCol={{ span: 10 }}
-          ref={ formRef } name="control-ref" onFinish={ onFinish }>
-          <Form.Item
+          ref={ formRef } onFinish={ onFinish }>
+          { (userInfo?.supervisor.name.length !== 0)
+          && (<Form.Item
             className="changeSupervisor"
-            name="Wybierz przełożonego"
-            label="Wybierz przełożonego"
+            label={ intl.formatMessage({ id: 'supervisor' }) }
+          >
+            { userInfo?.supervisor.name }
+          </Form.Item>)
+          }
+          <Form.Item
+            name="Typ wniosku"
+            label={ intl.formatMessage({ id: 'application_type' }) }
             rules={[{ required: true }]}
           >
-            <Select
-              onSelect={ onSupervisorChange }
-            >
-              { superVisors }
-            </Select>
-          </Form.Item>
-          <Form.Item name="Typ wniosku" label="Typ wniosku" rules={[{ required: true }]}>
             <Select
               onChange={ onRequestTypeChange }
               allowClear
@@ -162,97 +214,87 @@ export const ApplicationsView = (): JSX.Element => {
               { requestTypes }
             </Select>
           </Form.Item>
-          <Form.Item name="Data" label="Data" rules={[{ required: true }]}>
+          <Form.Item name="Data" label={ intl.formatMessage({ id: 'date' }) } rules={[{ required: true }]}>
             <RangePicker onChange={ onRangePickerChange }/>
-          </Form.Item>
-          <Form.Item
-            noStyle
-            shouldUpdate={(prevValues, currentValues) => prevValues.gender !== currentValues.gender}
-          >
-            {({ getFieldValue }) =>
-              getFieldValue('gender') === 'other'
-                ? (
-                  <Form.Item
-                    name="customizeGender"
-                    label="Customize Gender"
-                    rules={[{ required: true }]}
-                  >
-                    <Input/>
-                  </Form.Item>
-                )
-                : null
-            }
           </Form.Item>
           <Form.Item  wrapperCol={{ offset: 8, span: 16 }}>
             <Button htmlType="button" onClick={ onReset }>
-              Wyczyść
+              { intl.formatMessage({ id: 'clear' }) }
             </Button>
             <Button type="primary" htmlType="submit">
-              Wyślij
+              { intl.formatMessage({ id: 'send' }) }
             </Button>
           </Form.Item>
         </Form>
       </Content>
       <List
-        header={ <h1>Wnioski</h1> }
+        header={ <h1>{ intl.formatMessage({ id: 'ur_applications' }) }</h1> }
         bordered
-        className="teamsList"
         itemLayout="horizontal"
-        dataSource={ [...applicationsData] }
+        dataSource={ [...userApplications] }
         pagination={{ pageSize: 10 }}
-        renderItem={ (item: any) => {
-          return (
+        renderItem={ (item: any) => (
+          <List.Item
+            actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
+              ? userRole[0].toUpperCase()
+              : 'USER', item)
+            }
+          >
+            <List.Item.Meta
+              title={ <div>
+                { intl.formatMessage({ id: item.type.toLowerCase() }) + ' - ' }
+                { item.user.name }
+              </div> }
+              description={ <div>
+                { intl.formatMessage({ id: 'from' }) }
+                { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
+                { intl.formatMessage({ id: 'to' }) }
+                {' ' + moment(item.endDate).format('DD-MM-YYYY')}
+              </div> }
+              avatar={ <Avatar style={
+                { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
+              size={ 64 } gap={ 1 } shape="square">
+                { intl.formatMessage({ id: `${ item.type.toLowerCase() }_avatar` }) }
+              </Avatar> }
+            />
+          </List.Item>
+        )}
+      />
+      { userRole.includes('manager')
+      && (
+        <List
+          header={ <h1>{ intl.formatMessage({ id: 'subbordinates_applications' }) }</h1> }
+          bordered
+          itemLayout="horizontal"
+          dataSource={ [...usersApplications] }
+          pagination={ { pageSize: 10 } }
+          renderItem={ (item: any) => (
             <List.Item
-              actions={
-                (userRole.includes('manager') && item.status === 'ACCEPTED')
-                  ? ([
-                    <a key="1"
-                      onClick={() => handleEventChange(requestStatuses[2],item.id)}
-                    >
-                      { requestStatuses[2].substr(0, requestStatuses[2].length - 2) }
-                    </a>
-                  ])
-                  : ((userRole.includes('manager') && item.status === 'CANCELLED')
-                    ? ([
-                      <div key="2">Cancelled</div>
-                    ])
-                    : ([
-                      <a key="3"
-                        onClick={() => handleEventChange(requestStatuses[3],item.id)}
-                      >
-                        { requestStatuses[3].substr(0, requestStatuses[3].length - 3) }
-                      </a>,
-                      <a key="4"
-                        onClick={() => handleEventChange(requestStatuses[1],item.id)}
-                      >
-                        { requestStatuses[1].substr(0, requestStatuses[1].length - 2) }
-                      </a>
-                    ]))
+              actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
+                ? userRole[0].toUpperCase()
+                : 'USER', item)
               }
             >
               <List.Item.Meta
                 title={ <div>
-                  { item.type.replace('_', ' ') + ' - ' }
+                  { intl.formatMessage({ id: item.type.toLowerCase() }) + ' - ' }
                   { item.user.name }
                 </div> }
                 description={ <div>
-                  od
+                  { intl.formatMessage({ id: 'from' }) }
                   { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
-                  do
-                  {' ' + moment(item.endDate).format('DD-MM-YYYY')}
+                  { intl.formatMessage({ id: 'to' }) }
+                  { ' ' + moment(item.endDate).format('DD-MM-YYYY') }
                 </div> }
                 avatar={ <Avatar style={
                   { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
                 size={ 64 } gap={ 1 } shape="square">
-                  { item.type }
+                  { intl.formatMessage({ id: `${ item.type.toLowerCase() }_avatar` }) }
                 </Avatar> }
               />
             </List.Item>
-          );
-
-          return (null);
-        }}
-      />
+          ) }
+        />) }
     </Layout>
   );
-};
+});

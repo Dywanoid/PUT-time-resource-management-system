@@ -18,7 +18,7 @@ export const TaskModal = ({
   onFinish,
   onFinishFailed
 }: TaskModalInput) : JSX.Element => ( <Modal
-  title="Dodaj projekt"
+  title={ localStorage.getItem('lang') === 'pl' ? 'Dodaj projekt' : 'Add project' }
   onCancel={ handleCancel }
   visible={ isModalVisible }
   footer={ null }>
@@ -52,9 +52,9 @@ export const TaskModal = ({
       <Input/>
     </Form.Item>
     <Form.Item
-      label="Nazwa"
+      label={ localStorage.getItem('lang') === 'pl' ? 'Nazwa' : 'Name' }
       name="name"
-      rules={ [{ message: 'Wpisz nazwę!', required: true }] }
+      rules={ [{ message: localStorage.getItem('lang') === 'pl' ? 'Wpisz nazwę!' : 'Enter name!', required: true }] }
     >
       <Input/>
     </Form.Item>
@@ -65,7 +65,9 @@ export const TaskModal = ({
         type="primary"
         htmlType="submit"
       >
-        { isEditMode ? 'Edytuj' : 'Dodaj' }
+        { isEditMode
+          ? localStorage.getItem('lang') === 'pl' ? 'Edytuj' : 'Edit'
+          : localStorage.getItem('lang') === 'pl' ? 'Dodaj' : 'Add' }
       </Button>
     </Form.Item>
   </Form>

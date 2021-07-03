@@ -83,11 +83,27 @@ class Team(db.Model):
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
+    supervisor_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     roles = db.Column(db.JSON, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
 
     teams = association_proxy('team_memberships', 'team')
     team_memberships = db.relationship("TeamMember", back_populates="user")
+    supervisor = db.relationship('User', remote_side=[id])
+    subordinates = db.relationship('User')
+
+    def get_all_subordinates(self):
+        subordinates = [subordinate for subordinate in self.subordinates]
+        for subordinate in self.subordinates:
+            subordinates += subordinate.get_all_subordinates()
+        return subordinates
+
+    def is_supervisor_of(self, subordinate_id):
+        subordinates = self.get_all_subordinates()
+        for subordinate in subordinates:
+            if(subordinate_id == subordinate.id):
+                return True
+        return False
 
 
 class TeamMember(db.Model):
@@ -110,7 +126,6 @@ class OAuth(OAuthConsumerMixin, db.Model):
     provider_user_id = db.Column(db.String, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     user = db.relationship(User)
-
 
 
 class HolidayRequest(db.Model):

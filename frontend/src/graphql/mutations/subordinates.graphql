@@ -1,0 +1,18 @@
+mutation updateSupervisorBatch($userList: [ID!], $supervisorId: ID!) {
+    updateSupervisorBatch(input: {
+        userList: $userList,
+        supervisorId: $supervisorId
+    }) {
+        id,
+        name
+    }
+}
+
+mutation unassignSupervisorBatch($userList: [ID!]) {
+    unassignSupervisorBatch(input: {
+        userList: $userList,
+    }) {
+        id,
+        name
+    } 
+}

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Modal, Form, Input, Button, FormInstance } from 'antd';
 
 interface ProjectModalInput {
@@ -18,7 +17,7 @@ export const ProjectModal = ({
   onFinish,
   onFinishFailed
 }: ProjectModalInput) : JSX.Element => ( <Modal
-  title="Dodaj projekt"
+  title={ localStorage.getItem('lang') === 'pl' ? 'Dodaj projekt' : 'Add project' }
   onCancel={ handleCancel }
   visible={ isModalVisible }
   footer={ null }>
@@ -45,7 +44,7 @@ export const ProjectModal = ({
       <Input/>
     </Form.Item>
     <Form.Item
-      label="Nazwa"
+      label={ localStorage.getItem('lang') === 'pl' ? 'Nazwa' : 'Name' }
       name="name"
       rules={ [{ message: 'Wpisz nazwę!', required: true }] }
     >
@@ -55,7 +54,9 @@ export const ProjectModal = ({
       wrapperCol= {{ offset: 4 }}
     >
       <Button type="primary" htmlType="submit">
-        { isEditMode ? 'Edytuj' : 'Dodaj' }
+        { isEditMode
+          ? localStorage.getItem('lang') === 'pl' ? 'Edytuj' : 'Edit'
+          : localStorage.getItem('lang') === 'pl' ? 'Dodaj' : 'Add' }
       </Button>
     </Form.Item>
   </Form>

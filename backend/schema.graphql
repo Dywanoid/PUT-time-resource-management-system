@@ -78,6 +78,8 @@ type User {
     name: String!
     roles: [String!]
     teams: [Team!]
+    supervisor: User
+    subordinates: [User!]
 }
 
 type TeamMember {
@@ -200,6 +202,7 @@ type Query {
         fromDate: Date!,
         toDate: Date!
     ): [ClientReport!]
+    getAllSubordinates(userId: ID): [User!]
 }
 
 input CreateClientInput {
@@ -348,6 +351,24 @@ input DeleteTimeLogInput {
     date: Date!
 }
 
+input UpdateSupervisorInput {
+    userId: ID!
+    supervisorId: ID!
+}
+
+input UnassignSupervisorInput{
+    userId: ID!
+}
+
+input UpdateSupervisorBatchInput {
+    userList: [ID!]
+    supervisorId: ID!
+}
+
+input UnassignSupervisorBatchInput{
+    userList: [ID!]
+}
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     archiveClient(input: ArchiveClientInput!): Client!
@@ -375,5 +396,9 @@ type Mutation {
     updateProjectAssignment(input: UpdateProjectAssignmentInput!): ProjectAssignment!
     deleteProjectAssignment(input: DeleteProjectAssignmentInput!): ProjectAssignment!
     createUpdateOrDeleteTimeLog(input: CreateUpdateOrDeleteTimeLogInput!): TimeLog!
+    updateSupervisor(input: UpdateSupervisorInput!): User!
+    unassignSupervisor(input: UnassignSupervisorInput!): User!
+    updateSupervisorBatch(input: UpdateSupervisorBatchInput!): [User!]
+    unassignSupervisorBatch(input: UnassignSupervisorBatchInput!): [User!]
     # TODO split this file into multiple files
 }

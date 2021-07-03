@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { injectIntl } from 'react-intl';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
 import { Breadcrumb, List, Form, Button, Typography, Space } from 'antd';
@@ -38,7 +39,7 @@ interface TaskLocation {
   }
 }
 
-export const TaskView = () : JSX.Element => {
+export const TaskView = injectIntl(({ intl }) : JSX.Element => {
   const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
   const [isArchiveModalVisible, setIsArchiveModalVisible] = useState(false);
   const [taskToBeArchived, setTaskToBeArchived] = useState<Task | null>(null);
@@ -143,7 +144,7 @@ export const TaskView = () : JSX.Element => {
         <Breadcrumb>
           <Breadcrumb.Item>
             <Link to={{ pathname: '/clients' }}>
-            Klienci
+              { intl.formatMessage({ id: 'clients' }) }
             </Link>
           </Breadcrumb.Item>
           <Breadcrumb.Item>
@@ -153,14 +154,21 @@ export const TaskView = () : JSX.Element => {
                 state: location.state
               }}
             >
-              { `Projekty klienta "${ clientName }"` }
+              { `${ intl.formatMessage({ id: 'client_projects' }) } "${ clientName }"` }
             </Link>
           </Breadcrumb.Item>
-          <Breadcrumb.Item>{ `Zadania projektu: "${ projectName }"` }</Breadcrumb.Item>
+          <Breadcrumb.Item>
+            { `${ intl.formatMessage({ id: 'project_tasks' }) }: "${ projectName }"` }
+          </Breadcrumb.Item>
         </Breadcrumb>
-        <Button onClick={ newProjectHandler }><Text strong>Dodaj zadanie ➕</Text></Button>
+        <Button onClick={ newProjectHandler }>
+          <Text strong>
+            { intl.formatMessage({ id: 'add_task' }) }
+          ➕
+          </Text>
+        </Button>
         <List
-          header={ <h1>{ `Zadania projektu: "${ projectName }"` }</h1> }
+          header={ <h1>{ `${ intl.formatMessage({ id: 'project_tasks' }) }: "${ projectName }"` }</h1> }
           bordered
           itemLayout="vertical"
           dataSource={ tasks }
@@ -168,10 +176,18 @@ export const TaskView = () : JSX.Element => {
             <List.Item
               actions={[
                 <Button key="1" size='small' onClick={ () => editTaskHandler(task) }>
-                  <IconText icon={ EditFilled } text="Edytuj" key="list-vertical-star-o"/>
+                  <IconText
+                    icon={ EditFilled }
+                    text={ intl.formatMessage({ id: 'edit' }) }
+                    key="list-vertical-star-o"
+                  />
                 </Button>,
                 <Button key="2" size='small' onClick={ () => showArchiveModal(task) }>
-                  <IconText icon={ InboxOutlined } text="Archiwizuj" key="list-vertical-like-o"/>
+                  <IconText
+                    icon={ InboxOutlined }
+                    text={ intl.formatMessage({ id: 'archive' }) }
+                    key="list-vertical-like-o"
+                  />
                 </Button>
               ]}
             >
@@ -193,9 +209,10 @@ export const TaskView = () : JSX.Element => {
           isModalVisible={ isArchiveModalVisible }
           handleCancel={ hideArchiveModal }
           handleOk={ () => handleArchive(taskToBeArchived) }
-          title={ `Archiwizuj ${  taskToBeArchived?.name }` }
-          modalText={ `Czy na pewno chcesz archiwizować projekt ${ taskToBeArchived?.name }?` }
+          title={ `${ intl.formatMessage({ id: 'archive' }) } ${  taskToBeArchived?.name }` }
+          modalText={ `${ intl.formatMessage({ id: 'archive_decison_project' }) } ${ taskToBeArchived?.name }?` }
         />
       </Space>
     </>
-  );};
+  );
+});

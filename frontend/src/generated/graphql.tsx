@@ -217,6 +217,10 @@ export type Mutation = {
   updateProjectAssignment: ProjectAssignment;
   deleteProjectAssignment: ProjectAssignment;
   createUpdateOrDeleteTimeLog: TimeLog;
+  updateSupervisor: User;
+  unassignSupervisor: User;
+  updateSupervisorBatch?: Maybe<Array<User>>;
+  unassignSupervisorBatch?: Maybe<Array<User>>;
 };
 
 
@@ -349,6 +353,26 @@ export type MutationCreateUpdateOrDeleteTimeLogArgs = {
   input: CreateUpdateOrDeleteTimeLogInput;
 };
 
+
+export type MutationUpdateSupervisorArgs = {
+  input: UpdateSupervisorInput;
+};
+
+
+export type MutationUnassignSupervisorArgs = {
+  input: UnassignSupervisorInput;
+};
+
+
+export type MutationUpdateSupervisorBatchArgs = {
+  input: UpdateSupervisorBatchInput;
+};
+
+
+export type MutationUnassignSupervisorBatchArgs = {
+  input: UnassignSupervisorBatchInput;
+};
+
 export type Project = {
   __typename?: 'Project';
   id: Scalars['ID'];
@@ -417,6 +441,7 @@ export type Query = {
   userTeams?: Maybe<Array<TeamMember>>;
   projectAssignments?: Maybe<Array<ProjectAssignment>>;
   clientReports?: Maybe<Array<ClientReport>>;
+  getAllSubordinates?: Maybe<Array<User>>;
 };
 
 
@@ -509,6 +534,11 @@ export type QueryClientReportsArgs = {
   toDate: Scalars['Date'];
 };
 
+
+export type QueryGetAllSubordinatesArgs = {
+  userId?: Maybe<Scalars['ID']>;
+};
+
 export type Report = {
   totalCost: Scalars['Float'];
 };
@@ -580,6 +610,14 @@ export type UnarchiveTeamInput = {
   teamId: Scalars['ID'];
 };
 
+export type UnassignSupervisorBatchInput = {
+  userList?: Maybe<Array<Scalars['ID']>>;
+};
+
+export type UnassignSupervisorInput = {
+  userId: Scalars['ID'];
+};
+
 export type UpdateClientInput = {
   clientId: Scalars['ID'];
   name: Scalars['String'];
@@ -602,6 +640,16 @@ export type UpdateProjectInput = {
   name: Scalars['String'];
 };
 
+export type UpdateSupervisorBatchInput = {
+  userList?: Maybe<Array<Scalars['ID']>>;
+  supervisorId: Scalars['ID'];
+};
+
+export type UpdateSupervisorInput = {
+  userId: Scalars['ID'];
+  supervisorId: Scalars['ID'];
+};
+
 export type UpdateTaskInput = {
   taskId: Scalars['ID'];
   name: Scalars['String'];
@@ -619,6 +667,8 @@ export type User = {
   name: Scalars['String'];
   roles?: Maybe<Array<Scalars['String']>>;
   teams?: Maybe<Array<Team>>;
+  supervisor?: Maybe<User>;
+  subordinates?: Maybe<Array<User>>;
 };
 
 export type UserReport = Report & {
@@ -825,6 +875,33 @@ export type ArchiveProjectMutation = (
   ) }
 );
 
+export type UpdateSupervisorBatchMutationVariables = Exact<{
+  userList?: Maybe<Array<Scalars['ID']> | Scalars['ID']>;
+  supervisorId: Scalars['ID'];
+}>;
+
+
+export type UpdateSupervisorBatchMutation = (
+  { __typename?: 'Mutation' }
+  & { updateSupervisorBatch?: Maybe<Array<(
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'name'>
+  )>> }
+);
+
+export type UnassignSupervisorBatchMutationVariables = Exact<{
+  userList?: Maybe<Array<Scalars['ID']> | Scalars['ID']>;
+}>;
+
+
+export type UnassignSupervisorBatchMutation = (
+  { __typename?: 'Mutation' }
+  & { unassignSupervisorBatch?: Maybe<Array<(
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'name'>
+  )>> }
+);
+
 export type AddTaskMutationVariables = Exact<{
   projectId: Scalars['ID'];
   name: Scalars['String'];
@@ -903,6 +980,19 @@ export type ArchiveTeamMutationVariables = Exact<{
 export type ArchiveTeamMutation = (
   { __typename?: 'Mutation' }
   & { archiveTeam: (
+    { __typename?: 'Team' }
+    & Pick<Team, 'id'>
+  ) }
+);
+
+export type UnarchiveTeamMutationVariables = Exact<{
+  teamId: Scalars['ID'];
+}>;
+
+
+export type UnarchiveTeamMutation = (
+  { __typename?: 'Mutation' }
+  & { unarchiveTeam: (
     { __typename?: 'Team' }
     & Pick<Team, 'id'>
   ) }
@@ -996,9 +1086,9 @@ export type GetUsersDayOffQueryVariables = Exact<{
 
 export type GetUsersDayOffQuery = (
   { __typename?: 'Query' }
-  & { holidayRequests?: Maybe<Array<(
-    { __typename?: 'HolidayRequest' }
-    & Pick<HolidayRequest, 'startDate' | 'endDate'>
+  & { daysOff?: Maybe<Array<(
+    { __typename?: 'DayOff' }
+    & Pick<DayOff, 'startDate' | 'endDate'>
     & { user: (
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name' | 'roles'>
@@ -1135,46 +1225,17 @@ export type GetAllTeamsQuery = (
   & { teams?: Maybe<Array<(
     { __typename?: 'Team' }
     & Pick<Team, 'id' | 'name' | 'description' | 'archived'>
-  )>> }
-);
-
-export type GetAllUsersInTeamQueryVariables = Exact<{
-  teamId: Scalars['ID'];
-}>;
-
-
-export type GetAllUsersInTeamQuery = (
-  { __typename?: 'Query' }
-  & { teamMembers?: Maybe<Array<(
-    { __typename?: 'TeamMember' }
-    & Pick<TeamMember, 'userId' | 'teamId'>
-    & { user: (
+    & { members?: Maybe<Array<(
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name' | 'roles'>
-    ), team: (
-      { __typename?: 'Team' }
-      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
-    ) }
-  )>> }
-);
-
-export type GetUserTeamsQueryVariables = Exact<{
-  userId: Scalars['ID'];
-}>;
-
-
-export type GetUserTeamsQuery = (
-  { __typename?: 'Query' }
-  & { userTeams?: Maybe<Array<(
-    { __typename?: 'TeamMember' }
-    & Pick<TeamMember, 'userId' | 'teamId' | 'createdAt'>
-    & { user: (
-      { __typename?: 'User' }
-      & Pick<User, 'id' | 'name' | 'roles'>
-    ), team: (
-      { __typename?: 'Team' }
-      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
-    ) }
+      & { supervisor?: Maybe<(
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'name'>
+      )>, subordinates?: Maybe<Array<(
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'name' | 'roles'>
+      )>> }
+    )>> }
   )>> }
 );
 
@@ -1235,6 +1296,27 @@ export type GetAllUsersQuery = (
   & { users?: Maybe<Array<(
     { __typename?: 'User' }
     & Pick<User, 'id' | 'name' | 'roles'>
+    & { teams?: Maybe<Array<(
+      { __typename?: 'Team' }
+      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
+      & { members?: Maybe<Array<(
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'name' | 'roles'>
+        & { supervisor?: Maybe<(
+          { __typename?: 'User' }
+          & Pick<User, 'id' | 'name'>
+        )>, subordinates?: Maybe<Array<(
+          { __typename?: 'User' }
+          & Pick<User, 'id' | 'name' | 'roles'>
+        )>> }
+      )>> }
+    )>>, supervisor?: Maybe<(
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name'>
+    )>, subordinates?: Maybe<Array<(
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'roles'>
+    )>> }
   )>> }
 );
 
@@ -1246,6 +1328,27 @@ export type GetCurrentUserQuery = (
   & { user: (
     { __typename?: 'User' }
     & Pick<User, 'id' | 'name' | 'roles'>
+    & { teams?: Maybe<Array<(
+      { __typename?: 'Team' }
+      & Pick<Team, 'id' | 'name' | 'description' | 'archived' | 'createdAt'>
+      & { members?: Maybe<Array<(
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'name' | 'roles'>
+        & { supervisor?: Maybe<(
+          { __typename?: 'User' }
+          & Pick<User, 'id' | 'name'>
+        )>, subordinates?: Maybe<Array<(
+          { __typename?: 'User' }
+          & Pick<User, 'id' | 'name' | 'roles'>
+        )>> }
+      )>> }
+    )>>, supervisor?: Maybe<(
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name'>
+    )>, subordinates?: Maybe<Array<(
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name' | 'roles'>
+    )>> }
   ) }
 );
 
@@ -1711,6 +1814,75 @@ export function useArchiveProjectMutation(baseOptions?: Apollo.MutationHookOptio
 export type ArchiveProjectMutationHookResult = ReturnType<typeof useArchiveProjectMutation>;
 export type ArchiveProjectMutationResult = Apollo.MutationResult<ArchiveProjectMutation>;
 export type ArchiveProjectMutationOptions = Apollo.BaseMutationOptions<ArchiveProjectMutation, ArchiveProjectMutationVariables>;
+export const UpdateSupervisorBatchDocument = gql`
+    mutation updateSupervisorBatch($userList: [ID!], $supervisorId: ID!) {
+  updateSupervisorBatch(input: {userList: $userList, supervisorId: $supervisorId}) {
+    id
+    name
+  }
+}
+    `;
+export type UpdateSupervisorBatchMutationFn = Apollo.MutationFunction<UpdateSupervisorBatchMutation, UpdateSupervisorBatchMutationVariables>;
+
+/**
+ * __useUpdateSupervisorBatchMutation__
+ *
+ * To run a mutation, you first call `useUpdateSupervisorBatchMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSupervisorBatchMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSupervisorBatchMutation, { data, loading, error }] = useUpdateSupervisorBatchMutation({
+ *   variables: {
+ *      userList: // value for 'userList'
+ *      supervisorId: // value for 'supervisorId'
+ *   },
+ * });
+ */
+export function useUpdateSupervisorBatchMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSupervisorBatchMutation, UpdateSupervisorBatchMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSupervisorBatchMutation, UpdateSupervisorBatchMutationVariables>(UpdateSupervisorBatchDocument, options);
+      }
+export type UpdateSupervisorBatchMutationHookResult = ReturnType<typeof useUpdateSupervisorBatchMutation>;
+export type UpdateSupervisorBatchMutationResult = Apollo.MutationResult<UpdateSupervisorBatchMutation>;
+export type UpdateSupervisorBatchMutationOptions = Apollo.BaseMutationOptions<UpdateSupervisorBatchMutation, UpdateSupervisorBatchMutationVariables>;
+export const UnassignSupervisorBatchDocument = gql`
+    mutation unassignSupervisorBatch($userList: [ID!]) {
+  unassignSupervisorBatch(input: {userList: $userList}) {
+    id
+    name
+  }
+}
+    `;
+export type UnassignSupervisorBatchMutationFn = Apollo.MutationFunction<UnassignSupervisorBatchMutation, UnassignSupervisorBatchMutationVariables>;
+
+/**
+ * __useUnassignSupervisorBatchMutation__
+ *
+ * To run a mutation, you first call `useUnassignSupervisorBatchMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnassignSupervisorBatchMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unassignSupervisorBatchMutation, { data, loading, error }] = useUnassignSupervisorBatchMutation({
+ *   variables: {
+ *      userList: // value for 'userList'
+ *   },
+ * });
+ */
+export function useUnassignSupervisorBatchMutation(baseOptions?: Apollo.MutationHookOptions<UnassignSupervisorBatchMutation, UnassignSupervisorBatchMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnassignSupervisorBatchMutation, UnassignSupervisorBatchMutationVariables>(UnassignSupervisorBatchDocument, options);
+      }
+export type UnassignSupervisorBatchMutationHookResult = ReturnType<typeof useUnassignSupervisorBatchMutation>;
+export type UnassignSupervisorBatchMutationResult = Apollo.MutationResult<UnassignSupervisorBatchMutation>;
+export type UnassignSupervisorBatchMutationOptions = Apollo.BaseMutationOptions<UnassignSupervisorBatchMutation, UnassignSupervisorBatchMutationVariables>;
 export const AddTaskDocument = gql`
     mutation AddTask($projectId: ID!, $name: String!) {
   addTask(input: {projectId: $projectId, name: $name}) {
@@ -1918,6 +2090,39 @@ export function useArchiveTeamMutation(baseOptions?: Apollo.MutationHookOptions<
 export type ArchiveTeamMutationHookResult = ReturnType<typeof useArchiveTeamMutation>;
 export type ArchiveTeamMutationResult = Apollo.MutationResult<ArchiveTeamMutation>;
 export type ArchiveTeamMutationOptions = Apollo.BaseMutationOptions<ArchiveTeamMutation, ArchiveTeamMutationVariables>;
+export const UnarchiveTeamDocument = gql`
+    mutation UnarchiveTeam($teamId: ID!) {
+  unarchiveTeam(input: {teamId: $teamId}) {
+    id
+  }
+}
+    `;
+export type UnarchiveTeamMutationFn = Apollo.MutationFunction<UnarchiveTeamMutation, UnarchiveTeamMutationVariables>;
+
+/**
+ * __useUnarchiveTeamMutation__
+ *
+ * To run a mutation, you first call `useUnarchiveTeamMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnarchiveTeamMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unarchiveTeamMutation, { data, loading, error }] = useUnarchiveTeamMutation({
+ *   variables: {
+ *      teamId: // value for 'teamId'
+ *   },
+ * });
+ */
+export function useUnarchiveTeamMutation(baseOptions?: Apollo.MutationHookOptions<UnarchiveTeamMutation, UnarchiveTeamMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnarchiveTeamMutation, UnarchiveTeamMutationVariables>(UnarchiveTeamDocument, options);
+      }
+export type UnarchiveTeamMutationHookResult = ReturnType<typeof useUnarchiveTeamMutation>;
+export type UnarchiveTeamMutationResult = Apollo.MutationResult<UnarchiveTeamMutation>;
+export type UnarchiveTeamMutationOptions = Apollo.BaseMutationOptions<UnarchiveTeamMutation, UnarchiveTeamMutationVariables>;
 export const CreateTeamMembersDocument = gql`
     mutation CreateTeamMembers($teamId: ID!, $userIdList: [ID!]) {
   createTeamMemberBatch(input: {teamId: $teamId, userIdList: $userIdList}) {
@@ -2100,7 +2305,7 @@ export type GetHolidayRequestsLazyQueryHookResult = ReturnType<typeof useGetHoli
 export type GetHolidayRequestsQueryResult = Apollo.QueryResult<GetHolidayRequestsQuery, GetHolidayRequestsQueryVariables>;
 export const GetUsersDayOffDocument = gql`
     query GetUsersDayOff($startDate: DateTime, $userList: [ID], $teamList: [ID], $endDate: DateTime) {
-  holidayRequests(
+  daysOff(
     startDate: $startDate
     endDate: $endDate
     userList: $userList
@@ -2423,6 +2628,20 @@ export const GetAllTeamsDocument = gql`
     name
     description
     archived
+    members {
+      id
+      name
+      roles
+      supervisor {
+        id
+        name
+      }
+      subordinates {
+        id
+        name
+        roles
+      }
+    }
   }
 }
     `;
@@ -2453,103 +2672,6 @@ export function useGetAllTeamsLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetAllTeamsQueryHookResult = ReturnType<typeof useGetAllTeamsQuery>;
 export type GetAllTeamsLazyQueryHookResult = ReturnType<typeof useGetAllTeamsLazyQuery>;
 export type GetAllTeamsQueryResult = Apollo.QueryResult<GetAllTeamsQuery, GetAllTeamsQueryVariables>;
-export const GetAllUsersInTeamDocument = gql`
-    query GetAllUsersInTeam($teamId: ID!) {
-  teamMembers(teamId: $teamId) {
-    userId
-    user {
-      id
-      name
-      roles
-    }
-    team {
-      id
-      name
-      description
-      archived
-      createdAt
-    }
-    teamId
-  }
-}
-    `;
-
-/**
- * __useGetAllUsersInTeamQuery__
- *
- * To run a query within a React component, call `useGetAllUsersInTeamQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAllUsersInTeamQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAllUsersInTeamQuery({
- *   variables: {
- *      teamId: // value for 'teamId'
- *   },
- * });
- */
-export function useGetAllUsersInTeamQuery(baseOptions: Apollo.QueryHookOptions<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>(GetAllUsersInTeamDocument, options);
-      }
-export function useGetAllUsersInTeamLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>(GetAllUsersInTeamDocument, options);
-        }
-export type GetAllUsersInTeamQueryHookResult = ReturnType<typeof useGetAllUsersInTeamQuery>;
-export type GetAllUsersInTeamLazyQueryHookResult = ReturnType<typeof useGetAllUsersInTeamLazyQuery>;
-export type GetAllUsersInTeamQueryResult = Apollo.QueryResult<GetAllUsersInTeamQuery, GetAllUsersInTeamQueryVariables>;
-export const GetUserTeamsDocument = gql`
-    query GetUserTeams($userId: ID!) {
-  userTeams(userId: $userId) {
-    userId
-    teamId
-    user {
-      id
-      name
-      roles
-    }
-    team {
-      id
-      name
-      description
-      archived
-      createdAt
-    }
-    createdAt
-  }
-}
-    `;
-
-/**
- * __useGetUserTeamsQuery__
- *
- * To run a query within a React component, call `useGetUserTeamsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserTeamsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetUserTeamsQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useGetUserTeamsQuery(baseOptions: Apollo.QueryHookOptions<GetUserTeamsQuery, GetUserTeamsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetUserTeamsQuery, GetUserTeamsQueryVariables>(GetUserTeamsDocument, options);
-      }
-export function useGetUserTeamsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserTeamsQuery, GetUserTeamsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetUserTeamsQuery, GetUserTeamsQueryVariables>(GetUserTeamsDocument, options);
-        }
-export type GetUserTeamsQueryHookResult = ReturnType<typeof useGetUserTeamsQuery>;
-export type GetUserTeamsLazyQueryHookResult = ReturnType<typeof useGetUserTeamsLazyQuery>;
-export type GetUserTeamsQueryResult = Apollo.QueryResult<GetUserTeamsQuery, GetUserTeamsQueryVariables>;
 export const GetTeamInfoDocument = gql`
     query GetTeamInfo($id: ID!) {
   team(id: $id) {
@@ -2658,6 +2780,36 @@ export const GetAllUsersDocument = gql`
     id
     name
     roles
+    teams {
+      id
+      name
+      description
+      archived
+      createdAt
+      members {
+        id
+        name
+        roles
+        supervisor {
+          id
+          name
+        }
+        subordinates {
+          id
+          name
+          roles
+        }
+      }
+    }
+    supervisor {
+      id
+      name
+    }
+    subordinates {
+      id
+      name
+      roles
+    }
   }
 }
     `;
@@ -2694,6 +2846,36 @@ export const GetCurrentUserDocument = gql`
     id
     name
     roles
+    teams {
+      id
+      name
+      description
+      archived
+      createdAt
+      members {
+        id
+        name
+        roles
+        supervisor {
+          id
+          name
+        }
+        subordinates {
+          id
+          name
+          roles
+        }
+      }
+    }
+    supervisor {
+      id
+      name
+    }
+    subordinates {
+      id
+      name
+      roles
+    }
   }
 }
     `;
@@ -2735,8 +2917,6 @@ export const namedOperations = {
     GetClientReports: 'GetClientReports',
     GetTasks: 'GetTasks',
     GetAllTeams: 'GetAllTeams',
-    GetAllUsersInTeam: 'GetAllUsersInTeam',
-    GetUserTeams: 'GetUserTeams',
     GetTeamInfo: 'GetTeamInfo',
     GetUserProjects: 'GetUserProjects',
     GetAllUsers: 'GetAllUsers',
@@ -2754,12 +2934,15 @@ export const namedOperations = {
     AddProject: 'AddProject',
     UpdateProject: 'UpdateProject',
     ArchiveProject: 'ArchiveProject',
+    updateSupervisorBatch: 'updateSupervisorBatch',
+    unassignSupervisorBatch: 'unassignSupervisorBatch',
     AddTask: 'AddTask',
     UpdateTask: 'UpdateTask',
     ArchiveTask: 'ArchiveTask',
     CreateTeam: 'CreateTeam',
     UpdateTeam: 'UpdateTeam',
     ArchiveTeam: 'ArchiveTeam',
+    UnarchiveTeam: 'UnarchiveTeam',
     CreateTeamMembers: 'CreateTeamMembers',
     DeleteTeamMembers: 'DeleteTeamMembers',
     TimeLog: 'TimeLog'

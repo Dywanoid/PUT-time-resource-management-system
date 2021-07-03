@@ -21,9 +21,11 @@ def upgrade():
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
+    sa.Column('supervisor_id', sa.Integer()),
     sa.Column('roles', sa.JSON(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.ForeignKeyConstraint(['supervisor_id'], ['user.id'], ),
     )
     op.create_table('flask_dance_oauth',
     sa.Column('id', sa.Integer(), nullable=False),
