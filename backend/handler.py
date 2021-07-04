@@ -53,7 +53,7 @@ def graphql_server():
 def export(start_date, end_date):
     pattern = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
     if(not (re.match(pattern, start_date) and re.match(pattern, end_date))):
-        return
+        return abort(400, description=f"Invalid date format, expected YYYY-MM-DD")
     si = StringIO()
     cw = csv.writer(si, delimiter=';')
     cw.writerow(["Employee Number", "Name", "Worked hours"])
