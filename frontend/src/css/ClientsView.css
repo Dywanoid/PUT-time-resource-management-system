@@ -6,3 +6,9 @@
 .hover-button:hover .hover-button--on {
   display: inline;
 }
+
+.adressList {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}

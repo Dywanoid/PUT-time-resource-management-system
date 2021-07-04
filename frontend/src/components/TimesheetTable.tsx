@@ -5,6 +5,7 @@ import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 import moment, { Moment } from 'moment';
 import 'moment/locale/pl';
 import locale from 'antd/es/date-picker/locale/pl_PL';
+import { Loader } from './Loader';
 
 import '../css/TimesheetTable.css';
 import {
@@ -14,6 +15,7 @@ import {
   TimeLogMutationFn
 } from '../generated/graphql';
 import { UserContext } from '../utils/auth';
+import { formatDateForBackend } from '../utils/utils';
 const { Text } = Typography;
 
 const NUMBER_OF_MINUTES_IN_A_DAY = 24 * 60;
@@ -146,8 +148,6 @@ const customDateFormat = (value) => {
 
   return `${ firstDayOfWeek } - ${ lastDayOfWeek }`;
 };
-
-const formatDateForBackend = (date: Moment): string => date.format('YYYY-MM-DD');
 
 const getIdsFromKey = (key:string): {[id: string] : string} => {
   const [clientId, projectId, taskId, projectAssignmentId] = key.split('+');
@@ -450,7 +450,7 @@ export const TimesheetTable: React.FC = injectIntl(({ intl }) => {
   useDataTransform(data, weekDates, date, dispatch);
 
   if (error) {return <p>{error}</p>;}
-  if (isLoading) {return <p>Loading...</p>;}
+  if (isLoading) {return <Loader/>;}
   // if(!state.length) {return <p>Nie ma żadnych przypisanych projektów!</p>;}
 
   const columns = [
@@ -535,7 +535,7 @@ export const TimesheetTable: React.FC = injectIntl(({ intl }) => {
               tableData.length
                 ? <>
                   <Table.Summary.Row className="summaryRow">
-                    <Table.Summary.Cell   colSpan={3} index={0}/>
+                    <Table.Summary.Cell colSpan={3} index={0}/>
                     {
                       dataIndexes.map(
                         (dataIndex, i) => (
