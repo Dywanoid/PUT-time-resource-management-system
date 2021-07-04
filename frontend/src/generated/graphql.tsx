@@ -411,7 +411,7 @@ export type ProjectAssignmentTimeLogsArgs = {
 export type ProjectAssignmentReport = Report & {
   __typename?: 'ProjectAssignmentReport';
   projectAssignment: ProjectAssignment;
-  duration: Scalars['Interval'];
+  totalDuration: Scalars['Interval'];
   totalCost: Scalars['Float'];
 };
 
@@ -440,8 +440,8 @@ export type Query = {
   /** @deprecated use user(id) { teams { ... } } */
   userTeams?: Maybe<Array<TeamMember>>;
   projectAssignments?: Maybe<Array<ProjectAssignment>>;
-  clientReports?: Maybe<Array<ClientReport>>;
   getAllSubordinates?: Maybe<Array<User>>;
+  clientReports?: Maybe<Array<ClientReport>>;
 };
 
 
@@ -528,15 +528,16 @@ export type QueryProjectAssignmentsArgs = {
 };
 
 
-export type QueryClientReportsArgs = {
-  clientIds?: Maybe<Array<Scalars['ID']>>;
-  fromDate: Scalars['Date'];
-  toDate: Scalars['Date'];
+export type QueryGetAllSubordinatesArgs = {
+  userId?: Maybe<Scalars['ID']>;
 };
 
 
-export type QueryGetAllSubordinatesArgs = {
-  userId?: Maybe<Scalars['ID']>;
+export type QueryClientReportsArgs = {
+  clientIds?: Maybe<Array<Scalars['ID']>>;
+  teamIds?: Maybe<Array<Scalars['ID']>>;
+  fromDate: Scalars['Date'];
+  toDate: Scalars['Date'];
 };
 
 export type Report = {
@@ -1198,21 +1199,21 @@ export type GetClientReportsQuery = (
           { __typename?: 'UserReport' }
           & { projectAssignmentReports?: Maybe<Array<(
             { __typename?: 'ProjectAssignmentReport' }
-            & Pick<ProjectAssignmentReport, 'duration'>
+            & Pick<ProjectAssignmentReport, 'totalDuration'>
           )>> }
         )>> }
       )>>, userReports?: Maybe<Array<(
         { __typename?: 'UserReport' }
         & { projectAssignmentReports?: Maybe<Array<(
           { __typename?: 'ProjectAssignmentReport' }
-          & Pick<ProjectAssignmentReport, 'duration'>
+          & Pick<ProjectAssignmentReport, 'totalDuration'>
         )>> }
       )>> }
     )>>, userReports?: Maybe<Array<(
       { __typename?: 'UserReport' }
       & { projectAssignmentReports?: Maybe<Array<(
         { __typename?: 'ProjectAssignmentReport' }
-        & Pick<ProjectAssignmentReport, 'duration'>
+        & Pick<ProjectAssignmentReport, 'totalDuration'>
       )>> }
     )>> }
   )>> }
@@ -2563,14 +2564,14 @@ export const GetClientReportsDocument = gql`
         totalCost
         userReports {
           projectAssignmentReports {
-            duration
+            totalDuration
           }
         }
       }
       totalCost
       userReports {
         projectAssignmentReports {
-          duration
+          totalDuration
         }
       }
     }
@@ -2578,7 +2579,7 @@ export const GetClientReportsDocument = gql`
     totalCost
     userReports {
       projectAssignmentReports {
-        duration
+        totalDuration
       }
     }
   }

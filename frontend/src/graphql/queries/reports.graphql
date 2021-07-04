@@ -37,14 +37,14 @@ query GetClientReports($clientIds: [ID!], $fromDate: Date!, $toDate: Date!) {
         totalCost,
         userReports {
 			projectAssignmentReports {
-        duration
+        totalDuration
       }
     }	
       },
       totalCost,
       userReports {
 			projectAssignmentReports {
-        duration
+        totalDuration
       }
     }	
     },
@@ -52,7 +52,7 @@ query GetClientReports($clientIds: [ID!], $fromDate: Date!, $toDate: Date!) {
     totalCost,
     userReports {
 			projectAssignmentReports {
-        duration
+        totalDuration
       }
     }	
   }

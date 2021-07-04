@@ -218,7 +218,7 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
         currentUserReport.projectAssignmentReports?.forEach((
           currentProjectAssignmentReport
         ) => {
-          clientHourSum += currentProjectAssignmentReport.duration;
+          clientHourSum += currentProjectAssignmentReport.totalDuration;
         });}
     );
 
@@ -233,7 +233,7 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
           currentUserReport.projectAssignmentReports?.forEach((
             currentProjectAssignmentReport
           ) => {
-            projectHourSum += currentProjectAssignmentReport.duration;
+            projectHourSum += currentProjectAssignmentReport.totalDuration;
           });}
       );
 
@@ -248,7 +248,7 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
             currentUserReport.projectAssignmentReports?.forEach((
               currentProjectAssignmentReport
             ) => {
-              taskHourSum += currentProjectAssignmentReport.duration;
+              taskHourSum += currentProjectAssignmentReport.totalDuration;
             });}
         );
 
