@@ -3,8 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
-from app import app
-
+from sqlalchemy.orm import composite
+from app import app, cache
+from dataclasses import dataclass
+from decimal import Decimal
 
 db = SQLAlchemy(app)
 
@@ -173,3 +175,44 @@ class TimeLog(db.Model):
             'task_id': task_id,
             'date': date
         }
+
+
+@dataclass
+class VendorSettings:
+    name: str
+    tax_id: str
+    street_with_number: str
+    zip_code: str
+    city: str
+    currency: Currency
+    vat_rate: Decimal
+
+    def __composite_values__(self):
+        return self.name, self.tax_id, self.street_with_number, self.zip_code, self.city, self.currency, self.vat_rate
+
+
+# singleton
+class Settings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    vendor_name = db.Column(db.String, nullable=False)
+    vendor_tax_id = db.Column(db.String)
+    vendor_street_with_number = db.Column(db.String)
+    vendor_zip_code = db.Column(db.String)
+    vendor_city = db.Column(db.String)
+    vendor_currency = db.Column(db.Enum(Currency), nullable=False)
+    vendor_vat_rate = db.Column(db.Numeric, nullable=False)
+
+    vendor = composite(VendorSettings,
+                       vendor_name,
+                       vendor_tax_id,
+                       vendor_street_with_number,
+                       vendor_zip_code,
+                       vendor_city,
+                       vendor_currency,
+                       vendor_vat_rate)
+
+    @classmethod
+    @cache.memoize(timeout=600)
+    def get(cls):
+        return cls.query.get(1)

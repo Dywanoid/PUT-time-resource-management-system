@@ -5,7 +5,6 @@ from graphql import default_field_resolver
 from sqlalchemy import desc, func
 from sqlalchemy.orm import contains_eager
 from database import Client, Currency, Project, Task, Team, TimeLog, TeamMember, User, ProjectAssignment, HolidayRequest, HolidayRequestStatus, HolidayRequestType, db
-from datetime import datetime, date, timedelta
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
 from error import NotFound, ValidationError, ActiveHolidayRequestError, Unauthorized
@@ -344,8 +343,8 @@ def resolve_create_update_or_delete_time_log(obj, info, input):
 
 @query.field("clientReports")
 @convert_kwargs_to_snake_case
-def resolve_client_reports(obj, info, client_ids, from_date, to_date):
-    return get_client_reports(client_ids, from_date, to_date)
+def resolve_client_reports(obj, info, client_ids, team_ids, from_date, to_date):
+    return get_client_reports(client_ids, team_ids, from_date, to_date)
 
 
 @mutation.field("createClient")

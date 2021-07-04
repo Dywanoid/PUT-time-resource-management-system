@@ -166,7 +166,7 @@ type UserReport implements Report {
 
 type ProjectAssignmentReport implements Report {
     projectAssignment: ProjectAssignment!
-    duration: Interval!
+    totalDuration: Interval!
     totalCost: Float!
 }
 
@@ -190,10 +190,10 @@ type Query {
     teamMembers(teamId: ID!): [TeamMember!] @deprecated(reason: "use team(id) { members { ... } }")
     userTeams(userId: ID!): [TeamMember!] @deprecated(reason: "use user(id) { teams { ... } }")
     projectAssignments(
-        userId: ID, 
-        projectId: ID, 
-        fromDate: Date @defaultmin,
-        toDate: Date @defaultmax,
+        userId: ID, # filter
+        projectId: ID, # filter
+        fromDate: Date @defaultmin, # filter
+        toDate: Date @defaultmax, # filter
         offset: Int = 0, 
         limit: Int = 10
         ): [ProjectAssignment!]
@@ -203,6 +203,12 @@ type Query {
         toDate: Date!
     ): [ClientReport!]
     getAllSubordinates(userId: ID): [User!]
+    clientReports(
+        clientIds: [ID!] = [], # filter
+        teamIds: [ID!] = [], # filter
+        fromDate: Date!,
+        toDate: Date!
+    ): [ClientReport!]
 }
 
 input CreateClientInput {

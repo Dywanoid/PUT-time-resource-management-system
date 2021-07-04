@@ -16,7 +16,7 @@ WORKDIR /app/backend
 
 
 RUN apk add --no-cache postgresql-libs && \
-apk add --no-cache --virtual .build-deps gcc g++ musl-dev postgresql-dev
+    apk add --no-cache --virtual .build-deps gcc g++ musl-dev postgresql-dev
 
 COPY ./backend/requirements.txt .
 
