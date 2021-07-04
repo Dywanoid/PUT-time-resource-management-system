@@ -197,11 +197,6 @@ type Query {
         offset: Int = 0, 
         limit: Int = 10
         ): [ProjectAssignment!]
-    clientReports(
-        clientIds: [ID!],
-        fromDate: Date!,
-        toDate: Date!
-    ): [ClientReport!]
     getAllSubordinates(userId: ID): [User!]
     clientReports(
         clientIds: [ID!] = [], # filter
