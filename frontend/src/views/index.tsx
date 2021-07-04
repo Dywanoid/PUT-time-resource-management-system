@@ -6,4 +6,5 @@ export { ProjectsView } from './ProjectsView/ProjectsView';
 export { TaskView } from './TasksView/TasksView';
 export { ProjectAssignmentsView } from './ProjectAssignmentsView';
 export { TeamsView } from './TeamsView';
+export { ReportsView } from './ReportsView';
 export { SubordinatesView } from './SubordinatesView';

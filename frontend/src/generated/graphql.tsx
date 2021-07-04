@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable */ 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
@@ -68,6 +68,15 @@ export type Client = {
 
 export type ClientProjectsArgs = {
   includeArchived?: Maybe<Scalars['Boolean']>;
+};
+
+export type ClientReport = Report & {
+  __typename?: 'ClientReport';
+  client: Client;
+  projectReports?: Maybe<Array<ProjectReport>>;
+  userReports?: Maybe<Array<UserReport>>;
+  invoiceUrl: Scalars['String'];
+  totalCost: Scalars['Float'];
 };
 
 export type CreateClientInput = {
@@ -399,6 +408,21 @@ export type ProjectAssignmentTimeLogsArgs = {
   toDate?: Maybe<Scalars['Date']>;
 };
 
+export type ProjectAssignmentReport = Report & {
+  __typename?: 'ProjectAssignmentReport';
+  projectAssignment: ProjectAssignment;
+  totalDuration: Scalars['Interval'];
+  totalCost: Scalars['Float'];
+};
+
+export type ProjectReport = Report & {
+  __typename?: 'ProjectReport';
+  project: Project;
+  taskReports?: Maybe<Array<TaskReport>>;
+  userReports?: Maybe<Array<UserReport>>;
+  totalCost: Scalars['Float'];
+};
+
 export type Query = {
   __typename?: 'Query';
   clients?: Maybe<Array<Client>>;
@@ -417,6 +441,7 @@ export type Query = {
   userTeams?: Maybe<Array<TeamMember>>;
   projectAssignments?: Maybe<Array<ProjectAssignment>>;
   getAllSubordinates?: Maybe<Array<User>>;
+  clientReports?: Maybe<Array<ClientReport>>;
 };
 
 
@@ -507,10 +532,16 @@ export type QueryGetAllSubordinatesArgs = {
   userId?: Maybe<Scalars['ID']>;
 };
 
-export type Supervisor = {
-  __typename?: 'Supervisor';
-  id: Scalars['ID'];
-  name: Scalars['String'];
+
+export type QueryClientReportsArgs = {
+  clientIds?: Maybe<Array<Scalars['ID']>>;
+  teamIds?: Maybe<Array<Scalars['ID']>>;
+  fromDate: Scalars['Date'];
+  toDate: Scalars['Date'];
+};
+
+export type Report = {
+  totalCost: Scalars['Float'];
 };
 
 export type Task = {
@@ -520,6 +551,13 @@ export type Task = {
   name: Scalars['String'];
   createdAt: Scalars['DateTime'];
   archived: Scalars['Boolean'];
+};
+
+export type TaskReport = Report & {
+  __typename?: 'TaskReport';
+  task: Task;
+  userReports?: Maybe<Array<UserReport>>;
+  totalCost: Scalars['Float'];
 };
 
 export type Team = {
@@ -630,8 +668,15 @@ export type User = {
   name: Scalars['String'];
   roles?: Maybe<Array<Scalars['String']>>;
   teams?: Maybe<Array<Team>>;
-  supervisor?: Maybe<Supervisor>;
+  supervisor?: Maybe<User>;
   subordinates?: Maybe<Array<User>>;
+};
+
+export type UserReport = Report & {
+  __typename?: 'UserReport';
+  user?: Maybe<User>;
+  projectAssignmentReports?: Maybe<Array<ProjectAssignmentReport>>;
+  totalCost: Scalars['Float'];
 };
 
 export type CreateHolidayRequestMutationVariables = Exact<{
@@ -1104,6 +1149,76 @@ export type GetProjectsQuery = (
   ) }
 );
 
+export type GetAllClientsAndProjectsWithTasksQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllClientsAndProjectsWithTasksQuery = (
+  { __typename?: 'Query' }
+  & { clients?: Maybe<Array<(
+    { __typename?: 'Client' }
+    & Pick<Client, 'id' | 'name' | 'currency'>
+    & { projects?: Maybe<Array<(
+      { __typename?: 'Project' }
+      & Pick<Project, 'id' | 'name'>
+      & { tasks?: Maybe<Array<(
+        { __typename?: 'Task' }
+        & Pick<Task, 'id' | 'name'>
+      )>> }
+    )>> }
+  )>> }
+);
+
+export type GetClientReportsQueryVariables = Exact<{
+  clientIds?: Maybe<Array<Scalars['ID']> | Scalars['ID']>;
+  fromDate: Scalars['Date'];
+  toDate: Scalars['Date'];
+}>;
+
+
+export type GetClientReportsQuery = (
+  { __typename?: 'Query' }
+  & { clientReports?: Maybe<Array<(
+    { __typename?: 'ClientReport' }
+    & Pick<ClientReport, 'invoiceUrl' | 'totalCost'>
+    & { client: (
+      { __typename?: 'Client' }
+      & Pick<Client, 'id' | 'name'>
+    ), projectReports?: Maybe<Array<(
+      { __typename?: 'ProjectReport' }
+      & Pick<ProjectReport, 'totalCost'>
+      & { project: (
+        { __typename?: 'Project' }
+        & Pick<Project, 'id' | 'name'>
+      ), taskReports?: Maybe<Array<(
+        { __typename?: 'TaskReport' }
+        & Pick<TaskReport, 'totalCost'>
+        & { task: (
+          { __typename?: 'Task' }
+          & Pick<Task, 'id' | 'name'>
+        ), userReports?: Maybe<Array<(
+          { __typename?: 'UserReport' }
+          & { projectAssignmentReports?: Maybe<Array<(
+            { __typename?: 'ProjectAssignmentReport' }
+            & Pick<ProjectAssignmentReport, 'totalDuration'>
+          )>> }
+        )>> }
+      )>>, userReports?: Maybe<Array<(
+        { __typename?: 'UserReport' }
+        & { projectAssignmentReports?: Maybe<Array<(
+          { __typename?: 'ProjectAssignmentReport' }
+          & Pick<ProjectAssignmentReport, 'totalDuration'>
+        )>> }
+      )>> }
+    )>>, userReports?: Maybe<Array<(
+      { __typename?: 'UserReport' }
+      & { projectAssignmentReports?: Maybe<Array<(
+        { __typename?: 'ProjectAssignmentReport' }
+        & Pick<ProjectAssignmentReport, 'totalDuration'>
+      )>> }
+    )>> }
+  )>> }
+);
+
 export type GetTasksQueryVariables = Exact<{
   projectId: Scalars['ID'];
 }>;
@@ -1133,8 +1248,8 @@ export type GetAllTeamsQuery = (
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name' | 'roles'>
       & { supervisor?: Maybe<(
-        { __typename?: 'Supervisor' }
-        & Pick<Supervisor, 'id' | 'name'>
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'name'>
       )>, subordinates?: Maybe<Array<(
         { __typename?: 'User' }
         & Pick<User, 'id' | 'name' | 'roles'>
@@ -1207,16 +1322,16 @@ export type GetAllUsersQuery = (
         { __typename?: 'User' }
         & Pick<User, 'id' | 'name' | 'roles'>
         & { supervisor?: Maybe<(
-          { __typename?: 'Supervisor' }
-          & Pick<Supervisor, 'id' | 'name'>
+          { __typename?: 'User' }
+          & Pick<User, 'id' | 'name'>
         )>, subordinates?: Maybe<Array<(
           { __typename?: 'User' }
           & Pick<User, 'id' | 'name' | 'roles'>
         )>> }
       )>> }
     )>>, supervisor?: Maybe<(
-      { __typename?: 'Supervisor' }
-      & Pick<Supervisor, 'id' | 'name'>
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name'>
     )>, subordinates?: Maybe<Array<(
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name' | 'roles'>
@@ -1239,16 +1354,16 @@ export type GetCurrentUserQuery = (
         { __typename?: 'User' }
         & Pick<User, 'id' | 'name' | 'roles'>
         & { supervisor?: Maybe<(
-          { __typename?: 'Supervisor' }
-          & Pick<Supervisor, 'id' | 'name'>
+          { __typename?: 'User' }
+          & Pick<User, 'id' | 'name'>
         )>, subordinates?: Maybe<Array<(
           { __typename?: 'User' }
           & Pick<User, 'id' | 'name' | 'roles'>
         )>> }
       )>> }
     )>>, supervisor?: Maybe<(
-      { __typename?: 'Supervisor' }
-      & Pick<Supervisor, 'id' | 'name'>
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name'>
     )>, subordinates?: Maybe<Array<(
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name' | 'roles'>
@@ -2385,6 +2500,121 @@ export function useGetProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
 export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLazyQuery>;
 export type GetProjectsQueryResult = Apollo.QueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
+export const GetAllClientsAndProjectsWithTasksDocument = gql`
+    query GetAllClientsAndProjectsWithTasks {
+  clients {
+    id
+    name
+    currency
+    projects {
+      id
+      name
+      tasks {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAllClientsAndProjectsWithTasksQuery__
+ *
+ * To run a query within a React component, call `useGetAllClientsAndProjectsWithTasksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllClientsAndProjectsWithTasksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllClientsAndProjectsWithTasksQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAllClientsAndProjectsWithTasksQuery(baseOptions?: Apollo.QueryHookOptions<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>(GetAllClientsAndProjectsWithTasksDocument, options);
+      }
+export function useGetAllClientsAndProjectsWithTasksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>(GetAllClientsAndProjectsWithTasksDocument, options);
+        }
+export type GetAllClientsAndProjectsWithTasksQueryHookResult = ReturnType<typeof useGetAllClientsAndProjectsWithTasksQuery>;
+export type GetAllClientsAndProjectsWithTasksLazyQueryHookResult = ReturnType<typeof useGetAllClientsAndProjectsWithTasksLazyQuery>;
+export type GetAllClientsAndProjectsWithTasksQueryResult = Apollo.QueryResult<GetAllClientsAndProjectsWithTasksQuery, GetAllClientsAndProjectsWithTasksQueryVariables>;
+export const GetClientReportsDocument = gql`
+    query GetClientReports($clientIds: [ID!], $fromDate: Date!, $toDate: Date!) {
+  clientReports(clientIds: $clientIds, fromDate: $fromDate, toDate: $toDate) {
+    client {
+      id
+      name
+    }
+    projectReports {
+      project {
+        id
+        name
+      }
+      taskReports {
+        task {
+          id
+          name
+        }
+        totalCost
+        userReports {
+          projectAssignmentReports {
+            totalDuration
+          }
+        }
+      }
+      totalCost
+      userReports {
+        projectAssignmentReports {
+          totalDuration
+        }
+      }
+    }
+    invoiceUrl
+    totalCost
+    userReports {
+      projectAssignmentReports {
+        totalDuration
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetClientReportsQuery__
+ *
+ * To run a query within a React component, call `useGetClientReportsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetClientReportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetClientReportsQuery({
+ *   variables: {
+ *      clientIds: // value for 'clientIds'
+ *      fromDate: // value for 'fromDate'
+ *      toDate: // value for 'toDate'
+ *   },
+ * });
+ */
+export function useGetClientReportsQuery(baseOptions: Apollo.QueryHookOptions<GetClientReportsQuery, GetClientReportsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetClientReportsQuery, GetClientReportsQueryVariables>(GetClientReportsDocument, options);
+      }
+export function useGetClientReportsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetClientReportsQuery, GetClientReportsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetClientReportsQuery, GetClientReportsQueryVariables>(GetClientReportsDocument, options);
+        }
+export type GetClientReportsQueryHookResult = ReturnType<typeof useGetClientReportsQuery>;
+export type GetClientReportsLazyQueryHookResult = ReturnType<typeof useGetClientReportsLazyQuery>;
+export type GetClientReportsQueryResult = Apollo.QueryResult<GetClientReportsQuery, GetClientReportsQueryVariables>;
 export const GetTasksDocument = gql`
     query GetTasks($projectId: ID!) {
   project(id: $projectId) {
@@ -2717,6 +2947,8 @@ export const namedOperations = {
     GetAllClients: 'GetAllClients',
     GetProjectAssignments: 'GetProjectAssignments',
     GetProjects: 'GetProjects',
+    GetAllClientsAndProjectsWithTasks: 'GetAllClientsAndProjectsWithTasks',
+    GetClientReports: 'GetClientReports',
     GetTasks: 'GetTasks',
     GetAllTeams: 'GetAllTeams',
     GetTeamInfo: 'GetTeamInfo',

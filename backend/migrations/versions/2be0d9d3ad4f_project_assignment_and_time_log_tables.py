@@ -46,7 +46,7 @@ def upgrade():
     op.create_index(op.f('ix_time_log_date'), 'time_log', ['date'], unique=False)
     currency = postgresql.ENUM('EUR', 'USD', 'PLN', name='currency')
     currency.create(op.get_bind())
-    op.add_column('client', sa.Column('currency', sa.Enum('EUR', 'USD', 'PLN', name='currency'), nullable=False))
+    op.add_column('client', sa.Column('currency', currency, nullable=False))
     # ### end Alembic commands ###
 
 
