@@ -93,5 +93,8 @@
     "unpaid": "Urlop bezpłatny",
     "ur_applications": "Twoje wnioski",
     "users": "Użytkownicy",
-    "download_invoice": "Pobierz fakturę"
+    "download_invoice": "Pobierz fakturę",
+    "users_reports": "Raporty użytkowników",
+    "user_name": "Imię i nazwisko",
+    "download_report": "Pobierz raport w formacie .csv"
 }

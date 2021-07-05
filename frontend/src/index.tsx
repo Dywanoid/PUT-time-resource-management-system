@@ -13,7 +13,8 @@ import {
   TeamsView,
   ProjectsView,
   TaskView,
-  ReportsView
+  ReportsView,
+  UsersReportsView
 } from './views';
 import reportWebVitals from './reportWebVitals';
 import { ProvideAuth } from './utils/auth';
@@ -44,6 +45,7 @@ ReactDOM.render(
               <PrivateRoute component={ ProjectAssignmentsView  as any } path='/projectAssignments'/>
               <PrivateRoute component={ SubordinatesView as any} path='/subordinate'/>
               <PrivateRoute component={ ReportsView as any} path='/reports'/>
+              <PrivateRoute component={ UsersReportsView as any} path='/userReports'/>
             </Switch>
           </Router>
         </ProvideAuth>

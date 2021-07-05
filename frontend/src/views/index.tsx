@@ -8,3 +8,4 @@ export { ProjectAssignmentsView } from './ProjectAssignmentsView';
 export { TeamsView } from './TeamsView';
 export { ReportsView } from './ReportsView';
 export { SubordinatesView } from './SubordinatesView';
+export { UsersReportsView } from './UsersReportsView';

@@ -70,13 +70,22 @@ export const Navigation = injectIntl(({ intl }): JSX.Element => {
             </Link>
           </Menu.Item>
           }
-
         </SubMenu>
-        <Menu.Item key="7">
-          <Link to="/reports" className="nav-text">
-            { intl.formatMessage({ id: 'reports' }) }
-          </Link>
-        </Menu.Item>
+        <SubMenu
+          key="SubMenu3"
+          title={ intl.formatMessage({ id: 'reports' }) }
+        >
+          <Menu.Item key="7">
+            <Link to="/reports" className="nav-text">
+              { intl.formatMessage({ id: 'reports' }) }
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="8">
+            <Link to="/userReports" className="nav-text">
+              { intl.formatMessage({ id: 'users_reports' }) }
+            </Link>
+          </Menu.Item>
+        </SubMenu>
       </Menu>
       <Button aria-label="language" onClick={ changeLanguageFlag } className="flagButton">
         <img src={ localStorage.getItem('lang') === 'pl' ? plImg : enImg } className="lang" alt="Lang"/>

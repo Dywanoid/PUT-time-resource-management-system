@@ -76,10 +76,9 @@ const getDataColumns = (intl: IntlShape) => {
         if(value.includes(INVOCIE_URL_SEPARATOR)) {
           const [name, url] = value.split(INVOCIE_URL_SEPARATOR);
 
-          // TODO: REMOVE REPLACE!!!
           children = (<>
             <Text style={{ padding: '3px' }}>{name}</Text>
-            <a href={url.replace('pdf', 'html')}>
+            <a href={url}>
               {intl.formatMessage({ id: 'download_invoice' })}
             </a>
           </>);
