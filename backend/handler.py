@@ -7,10 +7,13 @@ from schema import schema
 from app import app
 from datetime import datetime
 from flask_login import login_required, logout_user
-from auth import oidc_blueprint
+from auth import oidc_blueprint, roles_required
 from werkzeug.urls import url_encode
+import csv
+from io import StringIO
+from database import db, User, ProjectAssignment, TimeLog, Client, Settings
+import re
 from datetime import date
-from database import Client, Settings, db
 import reporting
 
 @app.route('/', defaults={'path': ''})
@@ -43,6 +46,30 @@ def graphql_server():
 
     status_code = 200 if success else 400
     return jsonify(result), status_code
+
+
+@app.route('/export/employees_time/<string:start_date>/<string:end_date>', methods=['GET'])
+@roles_required('manager')
+def export(start_date, end_date):
+    pattern = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    if(not (re.match(pattern, start_date) and re.match(pattern, end_date))):
+        return abort(400, description=f"Invalid date format, expected YYYY-MM-DD")
+    si = StringIO()
+    cw = csv.writer(si, delimiter=';')
+    cw.writerow(["Employee Number", "Name", "Worked hours"])
+    rows = (TimeLog.query.with_entities(User.id, User.name, db.func.sum(TimeLog.duration)).
+        join(ProjectAssignment, ProjectAssignment.id == TimeLog.project_assignment_id).
+        join(User, User.id == ProjectAssignment.user_id).
+        filter(TimeLog.date >= start_date, TimeLog.date <= end_date).
+        group_by(User.id, User.name).
+        order_by(User.id).
+        all())
+    rows = [(row[0], row[1], row[2].total_seconds() / 3600) for row in rows]
+    cw.writerows(rows)
+    response = make_response(si.getvalue())
+    response.headers['Content-Disposition'] = f'attachment; filename=report_{start_date}_{end_date}.csv'
+    response.headers["Content-type"] = "text/csv"
+    return response
 
 
 @app.route('/logout')
