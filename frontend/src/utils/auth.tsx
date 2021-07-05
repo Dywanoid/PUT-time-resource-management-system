@@ -17,7 +17,7 @@ type Members = {
   name,
   roles,
   supervisor:Supervisor
-  subordinates:Subordinates
+  subordinates: Subordinates
 }
 
 type Teams = {
@@ -33,7 +33,7 @@ export interface User {
   name: string | null;
   roles: string[] | [];
   supervisor: Supervisor | {id: '', name: ''};
-  subordinates: Subordinates | []
+  subordinates: Subordinates[] | []
   teams: Teams
 }
 
