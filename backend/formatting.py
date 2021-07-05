@@ -4,7 +4,7 @@ from decimal import *
 
 @app.template_filter('hours')
 def hours(duration):
-    return duration.seconds / 60 / 60
+    return duration.total_seconds() / 60 / 60
 
 
 @app.template_filter('rounded_decimal')
