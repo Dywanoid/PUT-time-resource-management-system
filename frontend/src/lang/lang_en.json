@@ -94,5 +94,8 @@
     "unpaid": "Unpaid leave",
     "ur_applications": "Your applications",
     "users": "Users",
-    "download_invoice": "Download invoice"
+    "download_invoice": "Download invoice",
+    "users_reports": "Users reports",
+    "user_name": "Name and surname",
+    "download_report": "Download report in .csv format"
 }

@@ -1272,7 +1272,7 @@ export type GetTeamInfoQuery = (
 );
 
 export type GetUserProjectsQueryVariables = Exact<{
-  userId: Scalars['ID'];
+  userId?: Maybe<Scalars['ID']>;
   fromDate?: Maybe<Scalars['Date']>;
   toDate?: Maybe<Scalars['Date']>;
 }>;
@@ -1283,7 +1283,10 @@ export type GetUserProjectsQuery = (
   & { projectAssignments?: Maybe<Array<(
     { __typename?: 'ProjectAssignment' }
     & Pick<ProjectAssignment, 'id' | 'beginDate' | 'endDate'>
-    & { project: (
+    & { user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'name'>
+    ), project: (
       { __typename?: 'Project' }
       & Pick<Project, 'id' | 'name'>
       & { tasks?: Maybe<Array<(
@@ -2746,11 +2749,15 @@ export type GetTeamInfoQueryHookResult = ReturnType<typeof useGetTeamInfoQuery>;
 export type GetTeamInfoLazyQueryHookResult = ReturnType<typeof useGetTeamInfoLazyQuery>;
 export type GetTeamInfoQueryResult = Apollo.QueryResult<GetTeamInfoQuery, GetTeamInfoQueryVariables>;
 export const GetUserProjectsDocument = gql`
-    query GetUserProjects($userId: ID!, $fromDate: Date, $toDate: Date) {
+    query GetUserProjects($userId: ID, $fromDate: Date, $toDate: Date) {
   projectAssignments(userId: $userId, fromDate: $fromDate, toDate: $toDate) {
     id
     beginDate
     endDate
+    user {
+      id
+      name
+    }
     project {
       id
       name
@@ -2797,7 +2804,7 @@ export const GetUserProjectsDocument = gql`
  *   },
  * });
  */
-export function useGetUserProjectsQuery(baseOptions: Apollo.QueryHookOptions<GetUserProjectsQuery, GetUserProjectsQueryVariables>) {
+export function useGetUserProjectsQuery(baseOptions?: Apollo.QueryHookOptions<GetUserProjectsQuery, GetUserProjectsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetUserProjectsQuery, GetUserProjectsQueryVariables>(GetUserProjectsDocument, options);
       }

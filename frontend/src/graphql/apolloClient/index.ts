@@ -2,9 +2,11 @@ import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
+const APP_HOSTNAME = IS_PRODUCTION ?  `http://${ window.location.host }` : 'http://localhost';
+
 const link = createHttpLink({
   credentials: 'include',
-  uri: IS_PRODUCTION ?  `http://${ window.location.host }/graphql` : 'http://localhost/graphql'
+  uri: `${ APP_HOSTNAME }/graphql`
 });
 
 const client = new ApolloClient({
@@ -33,4 +35,4 @@ const client = new ApolloClient({
   link
 });
 
-export { client };
+export { APP_HOSTNAME, client };

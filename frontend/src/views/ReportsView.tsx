@@ -76,10 +76,9 @@ const getDataColumns = (intl: IntlShape) => {
         if(value.includes(INVOCIE_URL_SEPARATOR)) {
           const [name, url] = value.split(INVOCIE_URL_SEPARATOR);
 
-          // TODO: REMOVE REPLACE!!!
           children = (<>
             <Text style={{ padding: '3px' }}>{name}</Text>
-            <a href={url.replace('pdf', 'html')}>
+            <a href={url}>
               {intl.formatMessage({ id: 'download_invoice' })}
             </a>
           </>);
@@ -381,7 +380,12 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
       }
 
       const projectId = `project_${ project.id }_${ clientId }`;
-      const taskCount = project?.tasks?.length || 0;
+      const taskCount = project?.tasks?.filter((task) => {
+        const taskId = `task_${ task.id }`;
+        const taskCost = costHoursMap[taskId]?.cost;
+
+        return !!taskCost;
+      })?.length || 0;
 
       // teamsQuery?.data?.teams?.forEach((team) => {
       //   if(!selectedTeamsMap[team.id]) {
