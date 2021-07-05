@@ -1,0 +1,25 @@
+.dots-4 {
+  width: 50px;
+  height: 12px;
+  display: grid;
+}
+.dots-4:before,
+.dots-4:after {
+  content: "";
+  grid-area: 1/1;
+  background:
+    radial-gradient(farthest-side,currentColor 90%,#0000) left,
+    radial-gradient(farthest-side,currentColor 90%,#0000) right;
+  background-size: 12px 12px;
+  background-repeat: no-repeat;
+  animation:d4 1s infinite; 
+  transform:translate(var(--d,0)) rotate(0);
+}
+.dots-4:after {
+  --d:19px;
+  animation-delay: .5s;
+}
+
+@keyframes d4 {
+  50%,100% {transform:translate(var(--d,0)) rotate(.5turn)}
+}

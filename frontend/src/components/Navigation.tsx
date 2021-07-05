@@ -72,9 +72,14 @@ export const Navigation = injectIntl(({ intl }): JSX.Element => {
           }
 
         </SubMenu>
+        <Menu.Item key="7">
+          <Link to="/reports" className="nav-text">
+            { intl.formatMessage({ id: 'reports' }) }
+          </Link>
+        </Menu.Item>
       </Menu>
       <Button aria-label="language" onClick={ changeLanguageFlag } className="flagButton">
-        <img src={ localStorage.getItem('lang') === 'pl' ? plImg : enImg } className="lang"/>
+        <img src={ localStorage.getItem('lang') === 'pl' ? plImg : enImg } className="lang" alt="Lang"/>
       </Button>
       <Menu theme="dark" mode="horizontal" defaultSelectedKeys={ ['1'] } className="logoutMenu">
         <SubMenu
