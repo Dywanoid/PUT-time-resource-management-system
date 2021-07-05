@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useReducer, useState } from 'react';
 import { injectIntl } from 'react-intl';
-import { Button, DatePicker, Table, Typography, Space, notification } from 'antd';
+import { Button, DatePicker, Table, Typography, Space, notification, Select } from 'antd';
 import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 import moment, { Moment } from 'moment';
 import 'moment/locale/pl';
@@ -17,7 +17,7 @@ import {
 import { UserContext } from '../utils/auth';
 import { formatDateForBackend } from '../utils/utils';
 const { Text } = Typography;
-
+const { Option } = Select;
 const NUMBER_OF_MINUTES_IN_A_DAY = 24 * 60;
 
 // TEMPORATY UTILS FOR DATA MOCKUP
@@ -82,6 +82,7 @@ interface RowData {
 interface TimeComponentProps {
   columnKey: string;
   dispatch: React.Dispatch<Action>;
+  isPreview: boolean;
   sendTimeLog: TimeLogMutationFn;
   rowIndex: number;
   record: RowData;
@@ -168,9 +169,16 @@ const fromMinutesToTime = (givenMinutes: number): string => {
 };
 
 const fromTimeToMinutes = (time) => {
-  const [hours, minutes] = time.split(':');
+  const [hoursRead, minutesRead] = time.split(':');
 
-  return parseInt(hours || 0) * 60 + parseInt(minutes || 0);
+  const hours = parseInt(hoursRead || 0);
+  let minutes = parseInt(minutesRead || 0);
+
+  if(minutesRead?.length === 1) {
+    minutes *= 10;
+  }
+
+  return hours * 60 + minutes;
 };
 
 const attachTime = (data, weekDates) =>
@@ -223,6 +231,7 @@ const getColumnsMinuteSum = (rowsData, columnKey, { rowIndex, time } = { rowInde
 const TimeComponent = ({
   columnKey,
   dispatch,
+  isPreview,
   record,
   rowIndex,
   rowsData,
@@ -297,11 +306,21 @@ const TimeComponent = ({
   };
 
   const isDisabled = !moment(columnKey).isBetween(record.beginDate, record.endDate, 'day', '[]');
+  const colorClassName =  value === '00:00' ? 'notFilled': '';
+
+  if(isPreview) {
+    return (
+      <Text
+        className={colorClassName}
+      >
+        {value}
+      </Text>);
+  }
 
   return (
     <input
-      disabled={isDisabled}
-      className={`timeInput ${ value === '00:00' ? 'notFilled': '' }`}
+      disabled={isDisabled || isPreview}
+      className={`timeInput ${ colorClassName }`}
       value={value}
       onBlur={onBlur}
       onChange={onChange}
@@ -310,7 +329,7 @@ const TimeComponent = ({
   );
 };
 
-const getRenderAdder = ({ dispatch, sendTimeLog }, state) => (column: TableColumn) => {
+const getRenderAdder = ({ dispatch, sendTimeLog }, state, isPreview) => (column: TableColumn) => {
   return {
     ...column,
     render: function TimeInput(value, record, rowIndex) {
@@ -321,6 +340,7 @@ const getRenderAdder = ({ dispatch, sendTimeLog }, state) => (column: TableColum
           <TimeComponent
             rowsData={state}
             dispatch={dispatch}
+            isPreview={isPreview}
             columnKey={`${ column.dataIndex }`}
             sendTimeLog={sendTimeLog}
             rowIndex={rowIndex}
@@ -431,6 +451,9 @@ const currentMomentGetter = () => moment();
 export const TimesheetTable: React.FC = injectIntl(({ intl }) => {
   const user = useContext(UserContext);
   const userId = user?.id as string;
+  const isAbleToSeeOthers = !!user?.subordinates?.length;
+
+  const [pickedUser, setPickedUser] = useState<string>(userId);
 
   const [sendTimeLog] = useTimeLogMutation({ refetchQueries: [namedOperations.Query.GetUserProjects] });
 
@@ -444,9 +467,10 @@ export const TimesheetTable: React.FC = injectIntl(({ intl }) => {
   const weekDates = useMemo(() => getWeekDates(date), [date]);
   const timeColumns = useMemo(() => getTimeColumns(weekDates), [date]);
 
-  const renderAdder = getRenderAdder({ dispatch, sendTimeLog }, state);
+  const isPreview = pickedUser !== userId;
+  const renderAdder = getRenderAdder({ dispatch, sendTimeLog }, state, isPreview);
 
-  useUserTimeLogData(userId, date, { setData, setError, setIsLoading });
+  useUserTimeLogData(pickedUser, date, { setData, setError, setIsLoading });
   useDataTransform(data, weekDates, date, dispatch);
 
   if (error) {return <p>{error}</p>;}
@@ -478,35 +502,59 @@ export const TimesheetTable: React.FC = injectIntl(({ intl }) => {
 
   return (
     <>
-      <Space direction="vertical" size="middle">
-        <Text strong>
-          { intl.formatMessage({ id: 'choice_of_week' }) }
-          :
-        </Text>
-        <div>
-          <Button
-            type="ghost"
-            shape="round"
-            icon={<CaretLeftOutlined/>}
-            size='small'
-            onClick={() => changeWeek(false)}
-          />
-          <DatePicker
-            className="timesheet-date-picker"
-            locale={locale}
-            onChange={onChangeForDataPicker}
-            picker="week"
-            format={customDateFormat}
-            value={date}
-          />
-          <Button
-            type="ghost"
-            shape="round"
-            icon={<CaretRightOutlined/>}
-            size='small'
-            onClick={() => changeWeek(true)}
-          />
-        </div>
+      <Space direction="vertical" size="middle" className="horizontal-space">
+        <Space direction="horizontal" size="middle" className="horizontal-space">
+          <Text strong>
+            { `${ intl.formatMessage({ id: 'choice_of_week' }) }:` }
+          </Text>
+          <div>
+            <Button
+              type="ghost"
+              shape="round"
+              icon={<CaretLeftOutlined/>}
+              size='small'
+              onClick={() => changeWeek(false)}
+            />
+            <DatePicker
+              className="timesheet-date-picker"
+              locale={locale}
+              onChange={onChangeForDataPicker}
+              picker="week"
+              format={customDateFormat}
+              value={date}
+            />
+            <Button
+              type="ghost"
+              shape="round"
+              icon={<CaretRightOutlined/>}
+              size='small'
+              onClick={() => changeWeek(true)}
+            />
+          </div>
+          <div className="previewPicker">
+            {
+              isAbleToSeeOthers
+                ? <>
+                  <Text strong>
+                    { `${ intl.formatMessage({ id: 'choice_of_user' }) }:` }
+                  </Text>
+                  <Select
+                    defaultValue={userId}
+                    style={{ padding: '5px', width: 200 }}
+                    onChange={(newValue) => {setPickedUser(newValue);}}
+                  >
+                    <Option value={userId}>{user?.name}</Option>
+                    {
+                      user?.subordinates?.map((subordinate) => (
+                        <Option key={subordinate.id} value={subordinate.id}>{subordinate.name}</Option>))
+                    }
+                  </Select>
+                </>
+                : null
+            }
+          </div>
+        </Space>
+
         <Table
           bordered
           pagination={false}

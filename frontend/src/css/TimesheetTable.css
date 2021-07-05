@@ -8,9 +8,17 @@
 }
 
 .notFilled {
-    color: #d9d9d9;
+    color: #d9d9d9 !important;
 }
 
 .timesheet-date-picker .ant-picker-clear {
     visibility: hidden;
+}
+
+.previewPicker {
+    float: right;
+}
+
+.horizontal-space {
+    width: 100%;
 }

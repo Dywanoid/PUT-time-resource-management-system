@@ -381,7 +381,12 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
       }
 
       const projectId = `project_${ project.id }_${ clientId }`;
-      const taskCount = project?.tasks?.length || 0;
+      const taskCount = project?.tasks?.filter((task) => {
+        const taskId = `task_${ task.id }`;
+        const taskCost = costHoursMap[taskId]?.cost;
+
+        return !!taskCost;
+      })?.length || 0;
 
       // teamsQuery?.data?.teams?.forEach((team) => {
       //   if(!selectedTeamsMap[team.id]) {
