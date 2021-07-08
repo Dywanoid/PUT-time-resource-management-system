@@ -1,10 +1,11 @@
 import re
+from flask import render_template
 from flask_login import current_user
 from ariadne import EnumType, QueryType, MutationType, convert_kwargs_to_snake_case, ObjectType
 from graphql import default_field_resolver
 from sqlalchemy import desc, func
 from sqlalchemy.orm import contains_eager
-from database import Client, Currency, Project, Task, Team, TimeLog, TeamMember, User, ProjectAssignment, HolidayRequest, HolidayRequestStatus, HolidayRequestType, db
+from database import Client, Currency, Document, DocumentLink, Invoice, Language, Project, Task, Team, TimeLog, TeamMember, User, ProjectAssignment, Settings, HolidayRequest, HolidayRequestStatus, HolidayRequestType, db
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
 from error import NotFound, ValidationError, ActiveHolidayRequestError, Unauthorized
@@ -18,6 +19,7 @@ client_object = ObjectType("Client")
 project_object = ObjectType("Project")
 project_assignment_object = ObjectType("ProjectAssignment")
 currency_enum = EnumType("Currency", Currency)
+language_enum = EnumType("Language", Language)
 holiday_request_type_enum = EnumType("HolidayRequestType", HolidayRequestType)
 holiday_request_status_enum = EnumType("HolidayRequestStatus", HolidayRequestStatus)
 
@@ -100,7 +102,7 @@ def resolve_user(obj, info, id=None):
     if id != str(current_user.id):
         roles_check('manager')
     return find_item(User, id)
-        
+
 
 @mutation.field("updateSupervisor")
 @roles_required('manager')
@@ -343,8 +345,8 @@ def resolve_create_update_or_delete_time_log(obj, info, input):
 
 @query.field("clientReports")
 @convert_kwargs_to_snake_case
-def resolve_client_reports(obj, info, client_ids, team_ids, from_date, to_date):
-    return get_client_reports(client_ids, team_ids, from_date, to_date)
+def resolve_client_reports(obj, info, client_ids, from_date, to_date):
+    return get_client_reports(client_ids, from_date, to_date)
 
 
 @mutation.field("createClient")
@@ -480,6 +482,41 @@ def resolve_teams(obj, info, include_archived, offset, limit):
 @query.field("team")
 def resolve_team(obj, info, id):
     return find_item(Team, id)
+
+
+@mutation.field("createInvoice")
+@convert_kwargs_to_snake_case
+def resolve_create_invoice(obj, info, input):
+    client = find_item(Client, input['client_id'])
+    language = input['language']
+    billing_begin_date = input['billing_begin_date']
+    billing_end_date = input['billing_end_date']
+
+    invoice = Invoice(
+        client_id=client.id, 
+        billing_begin_date=billing_begin_date,
+        billing_end_date=billing_end_date
+    )
+
+    db.session.add(invoice)
+    db.session.flush()
+
+    settings = Settings.get()
+    [client_report] = get_client_reports([client.id], billing_begin_date, billing_end_date)
+    html_string = render_template(f'invoice-{language.value.lower()}.html', cr=client_report, v=settings.vendor, invoice_no=invoice.id)
+    html_string.encode('UTF-8')
+
+    document = Document(
+        title=f'invoice_{invoice.id}_client_{client.id}_{language.value.lower()}.html',
+        language=language,
+        content=html_string
+    )
+    invoice.document = document
+    db.session.add(document)
+    db.session.commit()
+
+
+    return document.to_document_link()
 
 
 @mutation.field("createTeam")

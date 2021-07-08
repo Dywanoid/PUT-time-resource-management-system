@@ -1,8 +1,8 @@
-from flask import url_for
-from database import Client, Currency, Project, Task, Team, TeamMember, TimeLog, User, ProjectAssignment, db
+from collections import defaultdict
+from database import Client, Currency, Document, DocumentLink, Invoice, Project, Task, Team, TeamMember, TimeLog, User, ProjectAssignment, db
 from datetime import datetime, date, timedelta
 from dataclasses import dataclass, field
-from typing import Dict
+from typing import Dict, List
 from decimal import *
 from sqlalchemy import func
 from sqlalchemy.orm import contains_eager, joinedload
@@ -102,7 +102,7 @@ class ClientReport(Report):
     project_reports_by_id: Dict[int, ProjectReport] = field(
         default_factory=dict)
     user_reports_by_id: Dict[int, UserReport] = field(default_factory=dict)
-    invoice_url: str = ""
+    invoice_links: List[str] = field(default_factory=list)
 
     @property
     def project_reports(self):
@@ -122,34 +122,33 @@ class ClientReport(Report):
         user_report.add_tls(tls)
 
 
-def get_client_reports(client_ids, team_ids, from_date, to_date):
-    filters = []
+def get_client_reports(client_ids, from_date, to_date):
+    filters = [ProjectAssignment.end_date >= from_date, ProjectAssignment.begin_date <= to_date]
     if client_ids:
         filters.append(Client.id.in_(client_ids))
-
-    if team_ids:
-        users = (User.query
-                 .outerjoin(User.team_memberships, TeamMember.team)
-                 .options(contains_eager(User.team_memberships, TeamMember.team))
-                 .filter(Team.id.in_(team_ids))
-                 .all())
-        filters.append(User.id.in_(map(lambda u: u.id, users)))
 
     clients = (Client.query
                .outerjoin(Client.projects, Project.assignments, ProjectAssignment.user)
                .options(contains_eager(Client.projects, Project.assignments, ProjectAssignment.user))
                .options(joinedload(Client.projects, Project.tasks))
-               .filter(ProjectAssignment.end_date >= from_date)
-               .filter(ProjectAssignment.begin_date <= to_date)
                .filter(db.and_(*filters))
                .all())
 
-    client_reports_by_id = {client.id: ClientReport(client=client, invoice_url=url_for(
-        'client_invoice_html', _external=True, client_id=client.id, from_date=from_date.isoformat(), to_date=to_date.isoformat(), team_ids=team_ids)) for client in clients}
-    project_assignments_by_id = {
-        project_assignment.id: project_assignment for client in clients for project in client.projects for project_assignment in project.assignments}
-    tasks_by_id = {
-        task.id: task for client in clients for project in client.projects for task in project.tasks}
+    invoice_filters = [Invoice.billing_end_date >= from_date, Invoice.billing_begin_date <= to_date]
+    if client_ids:
+        invoice_filters.append(Invoice.client_id.in_(client_ids))
+    
+    invoices = (Invoice.query
+                .filter(db.and_(*invoice_filters))
+                .all())
+
+    invoices_by_client_id = defaultdict(list)
+    for invoice in invoices:
+        invoices_by_client_id[invoice.client_id].append(invoice)
+
+    client_reports_by_id = {client.id: ClientReport(client=client, invoice_links=map(lambda i: i.document.to_document_link(), invoices_by_client_id[client.id])) for client in clients}
+    project_assignments_by_id = {project_assignment.id: project_assignment for client in clients for project in client.projects for project_assignment in project.assignments}
+    tasks_by_id = {task.id: task for client in clients for project in client.projects for task in project.tasks}
 
     tls_source = (db.session
                   .query(TimeLog.task_id, TimeLog.project_assignment_id, func.sum(TimeLog.duration))
