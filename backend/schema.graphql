@@ -2,6 +2,11 @@ scalar DateTime
 scalar Date
 scalar Interval # minutes
 
+enum Language {
+    PL
+    EN
+}
+
 enum Currency {
     EUR
     USD
@@ -141,8 +146,8 @@ type ClientReport implements Report {
     client: Client!
     projectReports: [ProjectReport!]
     userReports: [UserReport!]
-    invoiceUrl: String!
     totalCost: Float!
+    invoiceLinks: [DocumentLink!]
 }
 
 type ProjectReport implements Report {
@@ -168,6 +173,12 @@ type ProjectAssignmentReport implements Report {
     projectAssignment: ProjectAssignment!
     totalDuration: Interval!
     totalCost: Float!
+}
+
+type DocumentLink {
+    language: Language!
+    title: String!
+    url: String!
 }
 
 
@@ -200,7 +211,6 @@ type Query {
     getAllSubordinates(userId: ID): [User!]
     clientReports(
         clientIds: [ID!] = [], # filter
-        teamIds: [ID!] = [], # filter
         fromDate: Date!,
         toDate: Date!
     ): [ClientReport!]
@@ -370,6 +380,13 @@ input UnassignSupervisorBatchInput{
     userList: [ID!]
 }
 
+input CreateInvoiceInput {
+    clientId: ID!
+    billingBeginDate: Date!
+    billingEndDate: Date!
+    language: Language!
+}
+
 type Mutation {
     createClient(input: CreateClientInput!): Client!
     archiveClient(input: ArchiveClientInput!): Client!
@@ -401,5 +418,6 @@ type Mutation {
     unassignSupervisor(input: UnassignSupervisorInput!): User!
     updateSupervisorBatch(input: UpdateSupervisorBatchInput!): [User!]
     unassignSupervisorBatch(input: UnassignSupervisorBatchInput!): [User!]
+    createInvoice(input: CreateInvoiceInput): DocumentLink!
     # TODO split this file into multiple files
 }

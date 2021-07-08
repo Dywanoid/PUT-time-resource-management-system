@@ -1,14 +1,20 @@
 import enum
+from flask import url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import composite
+from sqlalchemy.orm import composite, deferred
 from app import app, cache
 from dataclasses import dataclass
 from decimal import Decimal
 
 db = SQLAlchemy(app)
+
+
+class Language(enum.Enum):
+    PL = 'PL'
+    EN = 'EN'
 
 
 class Currency(enum.Enum):
@@ -175,6 +181,41 @@ class TimeLog(db.Model):
             'task_id': task_id,
             'date': date
         }
+
+
+@dataclass
+class DocumentLink:
+    title: str
+    url: str
+    language: Language
+
+
+class Document(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String, nullable=False)
+    language = db.Column(db.Enum(Language), nullable=False)
+    content = deferred(db.Column(db.Text, nullable=False))
+
+    def to_document_link(self):
+        return DocumentLink(
+            title=self.title, 
+            url=url_for('get_document', id=self.id, _external=True),
+            language=self.language
+        )
+
+
+class Invoice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey(Client.id), nullable=False)
+    billing_begin_date = db.Column(db.Date, nullable=False)
+    billing_end_date = db.Column(db.Date, nullable=False)
+    document_id = db.Column(db.Integer, db.ForeignKey(Document.id))
+
+    document = db.relationship(Document, lazy='joined')
+
+    __table_args__ = (
+        db.Index('invoice_query_idx', client_id, billing_begin_date, billing_end_date),
+    )
 
 
 @dataclass
