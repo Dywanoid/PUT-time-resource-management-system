@@ -97,7 +97,7 @@ const getDataColumns = (intl: IntlShape) => {
             </Button>
             {links.length
               ? (
-                <Text style={{ padding: '3px' }}>Wygenerowane faktury:</Text>
+                <Text style={{ padding: '3px' }}>{`${ intl.formatMessage({ id: 'generated_invoices' }) }:`}</Text>
               )
               : null
             }
@@ -107,10 +107,7 @@ const getDataColumns = (intl: IntlShape) => {
                 href={link.url}
               >
                 {
-                  `${
-                    ''
-                    // intl.formatMessage({ id: 'download_invoice' })
-                  } ${ link.title.replace(/.html/g, '') }`
+                  link.title.replace(/.html/g, '')
                 }
               </a>
             ))}

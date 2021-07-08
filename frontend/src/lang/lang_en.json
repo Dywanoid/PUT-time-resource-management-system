@@ -55,6 +55,7 @@
     "from": "from",
     "generate_invoice_en": "Generate invoice (ENG)",   
     "generate_invoice_pl": "Generate invoice (PL)",
+    "generated_invoices": "Generated invoices",
     "hide_archived_teams": "Hide archived teams",
     "holiday_avatar": "Annual leave",
     "holiday": "Annual leave",

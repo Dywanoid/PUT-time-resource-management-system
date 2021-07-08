@@ -54,6 +54,7 @@
     "from": "od",
     "generate_invoice_en": "Generuj fakturę (ENG)",   
     "generate_invoice_pl": "Generuj fakturę (PL)",
+    "generated_invoices": "Wygenerowane faktury",
     "hide_archived_teams": "Ukryj zarchiwizowane zespoły",
     "holiday_avatar": "Wypoczynkowy",
     "holiday": "Urlop wypoczynkowy",
