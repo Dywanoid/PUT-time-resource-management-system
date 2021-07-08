@@ -48,7 +48,11 @@ query GetClientReports($clientIds: [ID!], $fromDate: Date!, $toDate: Date!) {
       }
     }	
     },
-    invoiceUrl
+    invoiceLinks {
+      url,
+      language,
+      title
+    },
     totalCost,
     userReports {
 			projectAssignmentReports {

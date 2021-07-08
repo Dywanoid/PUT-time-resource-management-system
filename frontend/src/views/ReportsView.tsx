@@ -8,8 +8,11 @@ import { CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  DocumentLink,
+  Language,
+  namedOperations,
+  useCreateInvoiceMutation,
   useGetAllClientsAndProjectsWithTasksQuery,
-  useGetAllTeamsQuery,
   useGetClientReportsQuery
 } from '../generated/graphql';
 import { Loader } from '../components';
@@ -35,6 +38,8 @@ interface TableRow {
   clientRowSpan: number;
   cost: string;
   key: string;
+  links?: DocumentLink[]
+  linkGenerator?: (lang: Language) => void;
   project: string;
   projectRowSpan: number;
   task: string;
@@ -61,28 +66,57 @@ const getTableCellProps = (rowSpan: number) => {
   };
 };
 
-const INVOCIE_URL_SEPARATOR = '@@@';
+const nullFn = () => null;
 
 const getDataColumns = (intl: IntlShape) => {
-  // .map((column) => {
-  //   return { ...column, title:  };
-  // })
   const dataColumns : TableColumn[] = [
     {
       dataIndex: 'client',
       render: (value, row) => {
         let children: JSX.Element = (<span>{value}</span>);
 
-        if(value.includes(INVOCIE_URL_SEPARATOR)) {
-          const [name, url] = value.split(INVOCIE_URL_SEPARATOR);
+        const links = row.links || [];
 
-          children = (<>
-            <Text style={{ padding: '3px' }}>{name}</Text>
-            <a href={url}>
-              {intl.formatMessage({ id: 'download_invoice' })}
-            </a>
-          </>);
-        }
+        children = (<>
+          <Space direction="vertical">
+
+            <Text  strong={true} style={{ fontSize: '1.2rem', padding: '3px' }}>{value}</Text>
+            <Button
+              onClick={() => {(row?.linkGenerator || nullFn)(Language.Pl);}}
+            >
+              {
+                intl.formatMessage({ id: 'generate_invoice_pl' })
+              }
+            </Button>
+            <Button
+              onClick={() => {(row?.linkGenerator || nullFn)(Language.En);}}
+            >
+              {
+                intl.formatMessage({ id: 'generate_invoice_en' })
+              }
+            </Button>
+            {links.length
+              ? (
+                <Text style={{ padding: '3px' }}>Wygenerowane faktury:</Text>
+              )
+              : null
+            }
+            {links.map((link, idx) => (
+              <a
+                key={idx}
+                href={link.url}
+              >
+                {
+                  `${
+                    ''
+                    // intl.formatMessage({ id: 'download_invoice' })
+                  } ${ link.title.replace(/.html/g, '') }`
+                }
+              </a>
+            ))}
+          </Space>
+
+        </>);
 
         return {
           children,
@@ -101,16 +135,6 @@ const getDataColumns = (intl: IntlShape) => {
       },
       title: intl.formatMessage({ id: 'project' })
     },
-    // {
-    //   dataIndex: 'team',
-    //   render: (value, row) => {
-    //     return {
-    //       children: value,
-    //       props: getTableCellProps(row.teamRowSpan)
-    //     };
-    //   },
-    //   title: 'Zespół'
-    // },
     {
       dataIndex: 'task',
       title: intl.formatMessage({ id: 'task' })
@@ -182,18 +206,20 @@ const getMonthEnds = (date: Moment) => {
 export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
   const [clientOptions, setClientOptions] = useState<PickerOption[]>([]);
   const [projectOptions, setProjectOptions] = useState<PickerOption[]>([]);
-  // const [teamOptions, setTeamOptions] = useState<PickerOption[]>([]);
 
   const [selectedClients, setSelectedClients] = useState<PickerOption[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<PickerOption[]>([]);
-  // const [selectedTeams, setSelectedTeams] = useState<PickerOption[]>([]);
 
   const [currencyMap, setCurrencyMap] = useState({});
   const [date, setDate] = useState<Moment>(currentMomentGetter);
   const monthRange = useMemo(() => getMonthEnds(date), [date]);
 
-  const teamsQuery = useGetAllTeamsQuery();
-  const clientsProjectsQuery = useGetAllClientsAndProjectsWithTasksQuery();
+  const clientsProjectsQuery = useGetAllClientsAndProjectsWithTasksQuery({ fetchPolicy: 'no-cache' });
+  const [createInvoice] = useCreateInvoiceMutation({
+    refetchQueries: [
+      namedOperations.Query.GetClientReports
+    ]
+  });
 
   const dataColumns = getDataColumns(intl);
   const reportsQuery = useGetClientReportsQuery(
@@ -208,7 +234,7 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
   );
 
   const costHoursMap = reportsQuery?.data?.clientReports?.reduce((acc, currentClientReport) => {
-    const { client, invoiceUrl } = currentClientReport;
+    const { client, invoiceLinks } = currentClientReport;
     const clientId = `client_${ client.id }`;
     let clientHourSum = 0;
 
@@ -220,8 +246,8 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
           clientHourSum += currentProjectAssignmentReport.totalDuration;
         });}
     );
-
-    acc[clientId] = { cost: currentClientReport.totalCost, hours: clientHourSum, invoiceUrl };
+    console.log(clientId, invoiceLinks);
+    acc[clientId] = { cost: currentClientReport.totalCost, hours: clientHourSum, invoiceLinks };
     currentClientReport.projectReports?.forEach((currentProjectReport) => {
       const { project } = currentProjectReport;
       const projectId = `project_${ project.id }`;
@@ -260,7 +286,7 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
 
   useEffect(
     () => {
-      if(teamsQuery.error || clientsProjectsQuery.error || teamsQuery.loading || clientsProjectsQuery.loading) {
+      if(clientsProjectsQuery.error || clientsProjectsQuery.loading) {
         return;
       }
       const clientToCurrencyMap = {};
@@ -278,19 +304,8 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
       setClientOptions(newClientOptions);
       setSelectedClients(newClientOptions);
       handleProjects(newClients, newClientOptions);
-
-      // const newTeams = teamsQuery.data?.teams || [];
-      // const newTeamOptions = newTeams.map(
-      //   (team) => {
-      //     return { label: team.name, value: team.id };
-      //   }
-      // );
-
-      // setTeamOptions(newTeamOptions);
-      // setSelectedTeams(newTeamOptions);
     },
     [
-      teamsQuery,
       clientsProjectsQuery
     ]
   );
@@ -318,7 +333,7 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
 
   useEffect(
     () => {
-      if(!teamsQuery.loading && !clientsProjectsQuery.loading) {
+      if(!clientsProjectsQuery.loading) {
         handleProjects(clientsProjectsQuery?.data?.clients, selectedClients);
       }
     },
@@ -329,7 +344,6 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
 
   const handleClientChange = getHandlerForCollection(clientOptions, setSelectedClients);
   const handleProjectChange = getHandlerForCollection(projectOptions, setSelectedProjects);
-  // const handleTeamChange = getHandlerForCollection(teamOptions, setSelectedTeams);
 
   const changeMonth = (forwardDirection: boolean): void => {
     const months = forwardDirection ? 1 : -1;
@@ -345,11 +359,10 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
     }
   };
 
-  if(teamsQuery.error || clientsProjectsQuery.error) {return (<p>Error!</p>);}
-  if(teamsQuery.loading || clientsProjectsQuery.loading) {return (<Loader/>);}
+  if(clientsProjectsQuery.error) {return (<p>Error!</p>);}
+  if(clientsProjectsQuery.loading) {return (<Loader/>);}
   if(!selectedClients.length
     || !selectedProjects.length
-    // || !selectedTeams.length
   ) {
     return (<p>Selektory sie zepsuly</p>);
   }
@@ -363,7 +376,6 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
   const selectedClientsMap = getUsedValuesMap(selectedClients);
 
   const selectedProjectsMap = getUsedValuesMap(selectedProjects);
-  // const selectedTeamsMap = getUsedValuesMap(selectedTeams);
 
   const rowSpanMap: {[id: string]: number} = {};
 
@@ -387,13 +399,6 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
         return !!taskCost;
       })?.length || 0;
 
-      // teamsQuery?.data?.teams?.forEach((team) => {
-      //   if(!selectedTeamsMap[team.id]) {
-      //     return;
-      //   }
-
-      // const teamId = `team_${ team.id }_${ projectId }`;
-
       if(!rowSpanMap[clientId]) {
         rowSpanMap[clientId] = 0;
       }
@@ -402,14 +407,9 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
         rowSpanMap[projectId] = 0;
       }
 
-      // if(!rowSpanMap[teamId]) {
-      //   rowSpanMap[teamId] = 0;
-      // }
-
       rowSpanMap[clientId] += taskCount;
       rowSpanMap[projectId] += taskCount;
-      // rowSpanMap[teamId] = taskCount;
-      // });
+
     });
   });
 
@@ -429,22 +429,14 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
 
       const projectId = `project_${ project.id }_${ clientId }`;
 
-      // teamsQuery?.data?.teams?.forEach((team) => {
-      //   if(!selectedTeamsMap[team.id]) {
-      //     return;
-      //   }
-
-      // const teamId = `team_${ team.id }_${ projectId }`;
-
       acc.push(...project?.tasks?.reduce((taskAcc: TableRow[], task) => {
         let clientRowSpan = 0;
         let projectRowSpan = 0;
-        // let teamRowSpan = 0;
 
         const taskId = `task_${ task.id }`;
         const taskCost = costHoursMap[taskId]?.cost;
         const taskHours = costHoursMap[taskId]?.hours;
-        const invoiceUrl = costHoursMap[clientId]?.invoiceUrl;
+        const invoiceLinks = costHoursMap[clientId]?.invoiceLinks;
 
         if(!taskCost) {return taskAcc;}
 
@@ -458,21 +450,27 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
           projectRowSpan = rowSpanMap[projectId];
         }
 
-        // if(!rowSpansUsedMap[teamId]) {
-        //   rowSpansUsedMap[teamId] = true;
-        //   teamRowSpan = rowSpanMap[teamId];
-        // }
+        const linkGenerator = (lang: Language) => {
+          createInvoice({
+            variables: {
+              beginDate:   monthRange.start,
+              clientId: client.id,
+              endDate: monthRange.end,
+              language: lang
+            }
+          });
+        };
 
         const row: TableRow = {
-          client: `${ client.name }${ INVOCIE_URL_SEPARATOR }${ invoiceUrl }`,
+          client: client.name,
           clientRowSpan,
           cost: `${ taskCost || 0 } ${ currencyMap[client.id] }`,
           key: `${ client.id }-${ project.id }-${ task.id }`,
+          linkGenerator,
+          links: invoiceLinks,
           project: project.name,
           projectRowSpan,
           task: task.name,
-          // team: team.name,
-          // teamRowSpan,
           time: `${ (taskHours/60) } h`
         };
 
@@ -480,8 +478,6 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
 
         return taskAcc;
       }, []) || []);
-
-      // });
     });
 
     return acc;
@@ -515,15 +511,6 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
               options={projectOptions}
               selected={selectedProjects}
             />
-
-            {/* <Picker
-              defaultValue={selectedTeams}
-              label="Zespoły"
-              onChange={handleTeamChange}
-              options={teamOptions}
-              selected={selectedTeams}
-            /> */}
-
           </Space>
           <div
             className="datePicker"

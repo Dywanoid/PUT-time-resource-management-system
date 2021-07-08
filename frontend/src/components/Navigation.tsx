@@ -27,7 +27,7 @@ export const Navigation = injectIntl(({ intl }): JSX.Element => {
 
   return(
     <Header className="header">
-      <img className="logo" src={ logo } alt="pracujta"/>
+      <img className="logo" src={ logo } alt="pracujtime"/>
       <Menu theme="dark" mode="horizontal" defaultSelectedKeys={ ['1'] } className="buttons">
         <Menu.Item key="1">
           <Link to="/" className="nav-text">

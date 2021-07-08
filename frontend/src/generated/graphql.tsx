@@ -75,8 +75,8 @@ export type ClientReport = Report & {
   client: Client;
   projectReports?: Maybe<Array<ProjectReport>>;
   userReports?: Maybe<Array<UserReport>>;
-  invoiceUrl: Scalars['String'];
   totalCost: Scalars['Float'];
+  invoiceLinks?: Maybe<Array<DocumentLink>>;
 };
 
 export type CreateClientInput = {
@@ -93,6 +93,13 @@ export type CreateHolidayRequestInput = {
   type: HolidayRequestType;
   startDate: Scalars['DateTime'];
   endDate: Scalars['DateTime'];
+};
+
+export type CreateInvoiceInput = {
+  clientId: Scalars['ID'];
+  billingBeginDate: Scalars['Date'];
+  billingEndDate: Scalars['Date'];
+  language: Language;
 };
 
 export type CreateProjectAssignmentInput = {
@@ -160,6 +167,13 @@ export type DeleteTimeLogInput = {
   date: Scalars['Date'];
 };
 
+export type DocumentLink = {
+  __typename?: 'DocumentLink';
+  language: Language;
+  title: Scalars['String'];
+  url: Scalars['String'];
+};
+
 export type HolidayRequest = {
   __typename?: 'HolidayRequest';
   id: Scalars['ID'];
@@ -188,6 +202,11 @@ export enum HolidayRequestType {
   SickLeave = 'SICK_LEAVE'
 }
 
+
+export enum Language {
+  Pl = 'PL',
+  En = 'EN'
+}
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -221,6 +240,7 @@ export type Mutation = {
   unassignSupervisor: User;
   updateSupervisorBatch?: Maybe<Array<User>>;
   unassignSupervisorBatch?: Maybe<Array<User>>;
+  createInvoice: DocumentLink;
 };
 
 
@@ -371,6 +391,11 @@ export type MutationUpdateSupervisorBatchArgs = {
 
 export type MutationUnassignSupervisorBatchArgs = {
   input: UnassignSupervisorBatchInput;
+};
+
+
+export type MutationCreateInvoiceArgs = {
+  input?: Maybe<CreateInvoiceInput>;
 };
 
 export type Project = {
@@ -535,7 +560,6 @@ export type QueryGetAllSubordinatesArgs = {
 
 export type QueryClientReportsArgs = {
   clientIds?: Maybe<Array<Scalars['ID']>>;
-  teamIds?: Maybe<Array<Scalars['ID']>>;
   fromDate: Scalars['Date'];
   toDate: Scalars['Date'];
 };
@@ -876,6 +900,22 @@ export type ArchiveProjectMutation = (
   ) }
 );
 
+export type CreateInvoiceMutationVariables = Exact<{
+  clientId: Scalars['ID'];
+  beginDate: Scalars['Date'];
+  endDate: Scalars['Date'];
+  language: Language;
+}>;
+
+
+export type CreateInvoiceMutation = (
+  { __typename?: 'Mutation' }
+  & { createInvoice: (
+    { __typename?: 'DocumentLink' }
+    & Pick<DocumentLink, 'language' | 'title' | 'url'>
+  ) }
+);
+
 export type UpdateSupervisorBatchMutationVariables = Exact<{
   userList?: Maybe<Array<Scalars['ID']> | Scalars['ID']>;
   supervisorId: Scalars['ID'];
@@ -1179,7 +1219,7 @@ export type GetClientReportsQuery = (
   { __typename?: 'Query' }
   & { clientReports?: Maybe<Array<(
     { __typename?: 'ClientReport' }
-    & Pick<ClientReport, 'invoiceUrl' | 'totalCost'>
+    & Pick<ClientReport, 'totalCost'>
     & { client: (
       { __typename?: 'Client' }
       & Pick<Client, 'id' | 'name'>
@@ -1209,6 +1249,9 @@ export type GetClientReportsQuery = (
           & Pick<ProjectAssignmentReport, 'totalDuration'>
         )>> }
       )>> }
+    )>>, invoiceLinks?: Maybe<Array<(
+      { __typename?: 'DocumentLink' }
+      & Pick<DocumentLink, 'url' | 'language' | 'title'>
     )>>, userReports?: Maybe<Array<(
       { __typename?: 'UserReport' }
       & { projectAssignmentReports?: Maybe<Array<(
@@ -1836,6 +1879,46 @@ export function useArchiveProjectMutation(baseOptions?: Apollo.MutationHookOptio
 export type ArchiveProjectMutationHookResult = ReturnType<typeof useArchiveProjectMutation>;
 export type ArchiveProjectMutationResult = Apollo.MutationResult<ArchiveProjectMutation>;
 export type ArchiveProjectMutationOptions = Apollo.BaseMutationOptions<ArchiveProjectMutation, ArchiveProjectMutationVariables>;
+export const CreateInvoiceDocument = gql`
+    mutation CreateInvoice($clientId: ID!, $beginDate: Date!, $endDate: Date!, $language: Language!) {
+  createInvoice(
+    input: {clientId: $clientId, billingEndDate: $endDate, billingBeginDate: $beginDate, language: $language}
+  ) {
+    language
+    title
+    url
+  }
+}
+    `;
+export type CreateInvoiceMutationFn = Apollo.MutationFunction<CreateInvoiceMutation, CreateInvoiceMutationVariables>;
+
+/**
+ * __useCreateInvoiceMutation__
+ *
+ * To run a mutation, you first call `useCreateInvoiceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateInvoiceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createInvoiceMutation, { data, loading, error }] = useCreateInvoiceMutation({
+ *   variables: {
+ *      clientId: // value for 'clientId'
+ *      beginDate: // value for 'beginDate'
+ *      endDate: // value for 'endDate'
+ *      language: // value for 'language'
+ *   },
+ * });
+ */
+export function useCreateInvoiceMutation(baseOptions?: Apollo.MutationHookOptions<CreateInvoiceMutation, CreateInvoiceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateInvoiceMutation, CreateInvoiceMutationVariables>(CreateInvoiceDocument, options);
+      }
+export type CreateInvoiceMutationHookResult = ReturnType<typeof useCreateInvoiceMutation>;
+export type CreateInvoiceMutationResult = Apollo.MutationResult<CreateInvoiceMutation>;
+export type CreateInvoiceMutationOptions = Apollo.BaseMutationOptions<CreateInvoiceMutation, CreateInvoiceMutationVariables>;
 export const UpdateSupervisorBatchDocument = gql`
     mutation updateSupervisorBatch($userList: [ID!], $supervisorId: ID!) {
   updateSupervisorBatch(input: {userList: $userList, supervisorId: $supervisorId}) {
@@ -2578,7 +2661,11 @@ export const GetClientReportsDocument = gql`
         }
       }
     }
-    invoiceUrl
+    invoiceLinks {
+      url
+      language
+      title
+    }
     totalCost
     userReports {
       projectAssignmentReports {
@@ -2975,6 +3062,7 @@ export const namedOperations = {
     AddProject: 'AddProject',
     UpdateProject: 'UpdateProject',
     ArchiveProject: 'ArchiveProject',
+    CreateInvoice: 'CreateInvoice',
     updateSupervisorBatch: 'updateSupervisorBatch',
     unassignSupervisorBatch: 'unassignSupervisorBatch',
     AddTask: 'AddTask',
