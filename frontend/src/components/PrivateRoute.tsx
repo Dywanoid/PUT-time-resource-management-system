@@ -27,7 +27,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ component: Component, path,
                 <Component/>
               </div>
             </Content>
-            <Footer className="footer">©PRACUJTA</Footer>
+            <Footer className="footer">©PRACUJTIME</Footer>
           </div>
         </Layout>
       )

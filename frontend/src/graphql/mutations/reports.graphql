@@ -1,0 +1,7 @@
+mutation CreateInvoice($clientId: ID!, $beginDate: Date!, $endDate: Date!, $language: Language!) {
+  createInvoice(input: {clientId: $clientId, billingEndDate: $endDate, billingBeginDate: $beginDate, language: $language}) {
+    language,
+    title,
+    url
+  }
+}
