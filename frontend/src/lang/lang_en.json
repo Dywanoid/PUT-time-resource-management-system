@@ -46,6 +46,7 @@
     "date": "Date",
     "deleting_users_from_a_team": "removing users from a team",
     "description": "Description",
+    "invoice": "Invoice ",
     "download_invoice": "Download invoice",
     "download_report": "Download report in .csv format",
     "edit_team": "Edit team",

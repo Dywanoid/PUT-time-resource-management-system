@@ -107,7 +107,7 @@ const getDataColumns = (intl: IntlShape) => {
                 href={link.url}
               >
                 {
-                  link.title.replace(/.html/g, '')
+                  `${ intl.formatMessage({ id: 'invoice' }) } ${ link.title.match(/\d+/m) }`
                 }
               </a>
             ))}
