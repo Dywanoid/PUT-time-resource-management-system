@@ -244,7 +244,7 @@ export const ProjectAssignmentsView = injectIntl(({ intl }): JSX.Element => {
     };
   });
 
-  console.log(allUsers);
+  // console.log(allUsers);
 
   return (
     <>

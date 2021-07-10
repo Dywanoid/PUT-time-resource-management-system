@@ -243,7 +243,7 @@ export const ReportsView = injectIntl(({ intl }) : JSX.Element => {
           clientHourSum += currentProjectAssignmentReport.totalDuration;
         });}
     );
-    console.log(clientId, invoiceLinks);
+    // console.log(clientId, invoiceLinks);
     acc[clientId] = { cost: currentClientReport.totalCost, hours: clientHourSum, invoiceLinks };
     currentClientReport.projectReports?.forEach((currentProjectReport) => {
       const { project } = currentProjectReport;
