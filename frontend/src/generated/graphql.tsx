@@ -808,7 +808,9 @@ export type ArchiveClientMutation = (
 export type AssignUserToProjectMutationVariables = Exact<{
   userId: Scalars['ID'];
   projectId: Scalars['ID'];
-  hourlyRate?: Scalars['Float'];
+  hourlyRate: Scalars['Float'];
+  beginDate?: Maybe<Scalars['Date']>;
+  endDate?: Maybe<Scalars['Date']>;
 }>;
 
 
@@ -834,16 +836,14 @@ export type DeleteUserFromProjectMutation = (
   & { deleteProjectAssignment: (
     { __typename?: 'ProjectAssignment' }
     & Pick<ProjectAssignment, 'id'>
-    & { user: (
-      { __typename?: 'User' }
-      & Pick<User, 'id' | 'name'>
-    ) }
   ) }
 );
 
 export type UpdateProjectAssignmentMutationVariables = Exact<{
   projectAssignmentId: Scalars['ID'];
   hourlyRate: Scalars['Float'];
+  beginDate: Scalars['Date'];
+  endDate: Scalars['Date'];
 }>;
 
 
@@ -1165,10 +1165,13 @@ export type GetProjectAssignmentsQuery = (
   { __typename?: 'Query' }
   & { projectAssignments?: Maybe<Array<(
     { __typename?: 'ProjectAssignment' }
-    & Pick<ProjectAssignment, 'id' | 'hourlyRate'>
+    & Pick<ProjectAssignment, 'id' | 'hourlyRate' | 'beginDate' | 'endDate' | 'createdAt'>
     & { user: (
       { __typename?: 'User' }
       & Pick<User, 'id' | 'name'>
+    ), project: (
+      { __typename?: 'Project' }
+      & Pick<Project, 'id' | 'name'>
     ) }
   )>> }
 );
@@ -1657,9 +1660,9 @@ export type ArchiveClientMutationHookResult = ReturnType<typeof useArchiveClient
 export type ArchiveClientMutationResult = Apollo.MutationResult<ArchiveClientMutation>;
 export type ArchiveClientMutationOptions = Apollo.BaseMutationOptions<ArchiveClientMutation, ArchiveClientMutationVariables>;
 export const AssignUserToProjectDocument = gql`
-    mutation AssignUserToProject($userId: ID!, $projectId: ID!, $hourlyRate: Float! = 1) {
+    mutation AssignUserToProject($userId: ID!, $projectId: ID!, $hourlyRate: Float!, $beginDate: Date, $endDate: Date) {
   createProjectAssignment(
-    input: {userId: $userId, projectId: $projectId, hourlyRate: $hourlyRate}
+    input: {userId: $userId, projectId: $projectId, hourlyRate: $hourlyRate, beginDate: $beginDate, endDate: $endDate}
   ) {
     id
     user {
@@ -1688,6 +1691,8 @@ export type AssignUserToProjectMutationFn = Apollo.MutationFunction<AssignUserTo
  *      userId: // value for 'userId'
  *      projectId: // value for 'projectId'
  *      hourlyRate: // value for 'hourlyRate'
+ *      beginDate: // value for 'beginDate'
+ *      endDate: // value for 'endDate'
  *   },
  * });
  */
@@ -1702,10 +1707,6 @@ export const DeleteUserFromProjectDocument = gql`
     mutation DeleteUserFromProject($projectAssignmentId: ID!) {
   deleteProjectAssignment(input: {projectAssignmentId: $projectAssignmentId}) {
     id
-    user {
-      id
-      name
-    }
   }
 }
     `;
@@ -1736,9 +1737,9 @@ export type DeleteUserFromProjectMutationHookResult = ReturnType<typeof useDelet
 export type DeleteUserFromProjectMutationResult = Apollo.MutationResult<DeleteUserFromProjectMutation>;
 export type DeleteUserFromProjectMutationOptions = Apollo.BaseMutationOptions<DeleteUserFromProjectMutation, DeleteUserFromProjectMutationVariables>;
 export const UpdateProjectAssignmentDocument = gql`
-    mutation updateProjectAssignment($projectAssignmentId: ID!, $hourlyRate: Float!) {
+    mutation updateProjectAssignment($projectAssignmentId: ID!, $hourlyRate: Float!, $beginDate: Date!, $endDate: Date!) {
   updateProjectAssignment(
-    input: {projectAssignmentId: $projectAssignmentId, hourlyRate: $hourlyRate}
+    input: {projectAssignmentId: $projectAssignmentId, hourlyRate: $hourlyRate, beginDate: $beginDate, endDate: $endDate}
   ) {
     id
     user {
@@ -1766,6 +1767,8 @@ export type UpdateProjectAssignmentMutationFn = Apollo.MutationFunction<UpdatePr
  *   variables: {
  *      projectAssignmentId: // value for 'projectAssignmentId'
  *      hourlyRate: // value for 'hourlyRate'
+ *      beginDate: // value for 'beginDate'
+ *      endDate: // value for 'endDate'
  *   },
  * });
  */
@@ -2517,6 +2520,13 @@ export const GetProjectAssignmentsDocument = gql`
       name
     }
     hourlyRate
+    beginDate
+    endDate
+    createdAt
+    project {
+      id
+      name
+    }
   }
 }
     `;

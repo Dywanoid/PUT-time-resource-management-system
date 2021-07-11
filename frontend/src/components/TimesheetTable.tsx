@@ -23,15 +23,13 @@ const NUMBER_OF_MINUTES_IN_A_DAY = 24 * 60;
 // TEMPORATY UTILS FOR DATA MOCKUP
 function dates(current) {
   const week: Date[] = [];
-  const dateToUse = new Date(current);
+  let newMoment = current.clone().startOf('week');
 
-  // Starting Monday not Sunday
-  dateToUse.setDate((dateToUse.getDate() - dateToUse.getDay() +1));
   for (let i = 0; i < 7; i++) {
     week.push(
-      new Date(dateToUse)
+      new Date(newMoment.clone().toDate())
     );
-    dateToUse.setDate(dateToUse.getDate() +1);
+    newMoment = newMoment.add(1, 'day');
   }
 
   return week;

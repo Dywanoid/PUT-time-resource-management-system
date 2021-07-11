@@ -147,7 +147,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
           [<a key="1"
             onClick={() => handleEventChange(requestStatuses[3],item.id)}
           >
-            { intl.formatMessage({ id: 'cancell' }) }
+            { intl.formatMessage({ id: 'cancel' }) }
           </a>]
         );
       case 'MANAGER_CANCELLED':
@@ -179,7 +179,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
             [<a key="1"
               onClick={() => handleEventChange(requestStatuses[3],item.id)}
             >
-              { intl.formatMessage({ id: 'cancell' }) }
+              { intl.formatMessage({ id: 'cancel' }) }
             </a>]
           );
         }
