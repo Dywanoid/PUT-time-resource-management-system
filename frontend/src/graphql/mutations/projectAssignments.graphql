@@ -1,8 +1,10 @@
-mutation AssignUserToProject($userId: ID!, $projectId: ID!, $hourlyRate: Float! = 1) {
+mutation AssignUserToProject($userId: ID!, $projectId: ID!,  $hourlyRate: Float!, $beginDate: Date, $endDate: Date) {
   createProjectAssignment(input: {
     userId: $userId,
     projectId: $projectId,
-    hourlyRate: $hourlyRate
+    hourlyRate: $hourlyRate,
+    beginDate: $beginDate,
+    endDate: $endDate
   }) {
     id,
     user {
@@ -17,18 +19,16 @@ mutation DeleteUserFromProject($projectAssignmentId: ID!) {
   deleteProjectAssignment(input: {
     projectAssignmentId: $projectAssignmentId
   }) {
-    id,
-    user {
-        id,
-        name
-    }
+    id
   }
 }
 
-mutation updateProjectAssignment($projectAssignmentId: ID!, $hourlyRate: Float!) {
+mutation updateProjectAssignment($projectAssignmentId: ID!, $hourlyRate: Float!, $beginDate: Date!, $endDate: Date!) {
   updateProjectAssignment(input: {
     projectAssignmentId: $projectAssignmentId,
-    hourlyRate: $hourlyRate
+    hourlyRate: $hourlyRate,
+    beginDate: $beginDate,
+    endDate: $endDate
   }) {
     id,
     user {

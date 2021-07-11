@@ -5,6 +5,13 @@ query GetProjectAssignments($projectId: ID!) {
         id,
         name
     },
-    hourlyRate
+    hourlyRate,
+    beginDate,
+    endDate,
+    createdAt,
+    project {
+      id, 
+      name
+    }
   }
 }
