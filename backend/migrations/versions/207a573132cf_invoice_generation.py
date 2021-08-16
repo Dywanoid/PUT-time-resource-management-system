@@ -7,6 +7,7 @@ Create Date: 2021-07-08 01:33:36.682722
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -44,4 +45,6 @@ def downgrade():
     op.drop_index('invoice_query_idx', table_name='invoice')
     op.drop_table('invoice')
     op.drop_table('document')
+    language = postgresql.ENUM(name='language')
+    language.drop(op.get_bind())
     # ### end Alembic commands ###

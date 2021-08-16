@@ -89,4 +89,3 @@ def get_document(id):
         return response
     else:
         abort(404, description=f"Could not resolve Document with id {id}")
-
