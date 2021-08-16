@@ -58,7 +58,7 @@
                 <td>godziny</td>
                 <td>{{ par.total_duration | hours | rounded_decimal }}</td>
                 <td>{{ par.project_assignment.hourly_rate | rounded_decimal }}</td>
-                <td >{{ par.total_cost | rounded_decimal }}</td>
+                <td>{{ par.total_cost | rounded_decimal }}</td>
                 <td>{{ (v.vat_rate * 100) | rounded_integer}}%</td>
                 <td>{{ (par.total_cost * v.vat_rate) | rounded_decimal }}</td>
                 <td>{{ (par.total_cost * v.vat_rate + par.total_cost) | rounded_decimal }}</td>

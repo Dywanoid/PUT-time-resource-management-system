@@ -1,19 +1,21 @@
 """Initial data
 
 Revision ID: b8ed3117e868
-Revises: d2fda22f67ca
+Revises: 207a573132cf
 Create Date: 2021-04-25 21:59:40.427204
 
 """
 from alembic import op
 import sqlalchemy as sa
-from datetime import datetime, date
+from datetime import datetime, date, time, timedelta
 from sqlalchemy.sql import table, column
-from sqlalchemy import String, Integer, DateTime, Date, Numeric, Boolean
+from sqlalchemy import String, Integer, Interval, DateTime, Date, Numeric, Boolean
+from random import choice, choices, randint, sample, seed
+from functools import reduce
 
 # revision identifiers, used by Alembic.
 revision = 'b8ed3117e868'
-down_revision = '5d2727a0e7d2'
+down_revision = '207a573132cf'
 branch_labels = None
 depends_on = None
 
@@ -24,7 +26,8 @@ def upgrade():
                    column('id', Integer),
                    column('name', String),
                    column('tax_id', String),
-                   column('currency', sa.Enum('EUR', 'USD', 'PLN', name='currency')),
+                   column('currency', sa.Enum(
+                       'EUR', 'USD', 'PLN', name='currency')),
                    column('street_with_number', String),
                    column('zip_code', String),
                    column('city', String),
@@ -80,6 +83,7 @@ def upgrade():
                         )
 
     project_assignment = table('project_assignment',
+                               column('id', Integer),
                                column('user_id', Integer),
                                column('project_id', Integer),
                                column('begin_date', Date),
@@ -87,6 +91,28 @@ def upgrade():
                                column('hourly_rate', Numeric),
                                column('created_at', DateTime)
                                )
+
+    time_log = table('time_log',
+                     column('project_assignment_id', Integer),
+                     column('task_id', Integer),
+                     column('date', Date),
+                     column('duration', Interval),
+                     column('created_at', DateTime)
+                     )
+
+    holiday_request = table('holiday_request',
+                            column('id', Integer),
+                            column('user_id', Integer),
+                            column('changed_by_id', Integer),
+                            column('type', sa.Enum('HOLIDAY', 'ON_DEMAND', 'UNPAID', 'CHILD_CARE',
+                                                   'COMPASSIONATE_LEAVE', 'SICK_LEAVE', name='holidayrequesttype')),
+                            column('status', sa.Enum(
+                                'PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', name='holidayrequeststatus')),
+                            column('start_date', DateTime),
+                            column('end_date', DateTime),
+                            column('created_at', DateTime)
+                            )
+
     # ### clients ###
     conn = op.get_bind()
     [c1] = conn.execute(client.insert().returning(client.c.id).values(
@@ -99,12 +125,15 @@ def upgrade():
             'archived': False, 'created_at': datetime.now()}
     )).fetchone()
 
-    op.bulk_insert(task, [
+    p1_tasks = []
+    p1_tasks += conn.execute(task.insert().returning(task.c.id).values(
         {'name': 'Maintanance', 'project_id': p1,
-            'archived': False, 'created_at': datetime.now()},
+            'archived': False, 'created_at': datetime.now()}
+    )).fetchone()
+    p1_tasks += conn.execute(task.insert().returning(task.c.id).values(
         {'name': 'Development', 'project_id': p1,
             'archived': False, 'created_at': datetime.now()}
-    ])
+    )).fetchone()
 
     [c2] = conn.execute(client.insert().returning(client.c.id).values(
         {'name': 'Volkswagen Poznań', 'currency': 'PLN', 'tax_id': 'PL7820032965', 'street_with_number': 'ul. Warszawska 349',
@@ -115,52 +144,65 @@ def upgrade():
         {'name': 'Assembly Line Automation', 'client_id': c2,
             'archived': False, 'created_at': datetime.now()}
     )).fetchone()
+    p2_tasks = []
+    p2_tasks += conn.execute(task.insert().returning(task.c.id).values(
+        {'name': 'Gathering requirements',
+            'project_id': p2, 'archived': False, 'created_at': datetime.now()}
+    )).fetchone()
 
     [p3] = conn.execute(project.insert().returning(project.c.id).values(
         {'name': 'Smart Manufacturing', 'client_id': c2,
             'archived': False, 'created_at': datetime.now()}
     )).fetchone()
-
-    op.bulk_insert(task, [
-        {'name': 'Gathering requirements',
-            'project_id': p2, 'archived': False, 'created_at': datetime.now()},
+    p3_tasks = []
+    p3_tasks += conn.execute(task.insert().returning(task.c.id).values(
         {'name': 'Monitoring', 'project_id': p3,
-            'archived': False, 'created_at': datetime.now()},
+            'archived': False, 'created_at': datetime.now()}
+    )).fetchone()
+    p3_tasks += conn.execute(task.insert().returning(task.c.id).values(
         {'name': 'Reporting', 'project_id': p3,
             'archived': False, 'created_at': datetime.now()}
-    ])
+    )).fetchone()
 
     # ### users ###
     [u1] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Jan Kowalski', 'supervisor_id': None, 'roles': ['manager'], 'created_at': datetime.now()}
+        {'name': 'Jan Kowalski', 'supervisor_id': None,
+            'roles': ['manager'], 'created_at': datetime.now()}
     )).fetchone()
 
     [u2] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Piotr Nowak', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Piotr Nowak', 'supervisor_id': u1,
+            'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u3] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Anna Wiśniewska', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Anna Wiśniewska', 'supervisor_id': u1,
+            'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u4] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Krzysztof Wójcik', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Krzysztof Wójcik', 'supervisor_id': u1,
+            'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u5] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Maria Kamińska', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Maria Kamińska', 'supervisor_id': u1,
+            'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u6] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Paweł Lewandowski', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Paweł Lewandowski', 'supervisor_id': u1,
+            'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u7] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Małgorzata Zielińska', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Małgorzata Zielińska', 'supervisor_id': u1,
+            'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     [u8] = conn.execute(user.insert().returning(user.c.id).values(
-        {'name': 'Agnieszka Szymańska', 'supervisor_id': u1, 'roles': [], 'created_at': datetime.now()}
+        {'name': 'Agnieszka Szymańska', 'supervisor_id': u1,
+            'roles': [], 'created_at': datetime.now()}
     )).fetchone()
 
     op.bulk_insert(oauth, [
@@ -184,11 +226,13 @@ def upgrade():
 
     # ### teams ###
     [t1] = conn.execute(team.insert().returning(team.c.id).values(
-        {'name': 'Lazy Developers', 'description': 'They never get things done', 'archived': False, 'created_at': datetime.now()}
+        {'name': 'Lazy Developers', 'description': 'They never get things done',
+            'archived': False, 'created_at': datetime.now()}
     )).fetchone()
 
     [t2] = conn.execute(team.insert().returning(team.c.id).values(
-        {'name': 'Uncreative Designers', 'description': 'They always copy existing things', 'archived': False, 'created_at': datetime.now()}
+        {'name': 'Uncreative Designers', 'description': 'They always copy existing things',
+            'archived': False, 'created_at': datetime.now()}
     )).fetchone()
 
     op.bulk_insert(team_member, [
@@ -205,23 +249,104 @@ def upgrade():
         {'user_id': u8, 'team_id': t2, 'created_at': datetime.now()}
     ])
 
+    today = date.today()
+    last_month_begin = (today - timedelta(days=today.day)).replace(day=1)
+    next_month_end = (last_month_begin + timedelta(days=92)
+                      ).replace(day=1) - timedelta(days=1)
+
     # ### project assignments ###
-    op.bulk_insert(project_assignment, [
-        {'user_id': u1, 'project_id': p1, 'begin_date': date(2021, 1, 1), 'end_date': date(2021, 12, 31),
-            'hourly_rate': 120.00, 'created_at': datetime.now()},
-        {'user_id': u1, 'project_id': p2, 'begin_date': date(2021, 1, 1), 'end_date': date.max,
-            'hourly_rate': 160.00, 'created_at': datetime.now()},
-        {'user_id': u1, 'project_id': p3, 'begin_date': datetime.min, 'end_date': date(2021, 12, 31),
-            'hourly_rate': 140.00, 'created_at': datetime.now()},
-        {'user_id': u2, 'project_id': p1, 'begin_date': datetime.min, 'end_date': date(2021, 5, 31),
-            'hourly_rate': 70.00, 'created_at': datetime.now()},
-        {'user_id': u2, 'project_id': p1, 'begin_date': date(2021, 6, 1), 'end_date': date.max,
-            'hourly_rate': 80.00, 'created_at': datetime.now()},
-        {'user_id': u2, 'project_id': p2, 'begin_date': datetime.min, 'end_date': date(2021, 5, 31),
-            'hourly_rate': 95.00, 'created_at': datetime.now()},
-        {'user_id': u2, 'project_id': p3, 'begin_date': date(2021, 6, 1), 'end_date': date.max,
-            'hourly_rate': 115.00, 'created_at': datetime.now()}
-    ])
+
+    [pa1] = conn.execute(project_assignment.insert().returning(project_assignment.c.id).values(
+        {'user_id': u1, 'project_id': p1, 'begin_date': date.min,
+            'end_date': date.max, 'hourly_rate': 120.00, 'created_at': datetime.now()}
+    )).fetchone()
+    [pa2] = conn.execute(project_assignment.insert().returning(project_assignment.c.id).values(
+        {'user_id': u1, 'project_id': p2, 'begin_date': date.min,
+            'end_date': next_month_end, 'hourly_rate': 140.00, 'created_at': datetime.now()}
+    )).fetchone()
+    [pa3] = conn.execute(project_assignment.insert().returning(project_assignment.c.id).values(
+        {'user_id': u1, 'project_id': p3, 'begin_date': last_month_begin,
+            'end_date': date.max, 'hourly_rate': 160.00, 'created_at': datetime.now()}
+    )).fetchone()
+
+    [pa4] = conn.execute(project_assignment.insert().returning(project_assignment.c.id).values(
+        {'user_id': u2, 'project_id': p1, 'begin_date': date.min,
+            'end_date': next_month_end, 'hourly_rate': 70.00, 'created_at': datetime.now()}
+    )).fetchone()
+    [pa5] = conn.execute(project_assignment.insert().returning(project_assignment.c.id).values(
+        {'user_id': u2, 'project_id': p2, 'begin_date': last_month_begin,
+            'end_date': date.max, 'hourly_rate': 80.00, 'created_at': datetime.now()}
+    )).fetchone()
+    [pa6] = conn.execute(project_assignment.insert().returning(project_assignment.c.id).values(
+        {'user_id': u2, 'project_id': p3, 'begin_date': last_month_begin,
+            'end_date': next_month_end, 'hourly_rate': 90.00, 'created_at': datetime.now()}
+    )).fetchone()
+
+    # ### time logs ###
+
+    # pat is a tuple of project assignment & task
+    u1_pats = [*[(pa1, t) for t in p1_tasks], *[(pa2, t)
+                                                for t in p2_tasks], *[(pa3, t) for t in p3_tasks]]
+    u2_pats = [*[(pa4, t) for t in p1_tasks], *[(pa5, t)
+                                                for t in p2_tasks], *[(pa6, t) for t in p3_tasks]]
+
+    workday_duration = timedelta(hours=8)
+    tick_duration = timedelta(minutes=15)
+    ticks_per_workday = workday_duration // tick_duration
+    ticks_linspace = list(range(0, ticks_per_workday + 1))
+
+    def create_time_logs(pats, date):
+        cum_ticks = list(
+            sorted(choices(ticks_linspace, k=len(pats) - 1))) + [ticks_per_workday]
+        _, ticks = reduce(lambda acc, cum_tick: (
+            cum_tick, acc[1] + [cum_tick - acc[0]]), cum_ticks, (0, []))
+        durations = list(map(lambda tick: tick_duration * tick, ticks))
+        assert len(durations) == len(pats)
+        for d, [pa, t] in zip(durations, pats):
+            op.bulk_insert(time_log, [
+                {
+                    'project_assignment_id': pa,
+                    'task_id': t,
+                    'date': date,
+                    'duration': d,
+                    'created_at': datetime.now()
+                }
+            ])
+
+    seed(1)
+    workday = last_month_begin
+    while workday <= today:
+        if workday.weekday() < 5:
+            create_time_logs(u1_pats, workday)
+            create_time_logs(u2_pats, workday)
+        workday += timedelta(days=1)
+
+    # ### holiday requests ###
+    days_off_linspace = list(
+        range(0, (next_month_end - last_month_begin).days))
+
+    def create_days_off(user):
+        days_off = sample(days_off_linspace, randint(5, 15))
+        for d in days_off:
+            date_off = last_month_begin + timedelta(days=d)
+            if date_off.weekday() < 5:
+                _type = choice(['HOLIDAY', 'ON_DEMAND', 'UNPAID',
+                                'CHILD_CARE', 'COMPASSIONATE_LEAVE', 'SICK_LEAVE'])
+                status = 'ACCEPTED' if date_off <= today else choice(['ACCEPTED', 'PENDING'])
+                op.bulk_insert(holiday_request, [
+                    {
+                        'user_id': user,
+                        'changed_by_id': u1,
+                        'type': _type,
+                        'status': status,
+                        'start_date': datetime.combine(date_off, time()),
+                        'end_date': datetime.combine(date_off, time()),
+                        'created_at': datetime.now()
+                    }
+                ])
+
+    for u in [u3, u4, u5, u6, u7, u8]:
+        create_days_off(u)
 
     # ### end Alembic commands ###
 
@@ -236,6 +361,10 @@ def downgrade():
     team = table('team')
     team_member = table('team_member')
     project_assignment = table('project_assignment')
+    time_log = table('time_log')
+    holiday_request = table('holiday_request')
+    op.execute(holiday_request.delete())
+    op.execute(time_log.delete())
     op.execute(project_assignment.delete())
     op.execute(team_member.delete())
     op.execute(team.delete())
