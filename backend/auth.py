@@ -14,20 +14,39 @@ from error import Unauthorized
 from werkzeug.exceptions import ServiceUnavailable
 
 
-def roles_check(*roles):
-    for role in roles:
-        if role not in current_user.roles:
-            raise Unauthorized(current_user.name)
+def role_check(role):
+    roles_check([role])
 
 
-def roles_required(*roles):
+def roles_check(all_roles=[], any_role=[]):
+    def role_predicate(role):
+        return role in current_user.roles
+
+    all_present = all(map(role_predicate, all_roles))
+    any_present = any(map(role_predicate, any_role))
+
+    if not all_present:
+        raise Unauthorized(current_user.name)
+    if any_role and not any_present:
+        raise Unauthorized(current_user.name)
+
+
+def role_required(role):
     """
-    Decorator that checks if current user has all specified roles assigned.
+    Decorator that checks if current user has specified role assigned.
+    If not throws an exception.
+    """
+    return roles_required([role])
+
+
+def roles_required(all_roles=[], any_role=[]):
+    """
+    Decorator that checks if current user has specified roles assigned.
     If not throws an exception.
     """
     def inner(func):
         def wrapper(*args, **kwargs):
-            roles_check(*roles)
+            roles_check(all_roles, any_role)
             return func(*args, **kwargs)
         return wrapper
     return inner
