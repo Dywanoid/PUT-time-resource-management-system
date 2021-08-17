@@ -38,7 +38,28 @@ Login as `jkowalski` with password `password`.
 
 http://localhost/
 
-Other available user logins are: `aszymanska`, `awisniewska`, `jkowalczyk`, `kwojcik`, `mkaminska`, `mwozniak`, `mzielinska`, `plewandowski`, `pnowak`. Password for all of them is `password`.
+All available user logins are listed in the table below. Password for all of them is `password`.
+
+| User          | Role                      |
+|---------------|---------------------------|
+| aszymanska    | client_editor             |
+| awisniewska   | report_viewer             |
+| jkowalczyk    | supervisor_editor         |
+| jkowalski     | manager                   |
+| kwojcik       | team_editor               |
+| mkaminska     | timelog_viewer            |
+| mwozniak      | holiday_request_approver  |
+| mzielinska    |                           |
+| plewandowski  |                           |
+| pnowak        |                           |
+
+### Stop all the services
+
+Prest `Ctrl+C` in the console, wait for services to be stopped and then run command below to release allocated resources.
+
+```
+docker-compose -p pracujta down
+```
 
 ## Keycloak configuration
 

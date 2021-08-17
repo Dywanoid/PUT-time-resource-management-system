@@ -177,17 +177,17 @@ def upgrade():
 
     [u3] = conn.execute(user.insert().returning(user.c.id).values(
         {'name': 'Anna Wiśniewska', 'supervisor_id': u1,
-            'roles': [], 'created_at': datetime.now()}
+            'roles': ['report_viewer'], 'created_at': datetime.now()}
     )).fetchone()
 
     [u4] = conn.execute(user.insert().returning(user.c.id).values(
         {'name': 'Krzysztof Wójcik', 'supervisor_id': u1,
-            'roles': [], 'created_at': datetime.now()}
+            'roles': ['team_editor'], 'created_at': datetime.now()}
     )).fetchone()
 
     [u5] = conn.execute(user.insert().returning(user.c.id).values(
         {'name': 'Maria Kamińska', 'supervisor_id': u1,
-            'roles': [], 'created_at': datetime.now()}
+            'roles': ['timelog_viewer'], 'created_at': datetime.now()}
     )).fetchone()
 
     [u6] = conn.execute(user.insert().returning(user.c.id).values(
@@ -202,7 +202,7 @@ def upgrade():
 
     [u8] = conn.execute(user.insert().returning(user.c.id).values(
         {'name': 'Agnieszka Szymańska', 'supervisor_id': u1,
-            'roles': [], 'created_at': datetime.now()}
+            'roles': ['client_editor'], 'created_at': datetime.now()}
     )).fetchone()
 
     op.bulk_insert(oauth, [

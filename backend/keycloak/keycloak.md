@@ -24,7 +24,7 @@ docker exec -e DB_VENDOR=postgres -e DB_ADDR=db -e DB_USER=postgres -e DB_PASSWO
 ```
 ## Stop the 2nd instance
 
-Stop the second instance by pressing `Ctrl+C` in the console.
+Wait till the 2nd instance has started successfully, by awaiting for a log entry that looks similar to `Keycloak 12.0.4 (WildFly Core 13.0.3.Final) started in 12630ms`, then stop it by pressing `Ctrl+C` in the console.
 
 ## Replace the existing realm settings
 

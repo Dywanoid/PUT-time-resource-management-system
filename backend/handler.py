@@ -7,7 +7,7 @@ from schema import schema
 from app import app
 from datetime import datetime
 from flask_login import login_required, logout_user
-from auth import oidc_blueprint, roles_required
+from auth import oidc_blueprint, role_required
 from werkzeug.urls import url_encode
 import csv
 from io import StringIO
@@ -48,7 +48,7 @@ def graphql_server():
 
 
 @app.route('/export/employees_time/<string:start_date>/<string:end_date>', methods=['GET'])
-@roles_required('manager')
+@role_required('report_viewer')
 def export(start_date, end_date):
     pattern = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
     if(not (re.match(pattern, start_date) and re.match(pattern, end_date))):

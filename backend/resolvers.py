@@ -9,7 +9,7 @@ from database import Client, Currency, Document, DocumentLink, Invoice, Language
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
 from error import NotFound, ValidationError, ActiveHolidayRequestError, Unauthorized
-from auth import roles_required, roles_check
+from auth import role_required, role_check
 from reporting import get_client_reports
 
 query = QueryType()
@@ -22,6 +22,7 @@ currency_enum = EnumType("Currency", Currency)
 language_enum = EnumType("Language", Language)
 holiday_request_type_enum = EnumType("HolidayRequestType", HolidayRequestType)
 holiday_request_status_enum = EnumType("HolidayRequestStatus", HolidayRequestStatus)
+
 
 @dataclass
 class TimeLogInfo:
@@ -91,21 +92,18 @@ def resolve_task(obj, info, id):
 
 
 @query.field("users")
-@roles_required('manager')
 def resolve_users(obj, info, offset, limit):
     return User.query.order_by(desc(User.created_at)).offset(offset).limit(limit).all()
 
 
 @query.field("user")
 def resolve_user(obj, info, id=None):
-    id = id or str(current_user.id)
-    if id != str(current_user.id):
-        roles_check('manager')
+    id = id or current_user.id
     return find_item(User, id)
 
 
 @mutation.field("updateSupervisor")
-@roles_required('manager')
+@role_required('supervisor_editor')
 @mutate_item(User, 'user_id')
 def resolve_update_supervisor(user, input):
     supervisor_id = int(input.get('supervisor_id'))
@@ -120,7 +118,7 @@ def resolve_update_supervisor(user, input):
 
 
 @mutation.field("updateSupervisorBatch")
-@roles_required('manager')
+@role_required('supervisor_editor')
 @convert_kwargs_to_snake_case
 def resolve_update_supervisor(obj, info, input):
     supervisor_id = int(input.get('supervisor_id'))
@@ -142,7 +140,7 @@ def resolve_update_supervisor(obj, info, input):
 
 
 @mutation.field("unassignSupervisor")
-@roles_required('manager')
+@role_required('supervisor_editor')
 @mutate_item(User, 'user_id')
 def resolve_update_supervisor(user, input):
     user.supervisor_id = None
@@ -150,7 +148,7 @@ def resolve_update_supervisor(user, input):
 
 
 @mutation.field("unassignSupervisorBatch")
-@roles_required('manager')
+@role_required('supervisor_editor')
 @convert_kwargs_to_snake_case
 def resolve_update_supervisor(obj, info, input):
     user_id_list = input.get('user_list')
@@ -166,10 +164,11 @@ def resolve_update_supervisor(obj, info, input):
 
 @query.field("getAllSubordinates")
 @convert_kwargs_to_snake_case
-def resolve_get_all_subordinates(obj, info, user_id = None):
+def resolve_get_all_subordinates(obj, info, user_id=None):
     id = user_id if user_id else current_user.id
     user = find_item(User, id)
     return user.get_all_subordinates()
+
 
 def find_project_assignments(offset, limit, from_date, to_date, user_id=None, project_id=None, exclude_project_assignment_id=None):
     filters = [
@@ -196,13 +195,15 @@ def find_project_assignments(offset, limit, from_date, to_date, user_id=None, pr
 @convert_kwargs_to_snake_case
 def resolve_project_assignments(obj, info, offset, limit, from_date, to_date, user_id=None, project_id=None):
     if user_id is None or user_id != str(current_user.id):
-        roles_check('manager')
+        role_check('client_editor')
     return find_project_assignments(offset, limit, from_date, to_date, user_id, project_id)
 
 
 @project_assignment_object.field("timeLogs")
 @convert_kwargs_to_snake_case
 def resolve_time_logs(project_assignment, info, from_date=None, to_date=None):
+    if project_assignment.user_id != current_user.id:
+        role_check('timelog_viewer')
     filters = [TimeLog.project_assignment_id == project_assignment.id]
     if from_date:
         filters.append(TimeLog.date >= from_date)
@@ -249,7 +250,7 @@ def validate_project_assignment(project_assignment):
 
 
 @mutation.field("createProjectAssignment")
-@roles_required('manager')
+@role_required('client_editor')
 @convert_kwargs_to_snake_case
 def resolve_add_project_assignment(obj, info, input):
     project = find_item(Project, input['project_id'])
@@ -271,7 +272,7 @@ def resolve_add_project_assignment(obj, info, input):
 
 
 @mutation.field("updateProjectAssignment")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(ProjectAssignment, 'project_assignment_id')
 def resolve_update_project_assignment(project_assignment, input):
     project_assignment.begin_date = input.get('begin_date')
@@ -293,7 +294,7 @@ def resolve_update_project_assignment(project_assignment, input):
 
 
 @mutation.field("deleteProjectAssignment")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(ProjectAssignment, 'project_assignment_id')
 def resolve_delete_project_assignment(project_assignment, input):
     time_log_info = get_time_log_info(project_assignment)
@@ -313,7 +314,7 @@ def resolve_create_update_or_delete_time_log(obj, info, input):
     duration = input['duration']
 
     if project_assignment.user_id != current_user.id:
-        roles_check('manager')
+        role_check('timelog_viewer')
     errors = []
     if not (task.project_id == project_assignment.project_id):
         errors.append(f"Task {task.id} not assigned to project {project_assignment.project_id}")
@@ -344,13 +345,14 @@ def resolve_create_update_or_delete_time_log(obj, info, input):
 
 
 @query.field("clientReports")
+@role_required('report_viewer')
 @convert_kwargs_to_snake_case
 def resolve_client_reports(obj, info, client_ids, from_date, to_date):
     return get_client_reports(client_ids, from_date, to_date)
 
 
 @mutation.field("createClient")
-@roles_required('manager')
+@role_required('client_editor')
 @convert_kwargs_to_snake_case
 def resolve_create_client(obj, info, input):
     client = Client(
@@ -368,7 +370,7 @@ def resolve_create_client(obj, info, input):
 
 
 @mutation.field("updateClient")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Client, 'client_id')
 def resolve_update_client(client, input):
     client.name = input['name']
@@ -381,7 +383,7 @@ def resolve_update_client(client, input):
 
 
 @mutation.field("archiveClient")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Client, 'client_id')
 def resolve_archive_client(client, input):
     client.archived = True
@@ -389,7 +391,7 @@ def resolve_archive_client(client, input):
 
 
 @mutation.field("unarchiveClient")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Client, 'client_id')
 def resolve_unarchive_client(client, input):
     client.archived = False
@@ -397,7 +399,7 @@ def resolve_unarchive_client(client, input):
 
 
 @mutation.field("addProject")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Client, 'client_id')
 def resolve_add_project(client, input):
     project = Project(
@@ -410,7 +412,7 @@ def resolve_add_project(client, input):
 
 
 @mutation.field("updateProject")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Project, 'project_id')
 def resolve_update_project(project, input):
     project.name = input['name']
@@ -418,7 +420,7 @@ def resolve_update_project(project, input):
 
 
 @mutation.field("archiveProject")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Project, 'project_id')
 def resolve_archive_project(project, input):
     project.archived = True
@@ -426,7 +428,7 @@ def resolve_archive_project(project, input):
 
 
 @mutation.field("unarchiveProject")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Project, 'project_id')
 def resolve_unarchive_project(project, input):
     project.archived = False
@@ -434,7 +436,7 @@ def resolve_unarchive_project(project, input):
 
 
 @mutation.field("addTask")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Project, 'project_id')
 def resolve_add_task(project, input):
     task = Task(
@@ -447,7 +449,7 @@ def resolve_add_task(project, input):
 
 
 @mutation.field("updateTask")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Task, 'task_id')
 def resolve_update_task(task, input):
     task.name = input['name']
@@ -455,7 +457,7 @@ def resolve_update_task(task, input):
 
 
 @mutation.field("archiveTask")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Task, 'task_id')
 def resolve_archive_task(task, input):
     task.archived = True
@@ -463,7 +465,7 @@ def resolve_archive_task(task, input):
 
 
 @mutation.field("unarchiveTask")
-@roles_required('manager')
+@role_required('client_editor')
 @mutate_item(Task, 'task_id')
 def resolve_unarchive_task(task, input):
     task.archived = False
@@ -520,6 +522,7 @@ def resolve_create_invoice(obj, info, input):
 
 
 @mutation.field("createTeam")
+@role_required('team_editor')
 @convert_kwargs_to_snake_case
 def resolve_create_team(obj, info, input):
     team = Team(
@@ -533,6 +536,7 @@ def resolve_create_team(obj, info, input):
 
 
 @mutation.field("updateTeam")
+@role_required('team_editor')
 @mutate_item(Team, 'team_id')
 def resolve_update_client(team, input):
     team.name = input.get('name')
@@ -540,6 +544,7 @@ def resolve_update_client(team, input):
     return team
 
 @mutation.field("archiveTeam")
+@role_required('team_editor')
 @mutate_item(Team, 'team_id')
 def resolve_archive_project(team, input):
     team.archived = True
@@ -547,6 +552,7 @@ def resolve_archive_project(team, input):
 
 
 @mutation.field("unarchiveTeam")
+@role_required('team_editor')
 @mutate_item(Team, 'team_id')
 def resolve_archive_project(team, input):
     team.archived = False
@@ -554,6 +560,7 @@ def resolve_archive_project(team, input):
 
 
 @mutation.field("createTeamMember")
+@role_required('team_editor')
 @convert_kwargs_to_snake_case
 def resolve_create_team_member(obj, info, input):
     team_member = TeamMember(
@@ -567,6 +574,7 @@ def resolve_create_team_member(obj, info, input):
 
 
 @mutation.field("createTeamMemberBatch")
+@role_required('team_editor')
 @convert_kwargs_to_snake_case
 def resolve_create_team_member(obj, info, input):
     user_id_list = input.get('user_id_list')
@@ -585,6 +593,7 @@ def resolve_create_team_member(obj, info, input):
 
 
 @mutation.field("deleteTeamMember")
+@role_required('team_editor')
 @convert_kwargs_to_snake_case
 def resolve_delete_team_member(obj, info, input):
     user_id = input.get('user_id')
@@ -596,6 +605,7 @@ def resolve_delete_team_member(obj, info, input):
 
 
 @mutation.field("deleteTeamMemberBatch")
+@role_required('team_editor')
 @convert_kwargs_to_snake_case
 def resolve_delete_team_member_batch(obj, info, input):
     user_id_list = set(input.get('user_id_list'))
@@ -630,7 +640,7 @@ def resolve_create_holiday_request(obj, info, input):
     user = find_item(User, current_user.id)
     user_id = int(input.get('user_id'))
     if(user_id != current_user.id and not user.is_supervisor_of(user_id)):
-        roles_check('manager')
+        role_check('holiday_request_approver')
     start_date = input.get('start_date')
     end_date = input.get('end_date')
     if(end_date < start_date):
@@ -665,12 +675,12 @@ def resolve_change_holiday_request_status(holiday_request, input):
         raise ValidationError(f"Holiday request {holiday_request.id} is already {holiday_request.status}")
     if(holiday_request.user_id == current_user.id):
         if(holiday_request.status != HolidayRequestStatus.PENDING or status != HolidayRequestStatus.CANCELLED):
-            roles_check('manager')
+            role_check('holiday_request_approver')
     elif(user.is_supervisor_of(holiday_request.user_id)):
         if(holiday_request.status != HolidayRequestStatus.PENDING or status not in [HolidayRequestStatus.ACCEPTED, HolidayRequestStatus.REJECTED]):
-            roles_check('manager')
+            role_check('holiday_request_approver')
     else:
-        roles_check('manager')
+        role_check('holiday_request_approver')
     holiday_request.status = status
     holiday_request.changed_by_id = current_user.id
     return holiday_request
@@ -701,7 +711,7 @@ def resolve_holiday_requests(obj, info, request_statuses = [], request_types = [
     if(wanted_users != {current_user.id}):
         permitted_to = subordinates.union({current_user.id})
         if(not wanted_users.issubset(permitted_to)):
-            roles_check('manager')
+            role_check('holiday_request_approver')
     result = HolidayRequest.query.filter(*filters).all()
     return result
 
