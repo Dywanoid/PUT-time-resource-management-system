@@ -87,7 +87,7 @@ def authorized_callback(blueprint, token):
 
     user_info = response.json()
     provider_user_id = str(user_info['sub'])
-    user_roles = user_info['resource_access'].get('pracujta', {}).get('roles', [])
+    user_roles = user_info['resource_access'].get('pracujtime', {}).get('roles', [])
     user_name = user_info['name']
     oauth = OAuth.query.filter_by(provider=blueprint.name,
                                   provider_user_id=provider_user_id).first()

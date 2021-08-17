@@ -29,7 +29,7 @@ Get them with [Docker Desktop](https://docs.docker.com/desktop/) distribution.
 ### Start all the services
 
 ```
-docker-compose -p pracujta up
+docker-compose -p pracujtime up
 ```
 
 ### Open the app
@@ -58,12 +58,12 @@ All available user logins are listed in the table below. Password for all of the
 Prest `Ctrl+C` in the console, wait for services to be stopped and then run command below to release allocated resources.
 
 ```
-docker-compose -p pracujta down
+docker-compose -p pracujtime down
 ```
 
 ## Keycloak configuration
 
 * [Keycloak administration console](http://localhost:8080/auth/admin/) - user `admin`, password `admin`
-* [Account console](http://localhost:8080/auth/realms/pracujta-realm/account) - user credentials, eg. user `jkowalski`, password `password`
+* [Account console](http://localhost:8080/auth/realms/pracujtime-realm/account) - user credentials, eg. user `jkowalski`, password `password`
 
 If you wish to export updated settings see the [keycloak.md](./backend/keycloak/keycloak.md) for more informaiton.

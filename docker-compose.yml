@@ -2,27 +2,27 @@ version: '3'
 services:
   app:
     build: ./
-    image: pracujta:latest
+    image: pracujtime:latest
     ports:
       - 80:80
     volumes:
       - ./backend:/app/backend
     environment:
       PORT: 80
-      DATABASE_URL: postgres://postgres:password@db/pracujta
+      DATABASE_URL: postgres://postgres:password@db/pracujtime
       FLASK_DEBUG: 1
       SECRET_KEY: secret
       SERVER_NAME: localhost
       PREFERRED_URL_SCHEME: http
       SQLALCHEMY_ECHO: 1
       OAUTHLIB_INSECURE_TRANSPORT: 1
-      OIDC_CLIENT_ID: pracujta
+      OIDC_CLIENT_ID: pracujtime
       OIDC_CLIENT_SECRET: 99188acf-689e-41e2-b949-b4c50c10233d
-      OIDC_BASE_URL: http://auth:8080/auth/realms/pracujta-realm/protocol/openid-connect
-      OIDC_TOKEN_URL: http://auth:8080/auth/realms/pracujta-realm/protocol/openid-connect/token
-      OIDC_AUTHORIZATION_URL: http://localhost:8080/auth/realms/pracujta-realm/protocol/openid-connect/auth
-      OIDC_END_SESSION_URL: http://localhost:8080/auth/realms/pracujta-realm/protocol/openid-connect/logout
-      OIDC_USERINFO_URL: http://auth:8080/auth/realms/pracujta-realm/protocol/openid-connect/userinfo
+      OIDC_BASE_URL: http://auth:8080/auth/realms/pracujtime-realm/protocol/openid-connect
+      OIDC_TOKEN_URL: http://auth:8080/auth/realms/pracujtime-realm/protocol/openid-connect/token
+      OIDC_AUTHORIZATION_URL: http://localhost:8080/auth/realms/pracujtime-realm/protocol/openid-connect/auth
+      OIDC_END_SESSION_URL: http://localhost:8080/auth/realms/pracujtime-realm/protocol/openid-connect/logout
+      OIDC_USERINFO_URL: http://auth:8080/auth/realms/pracujtime-realm/protocol/openid-connect/userinfo
       OIDC_HOST_HEADER_OVERRIDE: localhost:8080
     depends_on:
       - db
@@ -38,7 +38,7 @@ services:
       POSTGRES_PASSWORD: password
   auth:
     build: ./backend/keycloak
-    image: pracujta-keycloak:latest
+    image: pracujtime-keycloak:latest
     ports:
       - 8080:8080
     volumes:
