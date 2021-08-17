@@ -1,6 +1,6 @@
 {
-  "id" : "pracujta-realm",
-  "realm" : "pracujta-realm",
+  "id" : "pracujtime-realm",
+  "realm" : "pracujtime-realm",
   "notBefore" : 0,
   "revokeRefreshToken" : false,
   "refreshTokenMaxReuse" : 0,
@@ -47,7 +47,7 @@
       "description" : "${role_uma_authorization}",
       "composite" : false,
       "clientRole" : false,
-      "containerId" : "pracujta-realm",
+      "containerId" : "pracujtime-realm",
       "attributes" : { }
     }, {
       "id" : "1842936b-da84-4b1c-8630-11dac6e3f1d2",
@@ -55,7 +55,7 @@
       "description" : "${role_offline-access}",
       "composite" : false,
       "clientRole" : false,
-      "containerId" : "pracujta-realm",
+      "containerId" : "pracujtime-realm",
       "attributes" : { }
     } ],
     "client" : {
@@ -306,7 +306,7 @@
         "containerId" : "1a121ac3-9e21-4374-b830-488b1b9245c0",
         "attributes" : { }
       } ],
-      "pracujta" : [ {
+      "pracujtime" : [ {
         "id" : "b7cf5b6c-324b-4ebf-ade2-1065248d7736",
         "name" : "supervisor_editor",
         "description" : "Can assign supervisors",
@@ -329,7 +329,7 @@
         "composite" : true,
         "composites" : {
           "client" : {
-            "pracujta" : [ "supervisor_editor", "client_editor", "report_viewer", "holiday_request_approver", "timelog_viewer", "team_editor" ]
+            "pracujtime" : [ "supervisor_editor", "client_editor", "report_viewer", "holiday_request_approver", "timelog_viewer", "team_editor" ]
           }
         },
         "clientRole" : true,
@@ -421,7 +421,7 @@
     "realmRoles" : [ "uma_authorization", "offline_access" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ],
-      "pracujta" : [ "client_editor" ]
+      "pracujtime" : [ "client_editor" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -446,7 +446,7 @@
     "realmRoles" : [ "uma_authorization", "offline_access" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ],
-      "pracujta" : [ "report_viewer" ]
+      "pracujtime" : [ "report_viewer" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -471,7 +471,7 @@
     "realmRoles" : [ "uma_authorization", "offline_access" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ],
-      "pracujta" : [ "supervisor_editor" ]
+      "pracujtime" : [ "supervisor_editor" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -496,7 +496,7 @@
     "realmRoles" : [ "uma_authorization", "offline_access" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ],
-      "pracujta" : [ "manager" ]
+      "pracujtime" : [ "manager" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -521,7 +521,7 @@
     "realmRoles" : [ "uma_authorization", "offline_access" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ],
-      "pracujta" : [ "team_editor" ]
+      "pracujtime" : [ "team_editor" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -546,7 +546,7 @@
     "realmRoles" : [ "uma_authorization", "offline_access" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ],
-      "pracujta" : [ "timelog_viewer" ]
+      "pracujtime" : [ "timelog_viewer" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -571,7 +571,7 @@
     "realmRoles" : [ "uma_authorization", "offline_access" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ],
-      "pracujta" : [ "holiday_request_approver" ]
+      "pracujtime" : [ "holiday_request_approver" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -663,14 +663,14 @@
     "clientId" : "account",
     "name" : "${client_account}",
     "rootUrl" : "${authBaseUrl}",
-    "baseUrl" : "/realms/pracujta-realm/account/",
+    "baseUrl" : "/realms/pracujtime-realm/account/",
     "surrogateAuthRequired" : false,
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "**********",
     "defaultRoles" : [ "manage-account", "view-profile" ],
-    "redirectUris" : [ "/realms/pracujta-realm/account/*" ],
+    "redirectUris" : [ "/realms/pracujtime-realm/account/*" ],
     "webOrigins" : [ ],
     "notBefore" : 0,
     "bearerOnly" : false,
@@ -693,13 +693,13 @@
     "clientId" : "account-console",
     "name" : "${client_account-console}",
     "rootUrl" : "${authBaseUrl}",
-    "baseUrl" : "/realms/pracujta-realm/account/",
+    "baseUrl" : "/realms/pracujtime-realm/account/",
     "surrogateAuthRequired" : false,
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "**********",
-    "redirectUris" : [ "/realms/pracujta-realm/account/*" ],
+    "redirectUris" : [ "/realms/pracujtime-realm/account/*" ],
     "webOrigins" : [ ],
     "notBefore" : 0,
     "bearerOnly" : false,
@@ -783,7 +783,7 @@
     "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "382f495d-7b4c-4f03-8a93-eb42e6cf5e34",
-    "clientId" : "pracujta",
+    "clientId" : "pracujtime",
     "rootUrl" : "http://localhost",
     "adminUrl" : "http://localhost",
     "surrogateAuthRequired" : false,
@@ -858,13 +858,13 @@
     "clientId" : "security-admin-console",
     "name" : "${client_security-admin-console}",
     "rootUrl" : "${authAdminUrl}",
-    "baseUrl" : "/admin/pracujta-realm/console/",
+    "baseUrl" : "/admin/pracujtime-realm/console/",
     "surrogateAuthRequired" : false,
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "**********",
-    "redirectUris" : [ "/admin/pracujta-realm/console/*" ],
+    "redirectUris" : [ "/admin/pracujtime-realm/console/*" ],
     "webOrigins" : [ "+" ],
     "notBefore" : 0,
     "bearerOnly" : false,

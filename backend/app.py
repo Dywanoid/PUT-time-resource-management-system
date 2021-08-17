@@ -6,7 +6,7 @@ from flask_cors import CORS
 from flask_login import LoginManager
 from flask_talisman import Talisman
 
-OIDC_BASE_URL = os.getenv("OIDC_BASE_URL", "http://localhost:8080/auth/realms/pracujta-realm/protocol/openid-connect")
+OIDC_BASE_URL = os.getenv("OIDC_BASE_URL", "http://localhost:8080/auth/realms/pracujtime-realm/protocol/openid-connect")
 
 app = Flask(__name__, static_folder='/app/frontend/build')
 app.config.update({
@@ -21,7 +21,7 @@ app.config.update({
     'CACHE_TYPE': 'SimpleCache',
     'CACHE_DEFAULT_TIMEOUT': 60,
     'OIDC_BASE_URL': OIDC_BASE_URL,
-    'OIDC_CLIENT_ID': os.getenv("OIDC_CLIENT_ID", "pracujta"),
+    'OIDC_CLIENT_ID': os.getenv("OIDC_CLIENT_ID", "pracujtime"),
     'OIDC_CLIENT_SECRET': os.getenv("OIDC_CLIENT_SECRET", "99188acf-689e-41e2-b949-b4c50c10233d"),
     'OIDC_USERINFO_URL': os.getenv("OIDC_USERINFO_URL", f"{OIDC_BASE_URL}/userinfo"),
     'OIDC_TOKEN_URL': os.getenv("OIDC_TOKEN_URL", f"{OIDC_BASE_URL}/token"),
