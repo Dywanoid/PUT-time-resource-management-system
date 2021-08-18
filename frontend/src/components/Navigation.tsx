@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import logo from '../resources/pracujtime.png';
 import { UserContext } from '../utils/auth';
 import { colorHash } from '../utils/colorHash';
+import { rolesCheck } from '../utils/rolesCheck';
 import plImg from '../resources/pl.png';
 import enImg from '../resources/en.png';
 import '../css/Navigation.css';
@@ -17,7 +18,7 @@ export const Navigation = injectIntl(({ intl }): JSX.Element => {
   const [lang, setLang] = useState('');
 
   const user = userInfo?.name || '';
-  const userRoles = userInfo?.roles || '';
+  const userRoles = userInfo?.roles || [''];
 
   const changeLanguageFlag = () => {
     localStorage.setItem('lang', localStorage.getItem('lang') === 'en' ? 'pl' : 'en' );
@@ -63,7 +64,7 @@ export const Navigation = injectIntl(({ intl }): JSX.Element => {
               { intl.formatMessage({ id: 'teams' }) }
             </Link>
           </Menu.Item>
-          { userRoles.includes('manager')
+          { rolesCheck(userRoles, ['manager', 'supervisor_editor'])
           && <Menu.Item key="6">
             <Link to="/subordinate" className="nav-text">
               { intl.formatMessage({ id: 'assign_subordinates' }) }

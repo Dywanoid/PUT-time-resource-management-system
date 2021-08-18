@@ -16,6 +16,7 @@ import {
 import moment from 'moment';
 import { UserContext } from '../utils/auth';
 import { colorHash } from '../utils/colorHash';
+import { rolesCheck } from '../utils/rolesCheck';
 import '../css/ApplicationView.css';
 
 const { Content } = Layout;
@@ -89,7 +90,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
       subordinatesList.push(userInfo.subordinates[user].id);
     }
     setUserRole(userInfo.roles as any);
-    if (userR.includes('manager')) {
+    if (rolesCheck(userR, ['manager', 'holiday_request_approver'])) {
       getUsersHolidayRequests({ variables: { userList: subordinatesList } });
     }
     getUserHolidayRequests();
@@ -236,7 +237,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
         renderItem={ (item: any) => (
           <List.Item
             actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
-              ? userRole[0].toUpperCase()
+              ? rolesCheck(userRole, ['manager', 'holiday_request_approver']) === true ? 'MANAGER' : ''
               : 'USER', item)
             }
           >
@@ -260,7 +261,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
           </List.Item>
         )}
       />
-      { userRole.includes('manager')
+      { rolesCheck(userRole, ['manager', 'holiday_request_approver'])
       && (
         <List
           header={ <h1>{ intl.formatMessage({ id: 'subbordinates_applications' }) }</h1> }
@@ -271,7 +272,7 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
           renderItem={ (item: any) => (
             <List.Item
               actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
-                ? userRole[0].toUpperCase()
+                ? rolesCheck(userRole, ['manager', 'holiday_request_approver']) === true ? 'MANAGER' : ''
                 : 'USER', item)
               }
             >

@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import { FormOutlined, EditFilled, InboxOutlined  } from '@ant-design/icons';
 import { UserContext } from '../utils/auth';
 import { colorHash } from '../utils/colorHash';
+import { rolesCheck } from '../utils/rolesCheck';
 import '../css/TeamsView.css';
 
 const { Search } = Input;
@@ -276,7 +277,7 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
   const userTeams = userInfo?.teams as any || [];
   const users = usersData?.users || [];
 
-  if (!userRole.includes('manager')) {
+  if (!rolesCheck(userRole, ['manager', 'team_editor'])) {
     const teamsArr: Array<{ id: string, name: string, description: any, archived: boolean }> = [];
 
     for (let i = 0; i < userTeams.length; i++) {
@@ -309,7 +310,7 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
 
   return (
     <>
-      {userRole.includes('manager')
+      {rolesCheck(userRole, ['manager', 'team_editor'])
       && <Button onClick={ newTeamHandler } className="addTeam">
         {intl.formatMessage({ id: 'add_team' })}
         ➕
@@ -341,7 +342,7 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
               <List.Item
                 className={ item.archived ? 'archivedItem' : 'notArchived' }
                 actions={
-                  (!item.archived && userRole.includes('manager'))
+                  (!item.archived && rolesCheck(userRole, ['manager', 'team_editor']))
                     ? ([
                       <Button key="1" size='small' onClick={
                         () => editTeamButton(item.id, item.name, item.description) }
@@ -362,7 +363,7 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
                           key="list-vertical-like-o"/>
                       </Button>
                     ])
-                    : (item.archived && userRole.includes('manager'))
+                    : (item.archived && rolesCheck(userRole, ['manager', 'team_editor']))
                       ? ([<Button key="3" size='small' onClick={ () => showArchiveModal(item.id, false) }>
                         <IconText icon={ InboxOutlined }
                           text={ intl.formatMessage({ id: 'unarchive' }) } key="list-vertical-like-o"/>
