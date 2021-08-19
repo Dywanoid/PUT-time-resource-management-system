@@ -29,7 +29,7 @@ export const ClientModal = ({
   visible={ isModalVisible }
   footer={ null }>
   <Form
-    labelCol= {{ span: 4 }}
+    labelCol= {{ span: 8 }}
     wrapperCol= {{ span: 20 }}
     form={ form }
     initialValues={ initialValues }
@@ -89,7 +89,7 @@ export const ClientModal = ({
       </Select>
     </Form.Item>
     <Form.Item
-      wrapperCol={{ offset: 4 }}>
+      wrapperCol={{ offset: 8 }}>
       <Button
         type="primary"
         htmlType="submit"

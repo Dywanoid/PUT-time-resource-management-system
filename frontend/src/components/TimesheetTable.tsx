@@ -449,7 +449,7 @@ const currentMomentGetter = () => moment();
 export const TimesheetTable: React.FC = injectIntl(({ intl }) => {
   const user = useContext(UserContext);
   const userId = user?.id as string;
-  const isAbleToSeeOthers = !!user?.subordinates?.length;
+  const isAbleToSeeOthers = !!user?.subordinates?.length && (user?.roles as string[]).includes('timelog_viewer');
 
   const [pickedUser, setPickedUser] = useState<string>(userId);
 
@@ -473,7 +473,6 @@ export const TimesheetTable: React.FC = injectIntl(({ intl }) => {
 
   if (error) {return <p>{error}</p>;}
   if (isLoading) {return <Loader/>;}
-  // if(!state.length) {return <p>Nie ma żadnych przypisanych projektów!</p>;}
 
   const columns = [
     ...dataColumns,
