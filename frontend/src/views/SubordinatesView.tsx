@@ -116,7 +116,7 @@ export const SubordinatesView = injectIntl(({ intl }) : JSX.Element => {
         }
 
         for (let i = 0; i < users.length; i++) {
-          if (users[i].id !== user?.id && (users[i].supervisor === null
+          if (users[i].id !== user?.id && users[i]?.id !== user?.supervisor.id && (users[i].supervisor === null
             || users[i].supervisor.id === user?.id)) {
             data.push({
               key: users[i].id,

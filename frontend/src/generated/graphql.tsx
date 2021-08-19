@@ -1,4 +1,4 @@
-/* eslint-disable */ 
+/* eslint-disable */
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
@@ -1262,6 +1262,19 @@ export type GetClientReportsQuery = (
         & Pick<ProjectAssignmentReport, 'totalDuration'>
       )>> }
     )>> }
+  )>> }
+);
+
+export type GetAllSubordinatesQueryVariables = Exact<{
+  userId: Scalars['ID'];
+}>;
+
+
+export type GetAllSubordinatesQuery = (
+  { __typename?: 'Query' }
+  & { getAllSubordinates?: Maybe<Array<(
+    { __typename?: 'User' }
+    & Pick<User, 'name' | 'id'>
   )>> }
 );
 
@@ -2715,6 +2728,42 @@ export function useGetClientReportsLazyQuery(baseOptions?: Apollo.LazyQueryHookO
 export type GetClientReportsQueryHookResult = ReturnType<typeof useGetClientReportsQuery>;
 export type GetClientReportsLazyQueryHookResult = ReturnType<typeof useGetClientReportsLazyQuery>;
 export type GetClientReportsQueryResult = Apollo.QueryResult<GetClientReportsQuery, GetClientReportsQueryVariables>;
+export const GetAllSubordinatesDocument = gql`
+    query GetAllSubordinates($userId: ID!) {
+  getAllSubordinates(userId: $userId) {
+    name
+    id
+  }
+}
+    `;
+
+/**
+ * __useGetAllSubordinatesQuery__
+ *
+ * To run a query within a React component, call `useGetAllSubordinatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllSubordinatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllSubordinatesQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetAllSubordinatesQuery(baseOptions: Apollo.QueryHookOptions<GetAllSubordinatesQuery, GetAllSubordinatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllSubordinatesQuery, GetAllSubordinatesQueryVariables>(GetAllSubordinatesDocument, options);
+      }
+export function useGetAllSubordinatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllSubordinatesQuery, GetAllSubordinatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllSubordinatesQuery, GetAllSubordinatesQueryVariables>(GetAllSubordinatesDocument, options);
+        }
+export type GetAllSubordinatesQueryHookResult = ReturnType<typeof useGetAllSubordinatesQuery>;
+export type GetAllSubordinatesLazyQueryHookResult = ReturnType<typeof useGetAllSubordinatesLazyQuery>;
+export type GetAllSubordinatesQueryResult = Apollo.QueryResult<GetAllSubordinatesQuery, GetAllSubordinatesQueryVariables>;
 export const GetTasksDocument = gql`
     query GetTasks($projectId: ID!) {
   project(id: $projectId) {
@@ -3053,6 +3102,7 @@ export const namedOperations = {
     GetProjects: 'GetProjects',
     GetAllClientsAndProjectsWithTasks: 'GetAllClientsAndProjectsWithTasks',
     GetClientReports: 'GetClientReports',
+    GetAllSubordinates: 'GetAllSubordinates',
     GetTasks: 'GetTasks',
     GetAllTeams: 'GetAllTeams',
     GetTeamInfo: 'GetTeamInfo',

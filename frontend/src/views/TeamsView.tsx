@@ -101,7 +101,7 @@ export const TeamsView = injectIntl(({ intl }): JSX.Element => {
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
   const [targetKeysInitial, setTargetKeysInitial] = useState<string[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-  const [usersInTeamArr, setUseresInTeamArr] = useState([{ key: '0',name: 'lol' }]);
+  const [usersInTeamArr, setUseresInTeamArr] = useState([{ key: '0', name: 'init' }]);
   const [form] = Form.useForm();
 
   const addTeam = () => {

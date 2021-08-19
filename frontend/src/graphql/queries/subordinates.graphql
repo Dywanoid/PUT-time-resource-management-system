@@ -1,0 +1,6 @@
+query GetAllSubordinates($userId: ID!) {
+    getAllSubordinates(userId: $userId) {
+        name,
+        id
+    }
+}

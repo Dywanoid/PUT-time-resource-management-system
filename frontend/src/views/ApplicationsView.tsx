@@ -11,7 +11,8 @@ import {
   useCreateHolidayRequestMutation,
   HolidayRequestStatus,
   HolidayRequestType,
-  useGetHolidayRequestsLazyQuery
+  useGetHolidayRequestsLazyQuery,
+  useGetAllSubordinatesQuery
 } from '../generated/graphql';
 import moment from 'moment';
 import { UserContext } from '../utils/auth';
@@ -40,6 +41,8 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
   const [endDate, setEndDate] = useState(Date);
   const [userId, setUserId] = useState('');
   const [userRole, setUserRole] = useState<string[]>([]);
+  const { data: userSubordinates }
+  = useGetAllSubordinatesQuery({ fetchPolicy: 'no-cache', variables:{ userId: userId } });
   const [getUsersHolidayRequests, { data: usersApplicationData }] = useGetHolidayRequestsLazyQuery();
   const [getUserHolidayRequests, { data: userApplicationData }] = useGetHolidayRequestsLazyQuery();
   const [createApplication] = useCreateHolidayRequestMutation({
@@ -80,13 +83,14 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
   };
 
   if (userInfo !== null && userInfo !== undefined && userId.length === 0 && userRole.length === 0
-    && userInfo.supervisor !== undefined && userInfo.subordinates){
+    && userInfo.supervisor !== undefined && userInfo.subordinates
+    && userSubordinates?.getAllSubordinates !== undefined) {
     setUserId(userInfo.id || '');
     const userR = userInfo.roles as any;
     const subordinatesList: Array<string> = [];
 
-    for (const user in userInfo.subordinates) {
-      subordinatesList.push(userInfo.subordinates[user].id);
+    for (const user in userSubordinates?.getAllSubordinates) {
+      subordinatesList.push(userSubordinates?.getAllSubordinates[user].id);
     }
 
     setUserRole(userInfo.roles as any);
