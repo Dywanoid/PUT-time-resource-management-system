@@ -87,7 +87,7 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
   = useGetAllTeamsQuery({ fetchPolicy: 'no-cache' });
   let userApplications = [] as any;
 
-  if (user?.roles.includes('manager')) {
+  if (user?.roles.includes('holiday_request_approver')) {
     userApplications = applicationData?.holidayRequests || [];
   } else {
     userApplications = dayOffsData?.daysOff || [];
@@ -102,7 +102,7 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
       const data: string[] = [];
 
       if(!loading && !error) {
-        if (user?.roles.includes('manager')) {
+        if (user?.roles.includes('holiday_request_approver')) {
           for (let i = 0; i < users.length; i++) {
             data.push( users[i].id );
             usersHtml.push(
@@ -191,7 +191,7 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
               { item.name.match(/\b(\w)/g) }
             </Avatar>
             { ' ' }
-            { user.roles.includes('manager')
+            { user?.roles.includes('holiday_request_approver')
               ? intl.formatMessage({ id: item.content.toLowerCase() })
               : item.name
             }
@@ -202,7 +202,7 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
   };
 
   const changeDateCellRender = (value) => {
-    if (user?.roles.includes('manager')) {
+    if (user?.roles.includes('holiday_request_approver')) {
       refetchApplicationData({
         end:value.clone().endOf('month')
         , requestStatuses: ['ACCEPTED']
@@ -227,7 +227,7 @@ export const CalendarView = injectIntl(({ intl }): JSX.Element => {
               { item.name.match(/\b(\w)/g) }
             </Avatar>
             { ' ' }
-            { user.roles.includes('manager')
+            { user?.roles.includes('holiday_request_approver')
               ? intl.formatMessage({ id: item.content.toLowerCase() })
               : item.name
             }
