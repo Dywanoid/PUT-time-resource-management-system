@@ -34,11 +34,11 @@ export const Navigation = injectIntl(({ intl }): JSX.Element => {
             { intl.formatMessage({ id: 'time_logging' }) }
           </Link>
         </Menu.Item>
-        <Menu.Item key="2">
+        {userRoles.includes('client_editor') && <Menu.Item key="2">
           <Link to="/clients" className="nav-text">
             { intl.formatMessage({ id: 'clients' }) }
           </Link>
-        </Menu.Item>
+        </Menu.Item>}
         <SubMenu
           key="SubMenu1"
           title={ intl.formatMessage({ id: 'calendar_and_applications' }) }
@@ -75,11 +75,13 @@ export const Navigation = injectIntl(({ intl }): JSX.Element => {
           key="SubMenu3"
           title={ intl.formatMessage({ id: 'reports' }) }
         >
-          <Menu.Item key="7">
+          { userRoles.includes('report_viewer')
+          && <Menu.Item key="7">
             <Link to="/reports" className="nav-text">
               { intl.formatMessage({ id: 'reports' }) }
             </Link>
           </Menu.Item>
+          }
           <Menu.Item key="8">
             <Link to="/userReports" className="nav-text">
               { intl.formatMessage({ id: 'users_reports' }) }
