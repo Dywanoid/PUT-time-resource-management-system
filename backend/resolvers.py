@@ -712,9 +712,8 @@ def resolve_holiday_requests(obj, info, request_statuses = [], request_types = [
         permitted_to = subordinates.union({current_user.id})
         if(not wanted_users.issubset(permitted_to)):
             role_check('holiday_request_approver')
-    result = HolidayRequest.query.filter(*filters).all()
+    result = HolidayRequest.query.filter(*filters).order_by(HolidayRequest.created_at.desc()).all()
     return result
-
 
 @query.field("daysOff")
 @convert_kwargs_to_snake_case

@@ -92,7 +92,6 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
     for (const user in userSubordinates?.getAllSubordinates) {
       subordinatesList.push(userSubordinates?.getAllSubordinates[user].id);
     }
-
     setUserRole(userInfo.roles as any);
     if (userR.includes('holiday_request_approver')) {
       getUsersHolidayRequests({ variables: { userList: subordinatesList } });
@@ -165,30 +164,19 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
       case 'USER_ACCEPTED':
         return [<div key="3">{ intl.formatMessage({ id: 'accepted' }) }</div>];
       case 'MANAGER_PENDING':
-        if (userInfo?.supervisor.name.length === 0) {
-          return (
-            [<a key="3"
-              onClick={() => handleEventChange(requestStatuses[2],item.id)}
-            >
-              { intl.formatMessage({ id: 'reject' }) }
-            </a>
-            ,
-            <a key="4"
-              onClick={() => handleEventChange(requestStatuses[1],item.id)}
-            >
-              { intl.formatMessage({ id: 'accept' }) }
-            </a>]
-          );
-        } else {
-          return (
-            [<a key="1"
-              onClick={() => handleEventChange(requestStatuses[3],item.id)}
-            >
-              { intl.formatMessage({ id: 'cancel' }) }
-            </a>]
-          );
-        }
-
+        return (
+          [<a key="3"
+            onClick={() => handleEventChange(requestStatuses[2],item.id)}
+          >
+            { intl.formatMessage({ id: 'reject' }) }
+          </a>
+          ,
+          <a key="4"
+            onClick={() => handleEventChange(requestStatuses[1],item.id)}
+          >
+            { intl.formatMessage({ id: 'accept' }) }
+          </a>]
+        );
       default:
         return [];
     }
@@ -241,7 +229,9 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
         renderItem={ (item: any) => (
           <List.Item
             actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
-              ? userRole.includes('holiday_request_approver') === true ? 'MANAGER' : ''
+              && (userRole.includes('holiday_request_approver')
+              && userInfo?.supervisor.name.length === 0) === true
+              ? 'MANAGER'
               : 'USER', item)
             }
           >
@@ -274,30 +264,32 @@ export const ApplicationsView = injectIntl(({ intl }): JSX.Element => {
           dataSource={ [...usersApplications] }
           pagination={ { pageSize: 10 } }
           renderItem={ (item: any) => (
-            <List.Item
-              actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
-                ? userRole.includes('holiday_request_approver') === true ? 'MANAGER' : ''
-                : 'USER', item)
-              }
-            >
-              <List.Item.Meta
-                title={ <div>
-                  { intl.formatMessage({ id: item.type.toLowerCase() }) + ' - ' }
-                  { item.user.name }
-                </div> }
-                description={ <div>
-                  { intl.formatMessage({ id: 'from' }) }
-                  { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
-                  { intl.formatMessage({ id: 'to' }) }
-                  { ' ' + moment(item.endDate).format('DD-MM-YYYY') }
-                </div> }
-                avatar={ <Avatar style={
-                  { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
-                size={ 64 } gap={ 1 } shape="square">
-                  { intl.formatMessage({ id: `${ item.type.toLowerCase() }_avatar` }) }
-                </Avatar> }
-              />
-            </List.Item>
+            item.user.id !== userId
+              ? <List.Item
+                actions={ switchCase(userRole[0]!== undefined && userRole[0].length > 0
+                  ? userRole.includes('holiday_request_approver') === true ? 'MANAGER' : ''
+                  : 'USER', item)
+                }
+              >
+                <List.Item.Meta
+                  title={ <div>
+                    { intl.formatMessage({ id: item.type.toLowerCase() }) + ' - ' }
+                    { item.user.name }
+                  </div> }
+                  description={ <div>
+                    { intl.formatMessage({ id: 'from' }) }
+                    { '  ' + moment(item.startDate).format('DD-MM') + ' ' }
+                    { intl.formatMessage({ id: 'to' }) }
+                    { ' ' + moment(item.endDate).format('DD-MM-YYYY') }
+                  </div> }
+                  avatar={ <Avatar style={
+                    { backgroundColor: colorHash(item.type), verticalAlign: 'middle' } }
+                  size={ 64 } gap={ 1 } shape="square">
+                    { intl.formatMessage({ id: `${ item.type.toLowerCase() }_avatar` }) }
+                  </Avatar> }
+                />
+              </List.Item>
+              : null
           ) }
         />) }
     </Layout>
